@@ -102,7 +102,7 @@ async function init(){
   // Never open the production site's database from a preview deployed under that host.
 if (
   location.hostname !== 'piimanbokumetsu-code.github.io' ||
-  location.pathname !== '/msw-v1010-test/'
+ !location.pathname.startsWith('/msw-v1010-test')
 ) {
   document.getElementById('app').textContent =
     'このテスト版は指定されたテスト用URLでのみ起動できます。';
