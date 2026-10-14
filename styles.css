@@ -1,0 +1,292 @@
+:root{--bg:#f4f7f7;--card:#fff;--ink:#173033;--muted:#687b7d;--line:#d9e4e4;--brand:#0f766e;--brand2:#14b8a6;--warn:#c2410c;--danger:#b91c1c;--shadow:0 6px 24px rgba(15,60,60,.08)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}body{min-height:100vh}
+button,input,select,textarea{font:inherit}button{touch-action:manipulation}.hidden{display:none!important}
+.shell{min-height:100vh;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}.brand{font-weight:800;font-size:20px;letter-spacing:.02em}.spacer{flex:1}.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;color:var(--ink)}
+.content{padding:16px;max-width:1200px;margin:auto}.hero{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}.hero h1{font-size:24px;margin:0}.hero p{margin:4px 0 0;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 18px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow)}.kpi b{font-size:24px;display:block}.kpi span{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}.toolbar input,.toolbar select{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;min-height:44px}.toolbar input{flex:1;min-width:180px}.btn{border:0;border-radius:12px;padding:11px 14px;background:var(--brand);color:#fff;font-weight:700}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.warn{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}.btn.danger{background:#fff1f2;color:var(--danger);border:1px solid #fecdd3}.btn:disabled{opacity:.45}
+.section{margin:18px 0}.section-title{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;margin:0 0 8px}.count{font-size:12px;background:#dff5f1;color:#0f766e;padding:3px 8px;border-radius:999px}
+.patient-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.patient-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow);cursor:pointer;min-height:104px}.patient-card:active{transform:scale(.99)}.pc-head{display:flex;align-items:center;gap:8px}.bed{font-size:13px;font-weight:800;color:#0f766e;background:#e6fffb;border-radius:8px;padding:4px 7px}.name{font-size:17px;font-weight:800}.pc-meta{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.tag{font-size:11px;border-radius:999px;padding:4px 8px;background:#eef2f2;color:#425556}.tag.orange{background:#fff7ed;color:#9a3412}.tag.red{background:#fff1f2;color:#b91c1c}.tag.green{background:#ecfdf5;color:#047857}.tag.purple{background:#f5f3ff;color:#6d28d9}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom));backdrop-filter:blur(14px)}.navbtn{border:0;background:transparent;padding:9px 4px;color:var(--muted);font-size:12px;font-weight:700}.navbtn.active{color:var(--brand)}.navbtn .ico{display:block;font-size:22px;margin-bottom:2px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}.panel h2,.panel h3{margin:0 0 12px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field label{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;min-height:42px}.field textarea{min-height:82px;resize:vertical}.span2{grid-column:span 2}
+.modal{position:fixed;inset:0;z-index:80;background:rgba(7,28,29,.42);display:flex;align-items:stretch;justify-content:center}.sheet{background:var(--bg);width:min(100%,1100px);height:100%;overflow:auto}.sheethead{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;gap:10px;align-items:center}.sheethead h2{margin:0;font-size:20px}.tabs{position:sticky;top:65px;z-index:4;background:var(--bg);display:flex;gap:6px;overflow:auto;padding:8px 14px;border-bottom:1px solid var(--line)}.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}.sheetbody{padding:14px;max-width:1000px;margin:auto}
+.timeline{display:flex;flex-direction:column;gap:8px}.note{border-left:4px solid var(--brand2);background:#fff;border-radius:10px;padding:10px 12px}.note .time{font-size:11px;color:var(--muted)}.note .type{font-weight:800;margin:3px 0}.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+.drug-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.drug{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}.drug b{font-size:17px}.drug .small{font-size:12px;color:var(--muted);margin-top:4px}.drug .effect{font-size:13px;white-space:pre-wrap;margin-top:8px}
+.lockwrap{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#dff7f3,#f7fbfb)}.lockcard{width:min(100%,430px);background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(10,60,60,.15)}.lockcard h1{margin:0 0 5px}.lockcard p{color:var(--muted)}.lockcard input{width:100%;font-size:22px;letter-spacing:.12em;text-align:center;padding:14px;border:1px solid var(--line);border-radius:14px;margin:10px 0}.notice{font-size:12px;color:var(--muted);line-height:1.6}.alert{padding:10px 12px;border-radius:10px;margin:10px 0;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}.success{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+.settings-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.settings-row:last-child{border-bottom:0}.settings-row small{display:block;color:var(--muted);margin-top:3px}.storagebar{height:10px;background:#e7eeee;border-radius:999px;overflow:hidden;margin-top:8px}.storagebar>div{height:100%;background:var(--brand2)}
+@media(max-width:800px){.patient-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,1fr)}.drug-list{grid-template-columns:1fr}}
+@media(max-width:520px){.patient-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.span2{grid-column:span 1}.topbar{padding-left:10px;padding-right:10px}.content{padding:10px}.hero h1{font-size:21px}}
+@media print{.topbar,.bottomnav,.toolbar,.no-print,.tabs{display:none!important}.shell{padding:0}.content{max-width:none;padding:0}.patient-grid{display:table;width:100%;border-collapse:collapse}.patient-card{display:table-row;box-shadow:none;border:0}.patient-card>*{display:table-cell;border-bottom:1px solid #aaa;padding:6px}.tags{display:none}.section{page-break-inside:avoid}.kpis,.hero p{display:none}.hero{margin:0}.hero h1{font-size:18px}}
+
+.field select[data-master-field]{background:#fff;cursor:pointer}.field select[data-master-field]:focus{outline:2px solid rgba(20,184,166,.18);border-color:var(--brand2)}
+.backupwarn{background:#fff7ed;color:#9a3412;border-color:#fed7aa;font-weight:800}
+@media(max-width:620px){.topbar .pill:nth-of-type(2){display:none}.backupwarn{display:inline-block!important}}
+
+
+/* ===== 病床マップ Ver.1.0.1 ===== */
+
+.map-section{
+  margin:18px 0 28px;
+}
+
+.map-section-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.map-section-title > div{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+
+.map-section-title strong{
+  font-size:20px;
+}
+
+.map-section-title span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.map-section-title .count{
+  margin-left:auto;
+}
+
+.room-map{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.room-block{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+
+.room-title{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.bed-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+
+.bed-slot{
+  appearance:none;
+  width:100%;
+  min-height:130px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--card);
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.bed-slot:hover{
+border-color:var(--brand);
+}
+
+.bed-slot b{
+  font-size:14px;
+}
+
+.bed-slot strong{
+  font-size:16px;
+}
+
+.bed-slot > span{
+  font-size:13px;
+}
+
+.bed-slot small{
+  color:var(--muted);
+}
+
+.bed-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+}
+
+.empty-bed{
+  border-style:dashed;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  opacity:.75;
+}
+
+.empty-bed span{
+  font-size:16px;
+  font-weight:700;
+}
+
+.occupied-bed{
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+
+@media(max-width:800px){
+  .room-map{
+    grid-template-columns:1fr;
+  }
+
+  .bed-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:520px){
+  .bed-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+
+/* ===== 朝一患者一覧 印刷 Ver.1.0.5 ===== */
+.morning-print{display:none}
+@media print{
+  @page{size:A4 portrait;margin:4.5mm 5mm}
+  html,body{margin:0!important;padding:0!important;background:#fff!important}
+  body>*:not(.morning-print){display:none!important}
+  .morning-print{display:block!important;color:#000;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+  .morning-page{display:block;width:100%;height:auto!important;min-height:0!important;overflow:visible!important;break-after:page;page-break-after:always}
+  .morning-page:last-child{break-after:auto;page-break-after:auto}
+  .morning-head{height:7mm;display:flex;align-items:flex-start;justify-content:space-between;gap:4mm;white-space:nowrap}
+  .morning-head h1{font-size:13pt;line-height:1;margin:0;font-weight:800}
+  .morning-head div{font-size:7pt;line-height:1.2}
+  .morning-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:5.8pt;line-height:1}
+  .morning-table th,.morning-table td{border:.35pt solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;white-space:nowrap;overflow:hidden;text-overflow:clip}
+  .morning-table th{height:8mm;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:5.5pt;font-weight:700}
+  .morning-table td{height:7.5mm}
+  .morning-table tr{break-inside:avoid;page-break-inside:avoid}
+  .morning-table .c-bed{width:5.1%}.morning-table .c-id{width:6.1%}.morning-table .c-name{width:9.7%}.morning-table .c-admit{width:5.6%}.morning-table .c-doc{width:5.1%}.morning-table .c-address{width:4.6%}.morning-table .c-disease{width:9.7%}.morning-table .c-care{width:5.1%}.morning-table .c-facility{width:12.8%}.morning-table .c-memo{width:28.1%}.morning-table .c-family{width:6.6%}.morning-table .c-days{width:6.6%}
+}
+
+/* Ver.1.0.8: show every patient assigned to the same bed */
+.duplicate-bed{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px}
+.duplicate-bed .bed-line{align-self:stretch;text-align:left}
+.duplicate-bed strong{font-size:15px}
+.duplicate-list{padding:14px;max-width:850px;margin:auto;display:flex;flex-direction:column;gap:12px}
+.duplicate-patient{display:flex;flex-direction:column;gap:10px}
+.duplicate-patient .patient-card{cursor:default}
+.duplicate-open{align-self:flex-start}
+
+/* v1.0.9: visible duplicate indicator and inline bed reassignment */
+.duplicate-bed strong,.duplicate-warning{color:#c62828;font-weight:800}
+.duplicate-patient-row{display:flex;gap:12px;align-items:flex-start}
+.duplicate-patient-info{flex:1;min-width:0}
+.duplicate-move{width:155px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.duplicate-move label{font-size:13px;font-weight:700}
+.duplicate-bed-select{max-width:100%;min-height:40px;border:1px solid #aaa;border-radius:8px;background:white;padding:5px}
+.duplicate-move-save{white-space:normal}
+@media(max-width:520px){.duplicate-patient-row{flex-wrap:wrap}.duplicate-move{width:100%;flex-direction:row;align-items:center;flex-wrap:wrap}.duplicate-move label{width:100%}.duplicate-bed-select{flex:1;min-width:100px}}
+
+/* Approved 67-bed demo layout: room cards in a vertical stack. */
+.general-room-map{display:flex!important;flex-direction:column;gap:11px;min-width:0}
+.general-room-map>.standard-room{display:block;min-width:0;grid-column:auto!important}
+.general-room-map .room-block{background:#fff;border:1px solid #dce4ed;border-radius:13px;padding:11px;min-width:0;box-shadow:0 1px 5px #21354d0b}
+.general-room-map .room-title{font-size:16px;margin-bottom:9px;color:#23334b}
+.general-room-map .standard-room .bed-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(148px,1fr);grid-template-columns:none!important;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.general-room-map .bed-slot{min-width:0;min-height:76px;padding:8px;border:1px solid #d6e1ee;border-radius:10px;gap:4px}
+.general-room-map .occupied-bed{background:#f1f7ff}
+.general-room-map .empty-bed{background:#f8fafc;border-style:dashed;opacity:1}
+.general-room-map .bed-slot b{font-size:11px;color:#426c99}
+.general-room-map .bed-slot strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.general-room-map .bed-meta.admission-line{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;gap:5px;align-items:center;width:100%;max-width:100%;font-size:11px!important;white-space:nowrap;overflow:hidden}
+.general-room-map .admission-line .doctor{min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.general-room-map .admission-line .days{white-space:nowrap;font-weight:700;color:#185e9d}
+.general-room-map .compact-room-guide{font-size:12px;color:#61728a;margin-top:4px;padding:2px 4px}
+.general-room-map .compact-room-guide span{font-weight:700;color:#185e9d}
+.general-room-map .compact-room-scroll{display:block;min-width:0;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:7px;scrollbar-width:auto}
+.general-room-map .compact-room-row{display:flex;align-items:stretch;gap:10px;width:max-content;min-width:max-content}
+.general-room-map .compact-room-row .compact-room{flex:none;width:172px;min-width:172px}
+.general-room-map .compact-room-row .two-bed-room{width:330px;min-width:330px}
+.general-room-map .compact-room-row .room-block{height:100%;padding:11px}
+.general-room-map .compact-room-row .bed-grid{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:7px}
+.general-room-map .compact-room-row .two-bed-room .bed-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.general-room-map .compact-room-row .bed-slot{width:100%}
+@media(max-width:600px){.general-room-map .room-block{padding:9px}.general-room-map .compact-room-row{gap:8px}}
+
+/* Layout demo parity: explicit full-width room rows. */
+#patientList .general-room-map{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%;min-width:0}
+#patientList .general-room-map>.standard-room{display:block!important;width:100%!important;min-width:0!important}
+#patientList .general-room-map>.standard-room .bed-grid{display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(148px,1fr)!important;grid-template-columns:none!important;overflow-x:auto!important}
+#patientList .general-room-map>.compact-room-scroll{width:100%!important;overflow-x:auto!important}
+#patientList .general-room-map .compact-room-row{display:flex!important;flex-wrap:nowrap!important;width:max-content!important}
+#patientList .general-room-map .compact-room-row>.compact-room{display:block!important;flex:0 0 172px!important}
+#patientList .general-room-map .compact-room-row>.two-bed-room{flex-basis:330px!important}
+#patientList .general-room-map .compact-room-row .two-bed-room .bed-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-flow:row!important}
+#patientList .general-room-map .compact-room-row .compact-room:not(.two-bed-room) .bed-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-flow:row!important}
+
+/* iPad mini fit-to-width ward map: no horizontal clipping of official beds. */
+#patientList .general-room-map>.standard-room .bed-grid{
+  display:grid!important;grid-auto-flow:row!important;grid-auto-columns:auto!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  overflow-x:visible!important;gap:4px!important;
+}
+#patientList .general-room-map>.standard-room:has(.bed-grid>.bed-slot:nth-child(7)) .bed-grid{
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+}
+#patientList .general-room-map>.compact-room-scroll{overflow-x:visible!important;padding-bottom:0!important}
+#patientList .general-room-map .compact-room-row{
+  display:grid!important;grid-template-columns:2fr 2fr 1fr 1fr 1fr!important;
+  width:100%!important;min-width:0!important;gap:5px!important;
+}
+#patientList .general-room-map .compact-room-row>.compact-room,
+#patientList .general-room-map .compact-room-row>.two-bed-room{
+  width:auto!important;min-width:0!important;flex-basis:auto!important;
+}
+#patientList .general-room-map .compact-room-row .room-block{padding:5px!important}
+#patientList .general-room-map .compact-room-row .bed-grid{gap:3px!important}
+#patientList .general-room-map .compact-room-guide{display:none!important}
+#patientList .icu-map{display:flex!important;flex-direction:column!important;gap:11px!important;min-width:0}
+#patientList .icu-map>.room-block{width:100%;min-width:0}
+#patientList .icu-map>.room-block .bed-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:4px!important}
+#patientList .icu-map>.room-block:has(.bed-grid>.bed-slot:nth-child(9)) .bed-grid{grid-template-columns:repeat(9,minmax(0,1fr))!important}
+#patientList .general-room-map .bed-slot,#patientList .icu-map .bed-slot{
+  min-width:0!important;min-height:76px;padding:5px 3px!important;gap:3px!important;overflow:hidden;
+}
+#patientList .general-room-map .bed-slot b,#patientList .icu-map .bed-slot b{font-size:clamp(8px,1.4vw,11px)!important;overflow-wrap:anywhere}
+#patientList .general-room-map .bed-slot strong,#patientList .icu-map .bed-slot strong{font-size:clamp(10px,1.65vw,14px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#patientList .general-room-map .bed-meta.admission-line,#patientList .icu-map .bed-meta.admission-line{display:flex!important;justify-content:space-between;gap:2px!important;white-space:nowrap;font-size:clamp(7px,1.1vw,10px)!important;min-width:0}
+#patientList .general-room-map .bed-meta.admission-line>* ,#patientList .icu-map .bed-meta.admission-line>*{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#patientList .general-room-map .bed-slot .tags,#patientList .icu-map .bed-slot .tags{display:none!important}
+#patientList .general-room-map .room-title,#patientList .icu-map .room-title{font-size:14px;margin-bottom:5px}
+@media(max-width:800px){
+  #patientList .general-room-map .room-block,#patientList .icu-map .room-block{padding:6px}
+  #patientList .general-room-map>.standard-room .bed-grid,#patientList .icu-map .bed-grid{gap:3px!important}
+  #patientList .general-room-map .compact-room-row{gap:3px!important}
+}
+
+/* 20261013c: iPad mini viewport fit — ICU full width, small rooms no intrinsic overflow. */
+#patientList .icu-map{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;gap:10px!important}
+#patientList .icu-map>.room-block{grid-column:1 / -1!important;min-width:0!important;width:100%!important}
+#patientList .icu-map>.room-block .bed-grid{display:grid!important;grid-auto-flow:row!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;min-width:0!important;width:100%!important;overflow:visible!important}
+#patientList .icu-map>.room-block:nth-child(3) .bed-grid{grid-template-columns:repeat(9,minmax(0,1fr))!important}
+#patientList .general-room-map>.compact-room-scroll{max-width:100%!important;min-width:0!important;overflow-x:clip!important}
+#patientList .general-room-map .compact-room-row{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(0,2fr) repeat(3,minmax(0,1fr))!important;width:100%!important;max-width:100%!important;min-width:0!important;gap:3px!important}
+#patientList .general-room-map .compact-room-row>.compact-room{min-width:0!important;width:100%!important;max-width:100%!important;overflow:hidden!important}
+#patientList .general-room-map .compact-room-row .room-block{min-width:0!important;max-width:100%!important;overflow:hidden!important;padding:3px!important}
+#patientList .general-room-map .compact-room-row .bed-grid{min-width:0!important;width:100%!important;grid-auto-columns:minmax(0,1fr)!important}
+#patientList .general-room-map .compact-room-row .two-bed-room .bed-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#patientList .general-room-map .compact-room-row .bed-slot{min-width:0!important;width:100%!important;padding:3px 1px!important;overflow:hidden!important}
+#patientList .general-room-map .compact-room-row .room-title{font-size:clamp(9px,1.5vw,13px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#patientList .general-room-map .compact-room-row .bed-slot b{font-size:clamp(7px,1vw,10px)!important}
+#patientList .general-room-map .compact-room-row .bed-slot strong{font-size:clamp(8px,1.3vw,12px)!important}
+#patientList .general-room-map .compact-room-row .admission-line{font-size:clamp(6px,0.85vw,9px)!important}

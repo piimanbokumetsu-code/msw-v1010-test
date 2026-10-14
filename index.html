@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0f766e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>MSW患者管理 ローカル専用テスト</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="stylesheet" href="styles.css?v=photo-20261013e-localtest" />
+<meta name="application-name" content="MSW-DB" />
+<script>
+/* 2026-10-13: Refresh an installed PWA without clearing its IndexedDB. */
+(function(){
+ if(!('serviceWorker' in navigator))return;
+ var key='msw-layout-controller-20261013c';
+ navigator.serviceWorker.addEventListener('controllerchange',function(){
+   try { if(sessionStorage.getItem(key))return; sessionStorage.setItem(key,'1'); }catch(e){}
+   location.reload();
+ });
+ window.addEventListener('load',function(){
+   navigator.serviceWorker.getRegistration().then(function(reg){
+     if(!reg)return;
+     reg.update().catch(function(){});
+     if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+     reg.addEventListener('updatefound',function(){
+       var w=reg.installing;if(!w)return;
+       w.addEventListener('statechange',function(){
+         if(w.state==='installed'&&navigator.serviceWorker.controller){
+           w.postMessage({type:'SKIP_WAITING'});
+         }
+       });
+     });
+   }).catch(function(){});
+ });
+})();
+</script>
+</head>
+<body>
+<div role="note" style="position:relative;z-index:100;background:#fff3cd;color:#633d00;padding:9px 14px;text-align:center;font:600 14px/1.5 system-ui,sans-serif;border-bottom:2px solid #d59b24">【公開前テスト専用】架空の患者データだけを使用してください。現在の患者情報や本番バックアップは読み込まないでください。</div>
+<div id="app"></div>
+<input id="fileInput" type="file" hidden />
+<script src="app.js?v=photo-20261013e-localtest"></script>
+</body>
+</html>
