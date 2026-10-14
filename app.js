@@ -100,14 +100,14 @@ function blankState(){return{version:APP_VERSION,patients:[],drugs:[],masters:{}
 async function init(){
   // Test candidate only: GitHub Pages shares IndexedDB across paths on the same origin.
   // Never open the production site's database from a preview deployed under that host.
-  if(!['127.0.0.1','localhost'].includes(location.hostname)){
-    document.getElementById('app').innerHTML='<div class="lockwrap"><div class="lockcard"><h1>このテスト版は起動できません</h1><p>このZIPはパソコンのローカル専用テスト環境でのみ使用できます。</p><p>現在の正式サイトや他のWebサイトでは起動しません。</p></div></div>';
-    return;
-  }
-  if(location.hostname==='piimanbokumetsu-code.github.io'){
-    document.getElementById('app').innerHTML='<div class="lockwrap"><div class="lockcard"><h1>テスト版は起動できません</h1><p>現在の正式版と同じサイトでは、患者データを守るためテスト版を起動しません。</p><p>別のテスト専用サイトを使用してください。</p></div></div>';
-    return;
-  }
+if (
+  location.hostname !== 'piimanbokumetsu-code.github.io' ||
+  location.pathname !== '/msw-v1010-test/'
+) {
+  document.getElementById('app').textContent =
+    'このテスト版は指定されたテスト用URLでのみ起動できます。';
+  return;
+}
   await openDB();meta=await idbGet('meta');if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update().catch(()=>{})).catch(()=>{});try{if(navigator.storage?.persist)await navigator.storage.persist()}catch(e){}renderLock()}
 function renderLock(msg=''){document.getElementById('morningPrint')?.remove();const fresh=!meta;$('#app').innerHTML=`<div class="lockwrap"><div class="lockcard"><h1>MSW患者管理</h1><p>${fresh?'初回設定：この端末用の暗証を作成します。':'暗証を入力してロック解除してください。'}</p>${msg?`<div class="alert">${esc(msg)}</div>`:''}<input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="6文字以上" /><button class="btn" id="unlock" style="width:100%">${fresh?'暗証を設定':'ロック解除'}</button><p class="notice">患者情報は端末内で暗号化して保存します。暗証を忘れると復旧できません。端末自体のパスコード・紛失対策も必ず有効にしてください。</p></div></div>`;$('#unlock').onclick=fresh?setup:unlock;$('#pin').onkeydown=e=>{if(e.key==='Enter')$('#unlock').click()};setTimeout(()=>$('#pin').focus(),80)}
 async function setup(){const pin=$('#pin').value;if(pin.length<6)return renderLock('暗証は6文字以上にしてください。');const salt=crypto.getRandomValues(new Uint8Array(16));key=await derive(pin,salt);const check=await encryptObj({ok:true});meta={version:1,salt:b64(salt),check,createdAt:nowISO()};await idbSet('meta',meta);state=blankState();ensureStateSchema();await save();purgeExpired();render();}
