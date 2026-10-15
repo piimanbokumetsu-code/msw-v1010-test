@@ -348,3 +348,50 @@ border-color:var(--brand);
 .patient-save-status[data-state="pending"],.patient-save-status[data-state="saving"]{background:#fffbeb;color:#92400e}
 .patient-save-status[data-state="error"]{background:#fff1f2;color:#b91c1c;white-space:normal}
 @media(max-width:680px){.sheethead{flex-wrap:wrap}.sheethead .spacer{flex-basis:0}.patient-save-status{order:5;margin-left:45px}.sheethead #saveP{font-size:12px;padding:9px 10px}}
+
+
+/* Ver.1.0.19: compact, editable patient overview for iPad mini. */
+/* Keep the tab rail within the modal; only the content zone scrolls if necessary. */
+#modal .sheet{display:flex;flex-direction:column;overflow:hidden;height:100%;height:100dvh}
+#modal .sheethead,#modal .tabs{position:relative;top:auto;flex-shrink:0}
+#modal .tabs{scrollbar-width:thin;overscroll-behavior-x:contain}
+#modal .sheetbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;width:100%;max-width:1100px;padding:10px 12px calc(16px + env(safe-area-inset-bottom))}
+.basic-dashboard{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(230px,1fr);gap:10px;align-items:start}
+.basic-information,.basic-photo-card,.basic-admission-card{min-width:0;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px}
+.basic-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px;align-items:start}
+.basic-field{min-width:0}
+.basic-field.basic-wide{grid-column:span 2}
+.basic-field label{font-weight:700;font-size:11px;color:#485e61;margin-bottom:3px}
+.basic-field input,.basic-field select,.basic-field textarea{padding:7px 9px;min-height:35px;border-radius:8px;font-size:14px;line-height:1.3}
+.basic-field textarea{height:48px;min-height:48px;resize:vertical}
+.basic-field input:focus,.basic-field textarea:focus{outline:2px solid rgba(20,184,166,.28);border-color:var(--brand)}
+.basic-bed-picker{font-size:13px;padding:7px 9px;width:100%;min-height:35px;text-align:left;white-space:normal}
+.basic-readonly{border:1px solid #d8e7e4;border-radius:8px;background:#edf8f6;color:#155e59;font-size:14px;font-weight:700;padding:7px 9px;min-height:35px}
+.basic-docs{display:grid;gap:10px;min-width:0}
+.basic-card-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:7px}
+.basic-card-title span{font-size:11px;color:var(--muted);white-space:nowrap}
+.basic-gen-preview{width:100%;height:clamp(180px,32vh,310px);background:#f7fafb;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;line-height:1.7;overflow:hidden;padding:5px}
+.basic-gen-preview img{display:block;width:100%;height:100%;object-fit:contain}
+.basic-gen-preview img[hidden]{display:none}
+.basic-gen-preview:focus-visible,.basic-admission-open:focus-visible{outline:3px solid var(--brand2)}
+.basic-admission-open{border:1px solid var(--line);border-radius:9px;background:#f7fafb;display:flex;align-items:center;gap:9px;padding:12px 10px;min-height:64px;width:100%;text-align:left;font-size:13px;font-weight:700;color:var(--ink)}
+.basic-document-icon{font-size:22px}
+.basic-admission-open span:nth-child(2){flex:1;min-width:0}
+.basic-admission-open small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:3px}
+.basic-admission-open span:last-child{font-size:22px;color:var(--brand)}
+@media(min-width:900px) and (max-height:800px){
+  #modal .sheethead{padding-top:8px;padding-bottom:8px}
+  #modal .tabs{padding-top:5px;padding-bottom:5px}
+  .basic-gen-preview{height:clamp(160px,27vh,220px)}
+}
+@media(max-width:680px){
+  .basic-dashboard{grid-template-columns:1fr}
+  .basic-docs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .basic-gen-preview{height:190px}
+}
+@media(max-width:420px){.basic-form-grid{grid-template-columns:1fr}.basic-field.basic-wide{grid-column:span 1}.basic-docs{grid-template-columns:1fr}}
+
+.basic-extra{margin-top:9px;border-top:1px solid var(--line);padding-top:6px}
+.basic-extra summary{cursor:pointer;color:var(--brand);font-size:12px;font-weight:700;padding:4px 0;line-height:1.5}
+.basic-extra-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:8px}
+@media(max-width:420px){.basic-extra-grid{grid-template-columns:1fr}.basic-extra-grid .span2{grid-column:span 1}}

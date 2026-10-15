@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_secure_v1', STORE='kv';
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='1.0.18';
+const APP_VERSION='1.0.19';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -57,7 +57,7 @@ function bindMasterSelects(root=document){
   });
 }
 
-const legacyFields=['ADL調査日','DM注','ＩＤ','KP','KP職業','KP年齢','MMT右下','MMT右上','MMT左下','MMT左上','かかりつけ','ケアマネ・施設','コール','スケール','スケール：点数','ベッド番号','リハ状況','移乗','移動器具','家屋','家構','介護度','介護連携','検討会','高次脳','氏名','主治医','住所','術式','食事','食事：介助量','水分：トロミ','睡眠','睡眠：薬剤','退院支援','調査日','入院元','入院時介護度','入院日','入院日数','排泄','排泄：介助量','排泄：尿便意','排泄：利用','番号','備考','病名','保険','本人職業','問題行動'];
+const legacyFields=['ADL調査日','DM注','ＩＤ','KP','KP職業','KP年齢','MMT右下','MMT右上','MMT左下','MMT左上','かかりつけ','ケアマネ・施設','コール','スケール','スケール：点数','ベッド番号','リハ状況','移乗','移動器具','家屋','家構','介護度','介護連携','介護情報','検討会','高次脳','氏名','主治医','住所','術式','食事','食事：介助量','水分：トロミ','睡眠','睡眠：薬剤','退院支援','調査日','入院元','入院時介護度','入院日','入院日数','排泄','排泄：介助量','排泄：尿便意','排泄：利用','番号','備考','病名','保険','本人職業','問題行動'];
 const groups={
   basic:['ベッド番号','ＩＤ','氏名','入院日','主治医','病名','住所','保険','本人職業','術式','入院元','かかりつけ','家構'],
   care:['KP','KP職業','KP年齢','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援'],
@@ -67,7 +67,22 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function nowISO(){return new Date().toISOString()}
 function fmtDate(v){if(!v)return'';const d=new Date(v);if(isNaN(d))return v;return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`}
-function daysSince(v){if(!v)return'';const d=new Date(v);if(isNaN(d))return'';return Math.max(0,Math.floor((Date.now()-d.getTime())/86400000)+1)}
+function daysSince(v){
+  if(!v)return'';
+  // A date-only string is parsed as UTC by Safari. Compare local calendar dates,
+  // otherwise admission-day count changes at 09:00 JST rather than midnight.
+  const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+  if(m){
+    const y=+m[1],mo=+m[2],day=+m[3];
+    const date=new Date(y,mo-1,day);
+    if(date.getFullYear()!==y||date.getMonth()!==mo-1||date.getDate()!==day)return'';
+    const today=new Date();
+    return Math.max(0,Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(y,mo-1,day))/86400000)+1);
+  }
+  const d=new Date(v);if(isNaN(d))return'';
+  const today=new Date();
+  return Math.max(0,Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()))/86400000)+1);
+}
 function bedGroup(b){b=String(b||'未配置').toUpperCase();if(b.startsWith('ICU')){const m=b.match(/^ICU(\d)/);return m?`ICU${m[1]}`:'ICU'}const m=b.match(/^(\d{3})/);return m?m[1].slice(0,2)+'0':'その他'}
 function humanBytes(n){if(!n)return'0 B';const u=['B','KB','MB','GB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return `${n.toFixed(i?1:0)} ${u[i]}`}
 async function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE);r.onsuccess=()=>{db=r.result;res(db)};r.onerror=()=>rej(r.error)})}
@@ -141,7 +156,7 @@ async function lock(automatic=false){
       }
     }
   }
-  clearPatientAutoTimer();dismissPhotoViewer();key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);renderLock(unsaved?'自動ロックしました。ただし直前の編集は保存できていない可能性があります。保存容量を確認してください。':'');
+  clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);renderLock(unsaved?'自動ロックしました。ただし直前の編集は保存できていない可能性があります。保存容量を確認してください。':'');
 }
 function resetAutoLock(){clearTimeout(lockTimer);if(!state)return;lockTimer=setTimeout(()=>lock(true),(state.settings.autoLockMin||5)*60000)}
 ['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(key)resetAutoLock()},{passive:true}));
@@ -394,7 +409,7 @@ async function finishPatientAndNavigate(next){
   }
 }
 function openPatient(p){
-  dismissPhotoViewer();clearPatientAutoTimer();
+  clearBasicPhotoPreview();dismissPhotoViewer();clearPatientAutoTimer();
   selectedPatient=p;activeTab='basic';patientChangeRev=0;patientSavedRev=0;patientWriteBusy=null;patientIME=false;
   renderPatientModal();
 }
@@ -404,12 +419,109 @@ function renderPatientModal(){
   $('#closeM').onclick=()=>finishPatientAndNavigate(closePatient);
   $('#saveP').onclick=()=>finishPatientAndNavigate(closePatient);
   $$('.tab').forEach(t=>t.onclick=()=>finishPatientAndNavigate(()=>{
-    activeTab=t.dataset.tab;$('#modal').remove();renderPatientModal();
+    activeTab=t.dataset.tab;clearBasicPhotoPreview();$('#modal').remove();renderPatientModal();
   }));
   renderTab();bindPatientAutosave();
 }
-function closePatient(){clearPatientAutoTimer();dismissPhotoViewer();selectedPatient=null;$('#modal')?.remove();if(key&&state&&$('#main'))render()}
-function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='photos'){renderPhotosTab();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);if(activeTab==='basic')bindPatientBedPicker();return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><div class="toolbar"><input id="newTask" placeholder="例：長女へ電話、施設へ空床確認"><button class="btn" id="addTask">追加</button></div></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院患者の情報は自動削除されず、退院患者記録に保持されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
+function closePatient(){clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();selectedPatient=null;$('#modal')?.remove();if(key&&state&&$('#main'))render()}
+function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='photos'){renderPhotosTab();return;}if(activeTab==='basic'){renderBasicDashboard();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><div class="toolbar"><input id="newTask" placeholder="例：長女へ電話、施設へ空床確認"><button class="btn" id="addTask">追加</button></div></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院患者の情報は自動削除されず、退院患者記録に保持されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
+// Ver.1.0.19: compact basic information overview. Preserve each existing data key so
+// backups, morning print, and the family shorthand (家構: e.g. 2同別) continue working.
+const BASIC_FIELDS=[
+  ['ベッド番号','ベッド番号'],['氏名','氏名'],
+  ['ＩＤ','ID'],['入院日','入院日'],
+  ['入院日数','入院日数'],['主治医','主治医'],
+  ['病名','病名'],['住所','住所'],
+  ['保険','保険'],['家構','家族構成'],
+  ['介護度','介護度'],['介護情報','介護情報'],
+  ['備考','備考']
+];
+function basicFieldHtml(field,label){
+  const p=selectedPatient,v=p.data?.[field]??'';
+  const span=['病名','住所','介護情報','備考'].includes(field)?' basic-wide':'';
+  if(field==='ベッド番号')return `<div class="field basic-field"><label>ベッド番号</label><input type="hidden" data-field="ベッド番号" id="patientBedValue" value="${esc(v)}"><button type="button" class="btn secondary basic-bed-picker" id="patientBedPick">${esc(v||'その他・未配置')} ▾</button></div>`;
+  if(field==='入院日数')return `<div class="field basic-field"><label>入院日数（自動計算）</label><div id="basicAdmissionDays" class="basic-readonly" aria-live="polite">${esc(daysSince(p.data['入院日'])||p.data['入院日数']||'—')}日</div></div>`;
+  const placeholder=field==='家構'?'例：2同別':field==='介護情報'?'ケアマネ・介護サービス・連絡事項など':'';
+  const type=field==='入院日'?'date':'text';
+  const suggest=['保険','主治医','介護度'].includes(field)?` list="basicList_${field}"`:'';
+  const datalist=suggest?`<datalist id="basicList_${field}">${masterValues(field,v).map(item=>`<option value="${esc(item)}"></option>`).join('')}</datalist>`:'';
+  const common=`data-field="${esc(field)}" aria-label="${esc(label)}" placeholder="${esc(placeholder)}"`;
+  const control=['介護情報','備考'].includes(field)?`<textarea ${common} rows="2">${esc(v)}</textarea>`:`<input type="${type}" ${common}${suggest} value="${esc(v)}">`;
+  return `<div class="field basic-field${span}"><label>${esc(label)}</label>${control}${datalist}</div>`;
+}
+function basicDocumentHtml(){
+  const gen=photoList(selectedPatient,'genogram');
+  const admission=photoList(selectedPatient,'admission');
+  return `<aside class="basic-docs">
+    <section class="basic-photo-card" aria-label="ジェノグラム">
+      <div class="basic-card-title"><strong>ジェノグラム</strong><span>タップで拡大</span></div>
+      <button type="button" class="basic-gen-preview" id="basicGenogramOpen" aria-label="${gen.length?'ジェノグラムを拡大表示':'ジェノグラムの写真を登録'}">
+        ${gen.length?'<span id="basicGenogramLoading">読み込み中…</span><img id="basicGenogramImg" alt="ジェノグラムのプレビュー" hidden>':'<span>未登録<br>写真・書類から登録</span>'}
+      </button>
+    </section>
+    <section class="basic-admission-card">
+      <div class="basic-card-title"><strong>入院時患者情報</strong></div>
+      <button type="button" class="basic-admission-open" id="basicAdmissionOpen">
+        <span class="basic-document-icon" aria-hidden="true">📄</span>
+        <span>${admission.length?`登録済み（${admission.length}ページ）`:'未登録'}<small>${admission.length?'タップして写真・書類を閲覧':'タップして写真・書類を登録'}</small></span>
+        <span aria-hidden="true">›</span>
+      </button>
+    </section>
+  </aside>`;
+}
+function renderBasicDashboard(){
+  const root=$('#tabbody');
+  // Two zones keep the important patient data readable without vertical scrolling
+  // on the iPad mini where space allows. Very narrow screens scroll as a fallback.
+  root.innerHTML=`<div class="basic-dashboard">
+    <section class="basic-information" aria-label="患者基本情報">
+      <div class="basic-form-grid">${BASIC_FIELDS.map(([field,label])=>basicFieldHtml(field,label)).join('')}</div>
+      <details class="basic-extra"><summary>その他の既存項目（本人職業・術式・入院元・かかりつけ）</summary>
+        <div class="basic-extra-grid">${['本人職業','術式','入院元','かかりつけ'].map(fieldHtml).join('')}</div>
+      </details>
+    </section>
+    ${basicDocumentHtml()}
+  </div>`;
+  bindPatientBedPicker();
+  bindMasterSelects(root); // Preserve legacy basic fields via the collapsed extra section.
+  const input=root.querySelector('[data-field="入院日"]');
+  input?.addEventListener('input',()=>{
+    const el=$('#basicAdmissionDays');if(el)el.textContent=(daysSince(input.value)||'—')+'日';
+  });
+  const patient=selectedPatient;
+  const gen=photoList(patient,'genogram'),admission=photoList(patient,'admission');
+  $('#basicGenogramOpen').onclick=()=>gen.length?viewPhoto(gen[0].id):openPatientPhotosFromBasic();
+  $('#basicAdmissionOpen').onclick=()=>admission.length?viewPhoto(admission[0].id):openPatientPhotosFromBasic();
+  loadBasicGenogramPreview(patient,root,gen[0]);
+}
+function openPatientPhotosFromBasic(){
+  finishPatientAndNavigate(()=>{activeTab='photos';clearBasicPhotoPreview();$('#modal').remove();renderPatientModal()});
+}
+let basicPhotoPreviewUrl=null,basicPhotoPreviewToken=0;
+function clearBasicPhotoPreview(){
+  basicPhotoPreviewToken++;
+  if(basicPhotoPreviewUrl){URL.revokeObjectURL(basicPhotoPreviewUrl);basicPhotoPreviewUrl=null}
+}
+async function loadBasicGenogramPreview(patient,root,meta){
+  clearBasicPhotoPreview();
+  if(!meta)return;
+  const request=basicPhotoPreviewToken;
+  try{
+    const data=await readPhotoRecord(meta.id);
+    if(request!==basicPhotoPreviewToken||selectedPatient!==patient||activeTab!=='basic'||!root.isConnected)return;
+    const jpeg=await photoJpeg(data);
+    if(request!==basicPhotoPreviewToken||selectedPatient!==patient||activeTab!=='basic'||!root.isConnected)return;
+    const url=URL.createObjectURL(new Blob([jpeg.bytes],{type:'image/jpeg'}));
+    if(request!==basicPhotoPreviewToken||selectedPatient!==patient||activeTab!=='basic'||!root.isConnected){URL.revokeObjectURL(url);return}
+    basicPhotoPreviewUrl=url;
+    const img=root.querySelector('#basicGenogramImg'),loading=root.querySelector('#basicGenogramLoading');
+    if(img){img.onload=()=>{if(request===basicPhotoPreviewToken){img.hidden=false;loading?.remove()}};img.onerror=()=>{if(request===basicPhotoPreviewToken){loading.textContent='プレビュー不可（タップして確認）'}};img.src=url}
+  }catch(e){
+    if(request===basicPhotoPreviewToken&&selectedPatient===patient&&root.isConnected){
+      const el=root.querySelector('#basicGenogramLoading');if(el)el.textContent='プレビュー不可（タップして確認）';
+    }
+  }
+}
 // Photo documents are individually encrypted; only small metadata lives in the patient record.
 function photoList(p,type){return (p.attachments||[]).filter(x=>x.type===type).sort((a,b)=>a.order-b.order)}
 function nextPhotoOrder(list){return list.length?Math.max(...list.map(m=>Number.isFinite(m.order)?m.order:-1))+1:0}
@@ -613,11 +725,23 @@ async function viewPhoto(id){
     // An in-page viewer avoids Safari blocking window.open after asynchronous decryption.
     const overlay=document.createElement('div');
     overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box';
-    const close=document.createElement('button');close.type='button';close.textContent='閉じる';close.className='btn';close.style.cssText='align-self:flex-end;margin-bottom:12px';
-    const img=document.createElement('img');img.src=url;img.alt='登録写真';img.style.cssText='max-width:100%;max-height:calc(100% - 70px);object-fit:contain';
+    const close=document.createElement('button');close.type='button';close.textContent='閉じる';close.className='btn';
+    const img=document.createElement('img');img.src=url;img.alt='登録写真';img.style.cssText='max-width:100%;min-height:0;flex:1;object-fit:contain';
     const dismiss=()=>{if(activePhotoViewer?.overlay===overlay)dismissPhotoViewer()};
     close.onclick=dismiss;overlay.onclick=e=>{if(e.target===overlay)dismiss()};
-    overlay.append(close,img);document.body.appendChild(overlay);
+    const bar=document.createElement('div');bar.style.cssText='width:100%;display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:12px';
+    const pages=photoList(patient,'admission'),pageIndex=pages.findIndex(m=>m.id===id);
+    if(pageIndex>=0){
+      const previous=document.createElement('button');previous.type='button';previous.className='btn secondary';previous.textContent='← 前';previous.disabled=pageIndex===0;
+      const label=document.createElement('span');label.textContent=`入院時患者情報 ${pageIndex+1} / ${pages.length}`;label.style.cssText='color:#fff;font-weight:700';
+      const next=document.createElement('button');next.type='button';next.className='btn secondary';next.textContent='次 →';next.disabled=pageIndex===pages.length-1;
+      previous.onclick=()=>{if(pageIndex>0)void viewPhoto(pages[pageIndex-1].id)};
+      next.onclick=()=>{if(pageIndex<pages.length-1)void viewPhoto(pages[pageIndex+1].id)};
+      const pagesBar=document.createElement('div');pagesBar.style.cssText='display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px';pagesBar.append(previous,label,next);
+      overlay.append(bar,img,pagesBar);
+    }else{overlay.append(bar,img)}
+    bar.append(document.createElement('span'),close);
+    document.body.appendChild(overlay);
     activePhotoViewer={overlay,url};
   }catch(e){
     // Ignore failures from an obsolete request after the viewer was closed or patient changed.
