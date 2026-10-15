@@ -333,3 +333,10 @@ border-color:var(--brand);
 .discharge-content input[type=date]{min-height:42px;font-size:16px}
 
 .journal-actions{display:flex;gap:4px;align-items:center;white-space:nowrap}.journal-actions .btn{padding:7px 8px;font-size:12px}
+
+/* Ver.1.0.17: reserve real space below scroll content for the fixed iPad navigation. */
+.shell{padding-bottom:0!important;min-height:100vh;min-height:100dvh}
+.content{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important}
+#main{padding-bottom:16px}
+.archive-list{display:grid;gap:10px}.archive-item{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.archive-actions{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:600px){.archive-item{align-items:flex-start;flex-direction:column}}
