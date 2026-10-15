@@ -340,3 +340,11 @@ border-color:var(--brand);
 #main{padding-bottom:16px}
 .archive-list{display:grid;gap:10px}.archive-item{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.archive-actions{display:flex;flex-wrap:wrap;gap:6px}
 @media(max-width:600px){.archive-item{align-items:flex-start;flex-direction:column}}
+
+/* Ver.1.0.18: autosave feedback beside patient details, iPad mini friendly. */
+.patient-sheet-title{min-width:0}
+.patient-sheet-title h2{overflow-wrap:anywhere}
+.patient-save-status{font-size:12px;line-height:1.4;white-space:nowrap;border-radius:9px;padding:7px 9px;background:#ecfdf5;color:#047857;font-weight:700}
+.patient-save-status[data-state="pending"],.patient-save-status[data-state="saving"]{background:#fffbeb;color:#92400e}
+.patient-save-status[data-state="error"]{background:#fff1f2;color:#b91c1c;white-space:normal}
+@media(max-width:680px){.sheethead{flex-wrap:wrap}.sheethead .spacer{flex-basis:0}.patient-save-status{order:5;margin-left:45px}.sheethead #saveP{font-size:12px;padding:9px 10px}}

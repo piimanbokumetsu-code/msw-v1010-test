@@ -1,5 +1,5 @@
 {
-  "name": "MSW患者管理 Ver.1.0.10 テスト版",
+  "name": "MSW患者管理 Ver.1.0.18 テスト版",
   "short_name": "MSW-TEST",
   "description": "医療ソーシャルワーカー向け・端末内完結の患者支援管理",
   "start_url": "./index.html",
@@ -9,7 +9,17 @@
   "background_color": "#f4f7f7",
   "theme_color": "#0f766e",
   "icons": [
-    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
