@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_secure_v1', STORE='kv';
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='1.0.15';
+const APP_VERSION='1.0.16';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -877,10 +877,21 @@ function startDischargeFlow(){
  };
 }
 function renderPendingDischarges(){
- const pending=state.patients.filter(p=>p.summaryPending);
- return `<div class="panel"><h2>② 退院患者一覧　${pending.length}名</h2><p class="notice">電子カルテに退院サマリーを入力した後、「退院」を押してください。完了まで一覧に残ります。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${pending.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.dischargeDate||'')}</td><td>${esc(p.formerBed||'未配置')}</td><td><button type="button" class="btn secondary pending-complete" data-id="${esc(p.id)}">退院</button></td></tr>`).join('')||'<tr><td colspan="4">サマリー未完了の退院患者はいません</td></tr>'}</tbody></table></div></div>`;
+ const pending=state.patients.filter(p=>p.summaryPending&&p.dischargeDate);
+ return `<div class="panel"><h2>② 退院患者一覧　${pending.length}名</h2><p class="notice">電子カルテに退院サマリーを入力した後、「退院」を押してください。完了まで一覧に残ります。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${pending.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.dischargeDate||'')}</td><td>${esc(p.formerBed||'未配置')}</td><td><div class="journal-actions"><button type="button" class="btn secondary pending-cancel" data-id="${esc(p.id)}">退院取消</button><button type="button" class="btn secondary pending-complete" data-id="${esc(p.id)}">退院</button></div></td></tr>`).join('')||'<tr><td colspan="4">サマリー未完了の退院患者はいません</td></tr>'}</tbody></table></div></div>`;
+}
+function restoreDischargePatient(p){
+ p.dischargeDate=null;p.summaryPending=false;p.summaryCompletedAt=null;p.data['ベッド番号']='';p.updatedAt=nowISO();
+ p.journalAdmissionPending=true;
 }
 function bindPendingDischarges(){
+ $$('.pending-cancel').forEach(btn=>btn.onclick=async()=>{
+  const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||!p.summaryPending)return;
+  if(!confirm(`${p.data['氏名']||'この患者'}さんの退院を取り消し、入院中（その他・未配置）へ戻しますか？\n元のベッドには自動で戻しません。`))return;
+  const snapshot={date:p.dischargeDate,pending:p.summaryPending,completed:p.summaryCompletedAt,bed:p.data['ベッド番号'],queue:p.journalAdmissionPending};
+  btn.disabled=true;restoreDischargePatient(p);
+  try{await save();renderJournalPreview()}catch(e){p.dischargeDate=snapshot.date;p.summaryPending=snapshot.pending;p.summaryCompletedAt=snapshot.completed;p.data['ベッド番号']=snapshot.bed;p.journalAdmissionPending=snapshot.queue;btn.disabled=false;alert('保存できませんでした：'+e.message)}
+ });
  $$('.pending-complete').forEach(btn=>btn.onclick=async()=>{
   const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||!p.summaryPending)return;
   if(!confirm(`${p.data['氏名']||'この患者'}さんの退院サマリーは電子カルテへの入力が完了しましたか？\n完了の場合、未処理一覧から外します。`))return;
@@ -888,27 +899,42 @@ function bindPendingDischarges(){
   try{await save();renderJournalPreview()}catch(e){p.summaryPending=true;p.summaryCompletedAt=null;btn.disabled=false;alert('保存できませんでした：'+e.message)}
  });
 }
-// Journal UI prototype: sample data only, never writes to patient database.
-let journalDraft=null,journalEntryOpen=false,journalScanImage=null,journalScanText='',journalScanStatus='';
-function journalSample(){return {admissions:[{name:'テスト太郎',date:'2026-10-12',room:'202号室',bed:'',source:'スキャン'},{name:'テスト花子',date:'2026-10-14',room:'ICU',bed:'',source:'スキャン'},{name:'テスト三郎',date:'2026-10-15',room:'203号室',bed:'',source:'スキャン'}],discharges:[{name:'テスト次郎',date:'2026-10-13',room:'207号室'},{name:'テスト四郎',date:'2026-10-14',room:'ICU'}]}}
+// Admission queue uses real encrypted patient records; no automatic OCR registration.
+let journalEntryOpen=false,journalScanImage=null,journalScanText='',journalScanStatus='';
 function renderJournalPreview(){
-  if(!journalDraft)journalDraft=journalSample();
-  const admissions=[...journalDraft.admissions].sort((a,b)=>a.date.localeCompare(b.date));
+  const admissions=state.patients.filter(p=>!p.dischargeDate&&p.journalAdmissionPending).sort((a,b)=>String(a.data['入院日']||'').localeCompare(String(b.data['入院日']||'')));
   const entry=`<div class="journal-entry"><h3>新しい患者を手入力</h3><div class="journal-entry-fields"><label>氏名<input id="journalNewName" type="text" autocomplete="off" placeholder="氏名を入力"></label><label>入院日<input id="journalNewDate" type="date" value="${new Date().toLocaleDateString('sv-SE')}"></label><label>ベッド配置先<button class="btn secondary journal-pick" id="journalNewBedPick" type="button">その他・未配置 ▾</button><input type="hidden" id="journalNewBed" value=""></label></div><div class="journal-entry-actions"><button type="button" class="btn secondary" id="journalCancel">キャンセル</button><button type="button" class="btn" id="journalAdd">一覧に追加</button></div></div>`;
-  $('#main').innerHTML=`<div class="hero"><div><h1>日誌・患者情報取り込み</h1><p>テスト版 Ver.${APP_VERSION} ／ 日誌画面の操作試作</p></div></div>
-  <div class="panel journal-warning"><b>写真・入院一覧は架空データの試作です（退院一覧は保存済みデータ）</b><p>写真プレビューと文字認識の対応状況確認を試せます。iPad miniでの日本語OCRはまだ未対応です。写真の文字認識・入院患者の手入力はまだ試作です。患者情報画面からの退院処理は実データに保存されます。</p><label class="btn secondary journal-photo">📷 日誌の写真を選択・撮影<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div><div id="journalScanPreview"></div></div>
-  <div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="notice">入院日の古い順。右側の「部屋選択」から配置先を選べます。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead><tbody>${admissions.map(p=>{const i=journalDraft.admissions.indexOf(p);return `<tr><td>${esc(p.name)}</td><td>${esc(p.date)}</td><td>${esc(p.bed||'未配置')}</td><td><button type="button" class="btn secondary journal-bed-btn" data-index="${i}">部屋選択</button></td></tr>`}).join('')}</tbody></table></div><button type="button" class="btn secondary journal-add-toggle" id="journalEntryToggle">${journalEntryOpen?'− 手入力を閉じる':'＋ 患者を手入力'}</button>${journalEntryOpen?entry:''}</div>
-  ${renderPendingDischarges()}
-  <div class="panel"><button class="btn secondary" id="journalReset">架空のサンプルを初期状態に戻す</button><p class="notice">実際の患者情報は入力しないでください。</p></div>`;
+  $('#main').innerHTML=`<div class="hero"><div><h1>日誌・患者情報取り込み</h1><p>テスト版 Ver.${APP_VERSION} ／ 入院患者の手入力と配置</p></div></div>
+  <div class="panel journal-warning"><b>手入力患者は実際の患者管理データに保存されます</b><p>写真の文字認識は未実装です。必ず架空のテスト患者を使い、事前にバックアップしてください。既存患者と同姓同名の場合は追加前に確認します。</p><label class="btn secondary journal-photo">📷 日誌の写真を選択・撮影<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div><div id="journalScanPreview"></div></div>
+  <div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="notice">未配置の患者はここに残ります。ベッドへの配置が完了すると一覧から外れます。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead><tbody>${admissions.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.data['入院日']||'')}</td><td>${esc(p.data['ベッド番号']||'未配置')}</td><td><button type="button" class="btn secondary journal-bed-btn" data-id="${esc(p.id)}">部屋選択</button></td></tr>`).join('')||'<tr><td colspan="4">ベッド配置待ちの患者はいません</td></tr>'}</tbody></table></div><button type="button" class="btn secondary journal-add-toggle" id="journalEntryToggle">${journalEntryOpen?'− 手入力を閉じる':'＋ 患者を手入力'}</button>${journalEntryOpen?entry:''}</div>
+  ${renderPendingDischarges()}`;
   bindPendingDischarges();
-  $$('.journal-bed-btn').forEach(btn=>btn.onclick=()=>{const p=journalDraft.admissions[Number(btn.dataset.index)];showGroupedBedPicker(p.bed,value=>{p.bed=value;renderJournalPreview()})});
+  $$('.journal-bed-btn').forEach(btn=>btn.onclick=()=>{
+   const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||p.dischargeDate)return;
+   showGroupedBedPicker(p.data['ベッド番号']||'',async value=>{
+    const oldBed=p.data['ベッド番号'],oldPending=p.journalAdmissionPending;
+    if(value){const occupied=activePatients().filter(x=>x.id!==p.id&&normalizeBed(x.data['ベッド番号'])===normalizeBed(value));if(occupied.length&&!confirm(`このベッドにはすでに${occupied.length}名登録されています。重複配置しますか？`))return;}
+    if(!confirm(`${p.data['氏名']||'患者'}さんを ${value||'その他・未配置'} に配置しますか？`))return;
+    p.data['ベッド番号']=value;p.journalAdmissionPending=!value;p.updatedAt=nowISO();
+    try{await save();renderJournalPreview()}catch(e){p.data['ベッド番号']=oldBed;p.journalAdmissionPending=oldPending;alert('保存できませんでした：'+e.message)}
+   });
+  });
   $('#journalEntryToggle').onclick=()=>{journalEntryOpen=!journalEntryOpen;renderJournalPreview()};
   if(journalEntryOpen){
     $('#journalNewBedPick').onclick=()=>showGroupedBedPicker($('#journalNewBed').value,value=>{$('#journalNewBed').value=value;$('#journalNewBedPick').textContent=(value||'その他・未配置')+' ▾'});
     $('#journalCancel').onclick=()=>{journalEntryOpen=false;renderJournalPreview()};
-    $('#journalAdd').onclick=()=>{const name=$('#journalNewName').value.trim(),date=$('#journalNewDate').value,bed=$('#journalNewBed').value;if(!name||!date){alert('氏名と入院日を入力してください。');return}journalDraft.admissions.push({name,date,room:'',bed,source:'手入力'});journalEntryOpen=false;renderJournalPreview()};
+    $('#journalAdd').onclick=async()=>{
+     const name=$('#journalNewName').value.trim(),date=$('#journalNewDate').value,bed=$('#journalNewBed').value;
+     if(!name||!date){alert('氏名と入院日を入力してください。');return}
+     const matches=state.patients.filter(p=>!p.dischargeDate&&String(p.data['氏名']||'').replace(/\s/g,'')===name.replace(/\s/g,''));
+     if(matches.length&&!confirm(`同じ氏名の入院患者が${matches.length}名います。既存患者を確認しましたか？\nそれでも新しく登録しますか？`))return;
+     if(bed){const occupied=activePatients().filter(p=>normalizeBed(p.data['ベッド番号'])===normalizeBed(bed));if(occupied.length&&!confirm(`選択したベッドにはすでに${occupied.length}名登録されています。重複配置しますか？`))return;}
+     const btn=$('#journalAdd');btn.disabled=true;
+     const p=newPatient(bed);p.data['氏名']=name;p.data['入院日']=date;p.journalAdmissionPending=!bed;delete p._new;
+     state.patients.push(p);
+     try{await save();journalEntryOpen=false;renderJournalPreview()}catch(e){state.patients=state.patients.filter(x=>x!==p);btn.disabled=false;alert('登録できませんでした：'+e.message)}
+    };
   }
-  $('#journalReset').onclick=()=>{journalDraft=null;journalEntryOpen=false;renderJournalPreview()};
   const preview=$('#journalScanPreview');
   const paintScan=()=>{preview.innerHTML=journalScanImage?`<div class="journal-scan-preview"><img src="${journalScanImage}" alt="選択した日誌写真"><p class="notice">画像はこの画面内で表示するだけです。患者データには保存しません。</p><button type="button" class="btn secondary" id="journalTryOCR">この端末で文字認識を試す</button><p class="notice" id="journalOCRStatus">${esc(journalScanStatus)}</p><label>読み取り内容（確認・修正用）<textarea id="journalOCRText" rows="5" placeholder="認識できない場合は架空の内容を手入力して試せます">${esc(journalScanText)}</textarea></label><p class="notice">安全のため、ここに入力した内容は患者一覧に自動反映しません。</p></div>`:'';
     if(!journalScanImage)return;
