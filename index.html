@@ -6,24 +6,24 @@
 <meta name="theme-color" content="#0f766e" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>MSW患者管理 ローカル専用テスト</title>
+<title>MSW患者管理 Ver.1.0.10 テスト版</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" />
 <link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="stylesheet" href="styles.css?v=photo-20261013e-localtest" />
+<link rel="stylesheet" href="styles.css?v=preview-20261015a" />
 <meta name="application-name" content="MSW-DB" />
 <script>
 /* 2026-10-13: Refresh an installed PWA without clearing its IndexedDB. */
 (function(){
  if(!('serviceWorker' in navigator))return;
- var key='msw-layout-controller-20261013c';
+ var key='msw-preview-controller-20261014d';
  navigator.serviceWorker.addEventListener('controllerchange',function(){
    try { if(sessionStorage.getItem(key))return; sessionStorage.setItem(key,'1'); }catch(e){}
    location.reload();
  });
  window.addEventListener('load',function(){
-   navigator.serviceWorker.getRegistration().then(function(reg){
-     if(!reg)return;
+   navigator.serviceWorker.getRegistration(new URL('./', location.href).href).then(function(reg){
+     if(!reg || reg.scope !== new URL('./', location.href).href)return;
      reg.update().catch(function(){});
      if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
      reg.addEventListener('updatefound',function(){
@@ -40,9 +40,8 @@
 </script>
 </head>
 <body>
-<div role="note" style="position:relative;z-index:100;background:#fff3cd;color:#633d00;padding:9px 14px;text-align:center;font:600 14px/1.5 system-ui,sans-serif;border-bottom:2px solid #d59b24">【公開前テスト専用】架空の患者データだけを使用してください。現在の患者情報や本番バックアップは読み込まないでください。</div>
 <div id="app"></div>
 <input id="fileInput" type="file" hidden />
-<script src="app.js?v=photo-20261013e-localtest"></script>
+<script src="app.js?v=preview-20261015a"></script>
 </body>
 </html>

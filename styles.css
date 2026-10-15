@@ -290,3 +290,7 @@ border-color:var(--brand);
 #patientList .general-room-map .compact-room-row .bed-slot b{font-size:clamp(7px,1vw,10px)!important}
 #patientList .general-room-map .compact-room-row .bed-slot strong{font-size:clamp(8px,1.3vw,12px)!important}
 #patientList .general-room-map .compact-room-row .admission-line{font-size:clamp(6px,0.85vw,9px)!important}
+
+.preview-warning{font-size:12px;font-weight:700;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:5px 8px}.lockcard .preview-warning{line-height:1.5}
+@media(max-width:750px){.topbar .preview-warning{font-size:10px;padding:4px}}
+@media print{.preview-warning{display:none!important}}
