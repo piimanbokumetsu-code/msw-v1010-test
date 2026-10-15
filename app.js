@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_secure_v1', STORE='kv';
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='1.0.11';
+const APP_VERSION='1.0.12';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -217,8 +217,12 @@ function openDuplicateBed(bed){
   $('#duplicateModal')?.remove();
   const ps=patientsForBed(bed);
   if(ps.length<2){drawPatientList();return}
-  const beds=officialBeds();
-  document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="duplicateModal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeDuplicate">← 戻る</button><div><h2>${esc(bed)}</h2><div class="notice duplicate-warning">${ps.length}名重複あり・下へスクロールして全員確認できます</div></div></div><div class="duplicate-list">${ps.map((p,i)=>`<article class="panel duplicate-patient"><h3>患者 ${i+1}／${ps.length}</h3><div class="duplicate-patient-row"><div class="duplicate-patient-info">${patientCard(p)}</div><div class="duplicate-move"><label for="move-${i}">ベッド変更</label><select id="move-${i}" class="duplicate-bed-select" data-id="${esc(p.id)}"><option value="${esc(p.data['ベッド番号']||'')}">${esc(p.data['ベッド番号']||'未配置')}（現在）</option><option value="">その他・未配置（ベッド未選択）</option>${beds.filter(b=>normalizeBed(b)!==normalizeBed(p.data['ベッド番号'])).map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('')}</select><button class="btn duplicate-move-save" data-id="${esc(p.id)}">変更を保存</button></div></div><button class="btn secondary duplicate-open" data-id="${esc(p.id)}">この患者の詳細・編集を開く</button></article>`).join('')}</div></div></div>`);
+  document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="duplicateModal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeDuplicate">← 戻る</button><div><h2>${esc(bed)}</h2><div class="notice duplicate-warning">${ps.length}名重複あり・下へスクロールして全員確認できます</div></div></div><div class="duplicate-list">${ps.map((p,i)=>`<article class="panel duplicate-patient"><h3>患者 ${i+1}／${ps.length}</h3><div class="duplicate-patient-row"><div class="duplicate-patient-info">${patientCard(p)}</div><div class="duplicate-move"><label>ベッド変更</label><input type="hidden" class="duplicate-bed-select" data-id="${esc(p.id)}" value="${esc(p.data['ベッド番号']||'')}"><button class="btn secondary duplicate-bed-pick" data-id="${esc(p.id)}" type="button">${esc(p.data['ベッド番号']||'その他・未配置')} ▾</button><button class="btn duplicate-move-save" data-id="${esc(p.id)}">変更を保存</button></div></div><button class="btn secondary duplicate-open" data-id="${esc(p.id)}">この患者の詳細・編集を開く</button></article>`).join('')}</div></div></div>`);
+  $$('.duplicate-bed-pick').forEach(btn=>btn.onclick=()=>{
+    const sel=[...$$('.duplicate-bed-select')].find(x=>x.dataset.id===btn.dataset.id);
+    if(!sel)return;
+    showGroupedBedPicker(sel.value,value=>{sel.value=value;btn.textContent=(value||'その他・未配置')+' ▾'});
+  });
   $('#closeDuplicate').onclick=()=>$('#duplicateModal')?.remove();
   $$('.duplicate-open').forEach(btn=>btn.onclick=()=>{const p=state.patients.find(p=>p.id===btn.dataset.id);$('#duplicateModal')?.remove();if(p)openPatient(p)});
   $$('.duplicate-move-save').forEach(btn=>btn.onclick=async()=>{
@@ -228,7 +232,7 @@ function openDuplicateBed(bed){
     const target=sel.value,old=p.data['ベッド番号'];
     if(normalizeBed(target)===normalizeBed(old)){alert('変更先のベッドを選んでください。');return}
     const occupied=patientsForBed(target).filter(x=>x.id!==p.id).length;
-    const message=`${p.data['氏名']||'この患者'}のベッドを ${old||'未配置'} → ${target} に変更します。${occupied?`\n※変更先にはすでに${occupied}名います。重複になります。`:''}\nよろしいですか？`;
+    const message=`${p.data['氏名']||'この患者'}のベッドを ${old||'未配置'} → ${target||'その他・未配置'} に変更します。${occupied?`\n※変更先にはすでに${occupied}名います。重複になります。`:''}\nよろしいですか？`;
     if(!confirm(message))return;
     p.data['ベッド番号']=target;p.updatedAt=nowISO();
     try{await save();drawPatientList();openDuplicateBed(bed)}catch(e){p.data['ベッド番号']=old;alert('保存できませんでした。再度お試しください。')}
@@ -833,20 +837,38 @@ function download(blob,name){const a=document.createElement('a');a.href=URL.crea
 init().catch(e=>{document.getElementById('app').innerHTML=`<div class="lockwrap"><div class="lockcard"><h1>起動できません</h1><p>${esc(e.message)}</p><p class="notice">HTTPSで開いているか確認してください。iPadではSafariからホーム画面へ追加して使用します。</p></div></div>`});
 
 
-// Journal import UI prototype. Sample data only: never writes to the patient database.
-let journalDraft=null;
+// Shared bed selector: compact 3 columns, room headings, without leaving the current screen.
+function showGroupedBedPicker(current,onChoose){
+  $('#groupedBedPicker')?.remove();
+  const groups=[...BED_LAYOUT,...ICU_LAYOUT];
+  const panel=`<div class="bed-picker-shade" id="groupedBedPicker" role="dialog" aria-modal="true" aria-label="ベッド配置先を選択"><div class="bed-picker-panel"><div class="bed-picker-head"><strong>ベッド配置先を選択</strong><button type="button" class="btn secondary" id="bedPickerClose">閉じる</button></div><div class="bed-picker-scroll"><button type="button" class="bed-picker-choice ${!current?'chosen':''}" data-bed="">その他・未配置</button>${groups.map(r=>`<section class="bed-picker-room"><h3>${esc(r.room)}${r.room.startsWith('ICU')?'':'号室'}</h3><div class="bed-picker-grid">${r.beds.map(n=>{const b=bedKey(r.room,n);return `<button type="button" class="bed-picker-choice ${normalizeBed(current)===normalizeBed(b)?'chosen':''}" data-bed="${esc(b)}">${esc(b)}</button>`}).join('')}</div></section>`).join('')}</div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',panel);
+  const root=$('#groupedBedPicker');
+  const close=()=>root.remove();
+  root.addEventListener('click',e=>{if(e.target===root)close()});
+  $('#bedPickerClose').onclick=close;
+  root.querySelectorAll('[data-bed]').forEach(btn=>btn.onclick=()=>{onChoose(btn.dataset.bed);close()});
+}
+
+// Journal UI prototype: sample data only, never writes to patient database.
+let journalDraft=null,journalEntryOpen=false;
+function journalSample(){return {admissions:[{name:'テスト太郎',date:'2026-10-12',room:'202号室',bed:'',source:'スキャン'},{name:'テスト花子',date:'2026-10-14',room:'ICU',bed:'',source:'スキャン'},{name:'テスト三郎',date:'2026-10-15',room:'203号室',bed:'',source:'スキャン'}],discharges:[{name:'テスト次郎',date:'2026-10-13',room:'207号室'},{name:'テスト四郎',date:'2026-10-14',room:'ICU'}]}}
 function renderJournalPreview(){
- if(!journalDraft)journalDraft={admissions:[{name:'テスト太郎',date:'2026-10-12',room:'202号室',bed:''},{name:'テスト花子',date:'2026-10-14',room:'ICU',bed:''},{name:'テスト次郎',date:'2026-10-15',room:'203号室',bed:''}],discharges:[{name:'テスト三郎',date:'2026-10-13',room:'207号室'},{name:'テスト四郎',date:'2026-10-14',room:'ICU'}]};
- const admissions=[...journalDraft.admissions].sort((a,b)=>a.date.localeCompare(b.date));
- const input=(value,field,i,kind,type='text')=>`<input aria-label="${esc(field)}" type="${type}" data-jkind="${kind}" data-jindex="${i}" data-jfield="${field}" value="${esc(value||'')}" style="min-width:0;width:100%">`;
- const bedOptions=(room,current)=>['',...officialBeds()].map(b=>`<option value="${esc(b)}" ${b===current?'selected':''}>${b?esc(b):'その他・未配置'}</option>`).join('');
- $('#main').innerHTML=`<div class="hero"><div><h1>日誌スキャン・患者照合</h1><p>テスト版 Ver.${APP_VERSION} ／ 日誌入力画面の試作</p></div></div>
- <div class="panel" style="border:2px solid #b56d14"><b>試作モード：架空データのみ</b><p>写真からの文字認識・患者データとの自動照合・登録・退院処理は未実装です。ここで編集した内容は患者データに反映されません。</p><label class="btn secondary" style="display:inline-block;cursor:pointer">📷 日誌の写真を選ぶ（プレビューのみ）<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div></div>
- <div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="notice">入院日の古い順。病室内のベッドが分からなければ「その他・未配置」を選択。</p>
- ${admissions.map(p=>{const i=journalDraft.admissions.indexOf(p);return `<div class="panel" style="margin:12px 0;padding:12px"><div class="form-grid"><div class="field"><label>氏名</label>${input(p.name,'name',i,'admissions')}</div><div class="field"><label>入院日</label>${input(p.date,'date',i,'admissions','date')}</div><div class="field"><label>日誌の病室</label>${input(p.room,'room',i,'admissions')}</div><div class="field"><label>ベッドの配置先</label><select data-jkind="admissions" data-jindex="${i}" data-jfield="bed">${bedOptions(p.room,p.bed)}</select></div></div></div>`}).join('')}</div>
- <div class="panel"><h2>② 退院患者一覧　${journalDraft.discharges.length}名</h2><p class="notice">退院患者は入院中の未配置患者とは区別して管理する設計です。</p>${journalDraft.discharges.map((p,i)=>`<div class="panel" style="margin:12px 0;padding:12px"><div class="form-grid"><div class="field"><label>氏名</label>${input(p.name,'name',i,'discharges')}</div><div class="field"><label>退院日</label>${input(p.date,'date',i,'discharges','date')}</div><div class="field"><label>退院前の病室</label>${input(p.room,'room',i,'discharges')}</div></div></div>`).join('')}</div>
- <div class="panel"><button class="btn secondary" id="journalReset">架空のサンプルを初期状態に戻す</button><p class="notice">この画面では保存ボタンを設けていません。実患者情報を入力しないでください。</p></div>`;
- $$('[data-jkind]').forEach(el=>el.addEventListener('change',()=>{journalDraft[el.dataset.jkind][Number(el.dataset.jindex)][el.dataset.jfield]=el.value;if(el.dataset.jfield==='date')renderJournalPreview()}));
- $('#journalReset').onclick=()=>{journalDraft=null;renderJournalPreview()};
- $('#journalPhoto').onchange=e=>{$('#journalPhotoInfo').textContent=e.target.files?.[0]?`選択した写真：${e.target.files[0].name}（文字の読み取り・送信・保存は行いません）`:''};
+  if(!journalDraft)journalDraft=journalSample();
+  const admissions=[...journalDraft.admissions].sort((a,b)=>a.date.localeCompare(b.date));
+  const entry=`<div class="journal-entry"><h3>新しい患者を手入力</h3><div class="journal-entry-fields"><label>氏名<input id="journalNewName" type="text" autocomplete="off" placeholder="氏名を入力"></label><label>入院日<input id="journalNewDate" type="date" value="${new Date().toLocaleDateString('sv-SE')}"></label><label>ベッド配置先<button class="btn secondary journal-pick" id="journalNewBedPick" type="button">その他・未配置 ▾</button><input type="hidden" id="journalNewBed" value=""></label></div><div class="journal-entry-actions"><button type="button" class="btn secondary" id="journalCancel">キャンセル</button><button type="button" class="btn" id="journalAdd">一覧に追加</button></div></div>`;
+  $('#main').innerHTML=`<div class="hero"><div><h1>日誌・患者情報取り込み</h1><p>テスト版 Ver.${APP_VERSION} ／ 日誌画面の操作試作</p></div></div>
+  <div class="panel journal-warning"><b>試作モード：架空データのみ</b><p>写真からの文字認識・既存患者との照合・実際の登録／退院処理は未実装です。ここで入力した内容は患者データに保存されません。</p><label class="btn secondary journal-photo">📷 日誌をスキャン（写真選択のみ）<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div></div>
+  <div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="notice">入院日の古い順。右側の「部屋選択」から配置先を選べます。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead><tbody>${admissions.map(p=>{const i=journalDraft.admissions.indexOf(p);return `<tr><td>${esc(p.name)}</td><td>${esc(p.date)}</td><td>${esc(p.bed||'未配置')}</td><td><button type="button" class="btn secondary journal-bed-btn" data-index="${i}">部屋選択</button></td></tr>`}).join('')}</tbody></table></div><button type="button" class="btn secondary journal-add-toggle" id="journalEntryToggle">${journalEntryOpen?'− 手入力を閉じる':'＋ 患者を手入力'}</button>${journalEntryOpen?entry:''}</div>
+  <div class="panel"><h2>② 退院患者一覧　${journalDraft.discharges.length}名</h2><p class="notice">退院患者は入院中の「その他・未配置」とは別に表示します。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th></tr></thead><tbody>${journalDraft.discharges.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.date)}</td><td>${esc(p.room)}</td></tr>`).join('')}</tbody></table></div></div>
+  <div class="panel"><button class="btn secondary" id="journalReset">架空のサンプルを初期状態に戻す</button><p class="notice">実際の患者情報は入力しないでください。</p></div>`;
+  $$('.journal-bed-btn').forEach(btn=>btn.onclick=()=>{const p=journalDraft.admissions[Number(btn.dataset.index)];showGroupedBedPicker(p.bed,value=>{p.bed=value;renderJournalPreview()})});
+  $('#journalEntryToggle').onclick=()=>{journalEntryOpen=!journalEntryOpen;renderJournalPreview()};
+  if(journalEntryOpen){
+    $('#journalNewBedPick').onclick=()=>showGroupedBedPicker($('#journalNewBed').value,value=>{$('#journalNewBed').value=value;$('#journalNewBedPick').textContent=(value||'その他・未配置')+' ▾'});
+    $('#journalCancel').onclick=()=>{journalEntryOpen=false;renderJournalPreview()};
+    $('#journalAdd').onclick=()=>{const name=$('#journalNewName').value.trim(),date=$('#journalNewDate').value,bed=$('#journalNewBed').value;if(!name||!date){alert('氏名と入院日を入力してください。');return}journalDraft.admissions.push({name,date,room:'',bed,source:'手入力'});journalEntryOpen=false;renderJournalPreview()};
+  }
+  $('#journalReset').onclick=()=>{journalDraft=null;journalEntryOpen=false;renderJournalPreview()};
+  $('#journalPhoto').onchange=e=>{$('#journalPhotoInfo').textContent=e.target.files?.[0]?`選択した写真：${e.target.files[0].name}（文字の読み取り・送信・保存は行いません）`:''};
 }
