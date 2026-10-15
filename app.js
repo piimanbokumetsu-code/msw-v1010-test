@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_secure_v1', STORE='kv';
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='1.0.13';
+const APP_VERSION='1.0.14';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -115,7 +115,7 @@ async function unlock(){try{const pin=$('#pin').value;key=await derive(pin,unb64
 function lock(){dismissPhotoViewer();key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);renderLock()}
 function resetAutoLock(){clearTimeout(lockTimer);if(!state)return;lockTimer=setTimeout(lock,(state.settings.autoLockMin||5)*60000)}
 ['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(key)resetAutoLock()},{passive:true}));
-function purgeExpired(){if(!state)return;const d=state.settings.retentionDays??30,cut=Date.now()-d*86400000;const before=state.patients.length;state.patients=state.patients.filter(p=>!p.dischargeDate||new Date(p.dischargeDate).getTime()>cut);if(state.patients.length!==before)save()}
+function purgeExpired(){if(!state)return;const d=state.settings.retentionDays??30,cut=Date.now()-d*86400000;const before=state.patients.length;state.patients=state.patients.filter(p=>!p.dischargeDate||p.summaryPending||new Date(p.dischargeDate).getTime()>cut);if(state.patients.length!==before)save()}
 function backupDue(){const t=state?.settings?.lastBackupAt;if(!t)return true;return Date.now()-new Date(t).getTime()>7*86400000}
 function render(){resetAutoLock();const net=navigator.onLine?'通信あり':'オフライン可';$('#app').innerHTML=`<div class="shell"><header class="topbar"><div class="brand">MSW患者管理</div><span class="pill">公開前テスト Ver.${APP_VERSION}</span><span class="pill">${net}</span>${backupDue()?'<span class="pill backupwarn">要バックアップ</span>':''}<div class="spacer"></div><button class="pill" id="lockBtn">🔒</button></header><main class="content" id="main"></main><nav class="bottomnav"><button class="navbtn ${screen==='patients'?'active':''}" data-screen="patients"><span class="ico">🏥</span>患者</button><button class="navbtn ${screen==='journal'?'active':''}" data-screen="journal"><span class="ico">📄</span>日誌</button><button class="navbtn ${screen==='tasks'?'active':''}" data-screen="tasks"><span class="ico">✅</span>要対応</button><button class="navbtn ${screen==='drugs'?'active':''}" data-screen="drugs"><span class="ico">💊</span>薬情</button><button class="navbtn ${screen==='masters'?'active':''}" data-screen="masters"><span class="ico">📋</span>マスター</button><button class="navbtn ${screen==='settings'?'active':''}" data-screen="settings"><span class="ico">⚙️</span>設定</button></nav></div>`;$('#lockBtn').onclick=lock;$$('.navbtn').forEach(b=>b.onclick=()=>{screen=b.dataset.screen;render()});({patients:renderPatients,journal:renderJournalPreview,tasks:renderTasks,drugs:renderDrugs,masters:renderMasters,settings:renderSettings}[screen])()}
 function activePatients(){return state.patients.filter(p=>!p.dischargeDate)}
@@ -247,7 +247,7 @@ function newPatient(bed=''){const data={};legacyFields.forEach(k=>data[k]='');da
 function openPatient(p){dismissPhotoViewer();selectedPatient=p;activeTab='basic';renderPatientModal()}
 function renderPatientModal(){const p=selectedPatient;document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeM">←</button><div><h2>${esc(p.data['氏名']||'新規患者')}</h2><div class="notice">${esc(p.data['ベッド番号']||'病床未設定')}　${esc(p.data['病名']||'')}</div></div><div class="spacer"></div><button class="btn" id="saveP">保存</button></div><div class="tabs">${[['basic','基本'],['care','家族・介護'],['adl','ADL'],['support','退院支援'],['notes','経過記録'],['photos','写真・書類']].map(([k,n])=>`<button class="tab ${activeTab===k?'active':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="sheetbody" id="tabbody"></div></div></div>`);$('#closeM').onclick=closePatient;$('#saveP').onclick=savePatientFromForm;$$('.tab').forEach(t=>t.onclick=()=>{saveFieldsOnly();activeTab=t.dataset.tab;$('#modal').remove();renderPatientModal()});renderTab()}
 function closePatient(){dismissPhotoViewer();selectedPatient=null;$('#modal')?.remove()}
-function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='photos'){renderPhotosTab();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><div class="toolbar"><input id="newTask" placeholder="例：長女へ電話、施設へ空床確認"><button class="btn" id="addTask">追加</button></div></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院後は設定した保持日数を過ぎると自動削除されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
+function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='photos'){renderPhotosTab();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);if(activeTab==='basic')bindPatientBedPicker();return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><div class="toolbar"><input id="newTask" placeholder="例：長女へ電話、施設へ空床確認"><button class="btn" id="addTask">追加</button></div></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院後は設定した保持日数を過ぎると自動削除されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
 // Photo documents are individually encrypted; only small metadata lives in the patient record.
 function photoList(p,type){return (p.attachments||[]).filter(x=>x.type===type).sort((a,b)=>a.order-b.order)}
 function nextPhotoOrder(list){return list.length?Math.max(...list.map(m=>Number.isFinite(m.order)?m.order:-1))+1:0}
@@ -568,7 +568,7 @@ function fieldHtml(f){
   const long=['備考'].includes(f);
   const type=['入院日','調査日','ADL調査日'].includes(f)?'date':'text';
   const span=['病名','かかりつけ','ケアマネ・施設','リハ状況','問題行動','備考'].includes(f)?'span2':'';
-  if(masterFields.includes(f))return `<div class="field ${span}"><label>${esc(f)}</label>${masterSelectHtml(f,v)}</div>`;
+  if(f==='ベッド番号')return `<div class="field ${span}"><label>ベッド番号</label><input type="hidden" data-field="ベッド番号" id="patientBedValue" value="${esc(v)}"><button type="button" class="btn secondary" id="patientBedPick">${esc(v||'その他・未配置')} ▾</button></div>`;if(masterFields.includes(f))return `<div class="field ${span}"><label>${esc(f)}</label>${masterSelectHtml(f,v)}</div>`;
   return `<div class="field ${span}"><label>${esc(f)}</label>${long?`<textarea data-field="${esc(f)}">${esc(v)}</textarea>`:`<input data-field="${esc(f)}" type="${type}" value="${esc(v)}">`}</div>`;
 }
 function saveFieldsOnly(){if(!selectedPatient)return;$$('[data-field]').forEach(el=>selectedPatient.data[el.dataset.field]=el.value);if($('#status'))selectedPatient.status=$('#status').value;if($('#dischargeDate'))selectedPatient.dischargeDate=$('#dischargeDate').value||null}
@@ -838,18 +838,56 @@ init().catch(e=>{document.getElementById('app').innerHTML=`<div class="lockwrap"
 
 
 // Shared bed selector: compact 3 columns, room headings, without leaving the current screen.
-function showGroupedBedPicker(current,onChoose){
+function showGroupedBedPicker(current,onChoose,options={}){
   $('#groupedBedPicker')?.remove();
   const groups=[...BED_LAYOUT,...ICU_LAYOUT];
-  const panel=`<div class="bed-picker-shade" id="groupedBedPicker" role="dialog" aria-modal="true" aria-label="ベッド配置先を選択"><div class="bed-picker-panel"><div class="bed-picker-head"><strong>ベッド配置先を選択</strong><button type="button" class="btn secondary" id="bedPickerClose">閉じる</button></div><div class="bed-picker-scroll"><button type="button" class="bed-picker-choice ${!current?'chosen':''}" data-bed="">その他・未配置</button>${groups.map(r=>`<section class="bed-picker-room"><h3>${esc(r.room)}${r.room.startsWith('ICU')?'':'号室'}</h3><div class="bed-picker-grid">${r.beds.map(n=>{const b=bedKey(r.room,n);return `<button type="button" class="bed-picker-choice ${normalizeBed(current)===normalizeBed(b)?'chosen':''}" data-bed="${esc(b)}">${esc(b)}</button>`}).join('')}</div></section>`).join('')}</div></div></div>`;
+  const panel=`<div class="bed-picker-shade" id="groupedBedPicker" role="dialog" aria-modal="true" aria-label="ベッド配置先を選択"><div class="bed-picker-panel"><div class="bed-picker-head"><strong>ベッド配置先を選択</strong><button type="button" class="btn secondary" id="bedPickerClose">閉じる</button></div><div class="bed-picker-scroll"><div class="bed-picker-top"><button type="button" class="bed-picker-choice ${!current?'chosen':''}" data-bed="">その他・未配置</button>${options.onDischarge?`<button type="button" class="bed-picker-choice discharge-choice" id="pickerDischarge">退院</button>`:''}</div>${groups.map(r=>`<section class="bed-picker-room"><h3>${esc(r.room)}${r.room.startsWith('ICU')?'':'号室'}</h3><div class="bed-picker-grid">${r.beds.map(n=>{const b=bedKey(r.room,n);return `<button type="button" class="bed-picker-choice ${normalizeBed(current)===normalizeBed(b)?'chosen':''}" data-bed="${esc(b)}">${esc(b)}</button>`}).join('')}</div></section>`).join('')}</div></div></div>`;
   document.body.insertAdjacentHTML('beforeend',panel);
   const root=$('#groupedBedPicker');
   const close=()=>root.remove();
   root.addEventListener('click',e=>{if(e.target===root)close()});
-  $('#bedPickerClose').onclick=close;
+  $('#bedPickerClose').onclick=close;if(options.onDischarge)$('#pickerDischarge').onclick=()=>{close();options.onDischarge()};
   root.querySelectorAll('[data-bed]').forEach(btn=>btn.onclick=()=>{onChoose(btn.dataset.bed);close()});
 }
 
+// Real patient discharge: preserve records and keep pending summaries visible.
+function bindPatientBedPicker(){
+ const btn=$('#patientBedPick'),input=$('#patientBedValue');if(!btn||!input)return;
+ btn.onclick=()=>showGroupedBedPicker(input.value,value=>{input.value=value;btn.textContent=(value||'その他・未配置')+' ▾'},
+   {onDischarge:()=>startDischargeFlow()});
+}
+function startDischargeFlow(){
+ const p=selectedPatient;if(!p)return;
+ if(p._new){alert('先に患者情報を保存してください。');return;}
+ const previousBed=$('#patientBedValue')?.value??p.data['ベッド番号']??'';
+ const today=new Date().toLocaleDateString('sv-SE');
+ document.body.insertAdjacentHTML('beforeend',`<div class="bed-picker-shade" id="dischargeFlow" role="dialog" aria-modal="true" aria-label="退院日を選択"><div class="bed-picker-panel discharge-panel"><div class="bed-picker-head"><strong>退院日を選択</strong><button class="btn secondary" id="dischargeCancel">戻る</button></div><div class="discharge-content"><p><b>${esc(p.data['氏名']||'氏名未入力')}</b></p><label>退院日<input type="date" id="dischargeChosenDate" value="${today}"></label><p class="notice">退院確定後はベッドを空け、日誌の退院患者一覧に残します。サマリー入力完了までは削除されません。</p><button class="btn" id="dischargeReview">確認へ</button><div id="dischargeReviewBody"></div></div></div></div>`);
+ const root=$('#dischargeFlow');$('#dischargeCancel').onclick=()=>root.remove();
+ $('#dischargeReview').onclick=()=>{
+  const date=$('#dischargeChosenDate').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('退院日を入力してください');return;}
+  const admission=p.data['入院日'];if(admission&&/^\d{4}-\d{2}-\d{2}$/.test(admission)&&date<admission){alert('退院日は入院日以降を指定してください');return;}
+  $('#dischargeReviewBody').innerHTML=`<div class="panel"><p><b>退院処理を確定しますか？</b></p><p>${esc(p.data['氏名']||'氏名未入力')} ／ 退院日：${esc(date)} ／ 退院前：${esc(previousBed||'その他・未配置')}</p><button class="btn" id="dischargeCommit">確定して退院一覧へ</button></div>`;
+  $('#dischargeCommit').onclick=async()=>{
+   const b=$('#dischargeCommit');b.disabled=true;
+   const old={date:p.dischargeDate,pending:p.summaryPending,bed:p.data['ベッド番号'],former:p.formerBed};
+   try{p.formerBed=previousBed;p.dischargeDate=date;p.summaryPending=true;p.data['ベッド番号']='';p.updatedAt=nowISO();await save();root.remove();closePatient();screen='journal';render()}
+   catch(e){p.dischargeDate=old.date;p.summaryPending=old.pending;p.data['ベッド番号']=old.bed;p.formerBed=old.former;alert('保存できませんでした：'+e.message);b.disabled=false}
+  };
+ };
+}
+function renderPendingDischarges(){
+ const pending=state.patients.filter(p=>p.summaryPending);
+ return `<div class="panel"><h2>退院患者一覧（サマリー未完了） ${pending.length}名</h2><p class="notice">電子カルテに退院サマリーを入力した後、「退院」を押してください。完了まで一覧に残ります。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${pending.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.dischargeDate||'')}</td><td>${esc(p.formerBed||'未配置')}</td><td><button type="button" class="btn secondary pending-complete" data-id="${esc(p.id)}">退院</button></td></tr>`).join('')||'<tr><td colspan="4">サマリー未完了の退院患者はいません</td></tr>'}</tbody></table></div></div>`;
+}
+function bindPendingDischarges(){
+ $$('.pending-complete').forEach(btn=>btn.onclick=async()=>{
+  const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||!p.summaryPending)return;
+  if(!confirm(`${p.data['氏名']||'この患者'}さんの退院サマリーは電子カルテへの入力が完了しましたか？\n完了の場合、未処理一覧から外します。`))return;
+  btn.disabled=true;p.summaryPending=false;p.summaryCompletedAt=nowISO();
+  try{await save();renderJournalPreview()}catch(e){p.summaryPending=true;p.summaryCompletedAt=null;btn.disabled=false;alert('保存できませんでした：'+e.message)}
+ });
+}
 // Journal UI prototype: sample data only, never writes to patient database.
 let journalDraft=null,journalEntryOpen=false,journalScanImage=null,journalScanText='',journalScanStatus='';
 function journalSample(){return {admissions:[{name:'テスト太郎',date:'2026-10-12',room:'202号室',bed:'',source:'スキャン'},{name:'テスト花子',date:'2026-10-14',room:'ICU',bed:'',source:'スキャン'},{name:'テスト三郎',date:'2026-10-15',room:'203号室',bed:'',source:'スキャン'}],discharges:[{name:'テスト次郎',date:'2026-10-13',room:'207号室'},{name:'テスト四郎',date:'2026-10-14',room:'ICU'}]}}
@@ -858,10 +896,12 @@ function renderJournalPreview(){
   const admissions=[...journalDraft.admissions].sort((a,b)=>a.date.localeCompare(b.date));
   const entry=`<div class="journal-entry"><h3>新しい患者を手入力</h3><div class="journal-entry-fields"><label>氏名<input id="journalNewName" type="text" autocomplete="off" placeholder="氏名を入力"></label><label>入院日<input id="journalNewDate" type="date" value="${new Date().toLocaleDateString('sv-SE')}"></label><label>ベッド配置先<button class="btn secondary journal-pick" id="journalNewBedPick" type="button">その他・未配置 ▾</button><input type="hidden" id="journalNewBed" value=""></label></div><div class="journal-entry-actions"><button type="button" class="btn secondary" id="journalCancel">キャンセル</button><button type="button" class="btn" id="journalAdd">一覧に追加</button></div></div>`;
   $('#main').innerHTML=`<div class="hero"><div><h1>日誌・患者情報取り込み</h1><p>テスト版 Ver.${APP_VERSION} ／ 日誌画面の操作試作</p></div></div>
-  <div class="panel journal-warning"><b>試作モード：架空データのみ</b><p>写真プレビューと文字認識の対応状況確認を試せます。iPad miniでの日本語OCRはまだ未対応です。既存患者との照合・実際の登録／退院処理は未実装です。入力内容は患者データに保存されません。</p><label class="btn secondary journal-photo">📷 日誌の写真を選択・撮影<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div><div id="journalScanPreview"></div></div>
+  <div class="panel journal-warning"><b>写真・入院一覧は架空データの試作です</b><p>写真プレビューと文字認識の対応状況確認を試せます。iPad miniでの日本語OCRはまだ未対応です。写真の文字認識・入院患者の手入力はまだ試作です。患者情報画面からの退院処理は実データに保存されます。</p><label class="btn secondary journal-photo">📷 日誌の写真を選択・撮影<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div><div id="journalScanPreview"></div></div>
   <div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="notice">入院日の古い順。右側の「部屋選択」から配置先を選べます。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead><tbody>${admissions.map(p=>{const i=journalDraft.admissions.indexOf(p);return `<tr><td>${esc(p.name)}</td><td>${esc(p.date)}</td><td>${esc(p.bed||'未配置')}</td><td><button type="button" class="btn secondary journal-bed-btn" data-index="${i}">部屋選択</button></td></tr>`}).join('')}</tbody></table></div><button type="button" class="btn secondary journal-add-toggle" id="journalEntryToggle">${journalEntryOpen?'− 手入力を閉じる':'＋ 患者を手入力'}</button>${journalEntryOpen?entry:''}</div>
-  <div class="panel"><h2>② 退院患者一覧　${journalDraft.discharges.length}名</h2><p class="notice">退院患者は入院中の「その他・未配置」とは別に表示します。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${journalDraft.discharges.map((p,i)=>`<tr><td>${esc(p.name)}</td><td>${esc(p.date)}</td><td>${esc(p.room)}</td><td><button type="button" class="btn secondary journal-discharge-btn" data-index="${i}">退院</button></td></tr>`).join('')}</tbody></table></div></div>
+  ${renderPendingDischarges()}
+  <div class="panel"><h2>② 退院患者一覧（架空の操作サンプル）　${journalDraft.discharges.length}名</h2><p class="notice">退院患者は入院中の「その他・未配置」とは別に表示します。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${journalDraft.discharges.map((p,i)=>`<tr><td>${esc(p.name)}</td><td>${esc(p.date)}</td><td>${esc(p.room)}</td><td><button type="button" class="btn secondary journal-discharge-btn" data-index="${i}">退院</button></td></tr>`).join('')}</tbody></table></div></div>
   <div class="panel"><button class="btn secondary" id="journalReset">架空のサンプルを初期状態に戻す</button><p class="notice">実際の患者情報は入力しないでください。</p></div>`;
+  bindPendingDischarges();
   $$('.journal-bed-btn').forEach(btn=>btn.onclick=()=>{const p=journalDraft.admissions[Number(btn.dataset.index)];showGroupedBedPicker(p.bed,value=>{p.bed=value;renderJournalPreview()})});
   $('#journalEntryToggle').onclick=()=>{journalEntryOpen=!journalEntryOpen;renderJournalPreview()};
   if(journalEntryOpen){

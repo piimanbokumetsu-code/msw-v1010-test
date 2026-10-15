@@ -1,7 +1,7 @@
 /* Layout release 2026-10-13a: network-first, offline fallback; does not touch IndexedDB. */
 const CACHE_PREFIX='msw-v1010-test-only-';
-const CACHE=CACHE_PREFIX+'20261015c';
-const ASSETS=['./','./index.html','./styles.css?v=preview-20261015c','./app.js?v=preview-20261015c','./manifest.webmanifest','./icon.svg','./icon-apple.svg','./icon-192.png','./icon-512.png'];
+const CACHE=CACHE_PREFIX+'20261015d';
+const ASSETS=['./','./index.html','./styles.css?v=preview-20261015d','./app.js?v=preview-20261015d','./manifest.webmanifest','./icon.svg','./icon-apple.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('message',e=>{if(e.data&&e.data.type==='SKIP_WAITING')self.skipWaiting()});
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(CACHE_PREFIX)&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
