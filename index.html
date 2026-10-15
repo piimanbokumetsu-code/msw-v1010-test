@@ -6,17 +6,17 @@
 <meta name="theme-color" content="#0f766e" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>MSW患者管理 Ver.1.0.10 テスト版</title>
+<title>MSW患者管理 Ver.1.0.15 テスト版</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" />
 <link rel="apple-touch-icon" href="icon-192.png" />
-<link rel="stylesheet" href="styles.css?v=preview-20261015d" />
+<link rel="stylesheet" href="styles.css?v=preview-20261015e" />
 <meta name="application-name" content="MSW-DB" />
 <script>
 /* 2026-10-13: Refresh an installed PWA without clearing its IndexedDB. */
 (function(){
  if(!('serviceWorker' in navigator))return;
- var key='msw-preview-controller-20261014d';
+ var key='msw-preview-controller-20261015e';
  navigator.serviceWorker.addEventListener('controllerchange',function(){
    try { if(sessionStorage.getItem(key))return; sessionStorage.setItem(key,'1'); }catch(e){}
    location.reload();
@@ -42,6 +42,6 @@
 <body>
 <div id="app"></div>
 <input id="fileInput" type="file" hidden />
-<script src="app.js?v=preview-20261015d"></script>
+<script src="app.js?v=preview-20261015e"></script>
 </body>
 </html>
