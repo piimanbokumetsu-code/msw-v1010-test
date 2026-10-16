@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_secure_v1', STORE='kv';
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='1.0.19';
+const APP_VERSION='1.0.20';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -381,7 +381,18 @@ async function flushPatientAutoSave(){
     return false;
   }finally{if(patientWriteBusy===writing)patientWriteBusy=null}
 }
-async function finishPatientAndNavigate(next){
+// A new patient is not saved until a name or patient ID is supplied. Merely
+// tapping an empty bed must be reversible without a save error. Never discard
+// entered details (including tabs other than Basic) without confirmation.
+function newPatientHasEnteredData(p){
+  if(!p)return false;
+  if(Object.entries(p.data||{}).some(([field,value])=>
+    !['ベッド番号','入院日数'].includes(field)&&String(value??'').trim()!==''))return true;
+  return (p.tasks||[]).length>0||(p.notes||[]).length>0||
+    (p.attachments||[]).length>0||!!p.dischargeDate||
+    (!!p.status&&p.status!=='未設定');
+}
+async function finishPatientAndNavigate(next,{closing=false}={}){
   if(patientTransitionBusy)return;
   // A photo operation uses an atomic transaction for metadata and encrypted pixels.
   // Do not navigate away while it is still running.
@@ -392,6 +403,16 @@ async function finishPatientAndNavigate(next){
   const controls=$$('#modal .sheethead button, #modal .tab');
   controls.forEach(b=>b.disabled=true);
   try{
+    capturePatientForm();
+    const draft=selectedPatient;
+    if(draft?._new&&!patientCanSave(draft)){
+      // Tab changes keep the in-memory draft intact; leaving the sheet discards
+      // it only if untouched or the user explicitly authorizes discarding edits.
+      if(closing&&newPatientHasEnteredData(draft)&&
+        !confirm('氏名・患者IDが未入力のため保存できません。入力した内容を破棄して戻りますか？'))return;
+      if(!closing)patientSaveIndicator('氏名か患者IDの入力後に自動保存','pending');
+      next();return;
+    }
     // If the user entered more text while a save was pending, flush it too.
     let ok=false;
     for(let attempt=0;attempt<4;attempt++){
@@ -416,8 +437,8 @@ function openPatient(p){
 function renderPatientModal(){
   const p=selectedPatient;
   document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeM">←</button><div class="patient-sheet-title"><h2>${esc(p.data['氏名']||'新規患者')}</h2><div class="notice">${esc(p.data['ベッド番号']||'病床未設定')}　${esc(p.data['病名']||'')}</div></div><div class="spacer"></div><span id="patientSaveStatus" role="status" aria-live="polite" class="patient-save-status">保存済み（自動保存）</span><button class="btn secondary" id="saveP">保存して閉じる</button></div><div class="tabs">${[['basic','基本'],['care','家族・介護'],['adl','ADL'],['support','退院支援'],['notes','経過記録'],['photos','写真・書類']].map(([k,n])=>`<button class="tab ${activeTab===k?'active':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="sheetbody" id="tabbody"></div></div></div>`);
-  $('#closeM').onclick=()=>finishPatientAndNavigate(closePatient);
-  $('#saveP').onclick=()=>finishPatientAndNavigate(closePatient);
+  $('#closeM').onclick=()=>finishPatientAndNavigate(closePatient,{closing:true});
+  $('#saveP').onclick=()=>finishPatientAndNavigate(closePatient,{closing:true});
   $$('.tab').forEach(t=>t.onclick=()=>finishPatientAndNavigate(()=>{
     activeTab=t.dataset.tab;clearBasicPhotoPreview();$('#modal').remove();renderPatientModal();
   }));
@@ -692,7 +713,13 @@ async function addPhotos(files,type){
     state.updatedAt=newState.updatedAt;
     // A patient switch can happen while the IndexedDB transaction is pending.
     // Keep the committed patient's data in sync without redrawing another sheet.
-    if(selectedPatient===p)renderPhotosTab();
+    if(selectedPatient===p){
+      if(type==='genogram'&&activeTab==='photos'){
+        // Only a successful persisted genogram import returns to the overview.
+        // Admission information retains its multi-page registration workflow.
+        activeTab='basic';clearBasicPhotoPreview();$('#modal')?.remove();renderPatientModal();
+      }else renderPhotosTab();
+    }
   }catch(e){
     // Do not show an obsolete import error on a different patient's sheet.
     if(selectedPatient===p)alert('写真を保存できませんでした：'+(e.message||e));
@@ -858,7 +885,7 @@ function fieldHtml(f){
   return `<div class="field ${span}"><label>${esc(f)}</label>${long?`<textarea data-field="${esc(f)}">${esc(v)}</textarea>`:`<input data-field="${esc(f)}" type="${type}" value="${esc(v)}">`}</div>`;
 }
 function saveFieldsOnly(){return capturePatientForm()}
-async function savePatientFromForm(){return finishPatientAndNavigate(closePatient)}
+async function savePatientFromForm(){return finishPatientAndNavigate(closePatient,{closing:true})}
 function taskListHtml(p){if(!p.tasks?.length)return'<div class="empty">タスクなし</div>';return p.tasks.map((t,i)=>`<label class="settings-row"><span><input type="checkbox" data-task="${i}" ${t.done?'checked':''}> ${esc(t.text)}</span><small>${fmtDate(t.createdAt)}</small></label>`).join('')}
 function bindTaskChecks(){$$('[data-task]').forEach(c=>c.onchange=()=>{selectedPatient.tasks[+c.dataset.task].done=c.checked;save()})}
 function addTask(){const el=$('#newTask'),v=el.value.trim();if(!v)return;selectedPatient.tasks??=[];selectedPatient.tasks.push({id:uid(),text:v,done:false,createdAt:nowISO()});$('#taskList').innerHTML=taskListHtml(selectedPatient);el.value='';bindTaskChecks();save()}
