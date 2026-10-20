@@ -1,0 +1,2498 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-QJzsryZRpGp3wuCCVkBLRT2VbmEBasXlQtcBxE1O6/M='; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'">
+<title>MSW MVP01 RC3M 架空患者のみ・単体実機プレビュー</title>
+<style>:root{--bg:#f4f7f7;--card:#fff;--ink:#173033;--muted:#687b7d;--line:#d9e4e4;--brand:#0f766e;--brand2:#14b8a6;--warn:#c2410c;--danger:#b91c1c;--shadow:0 6px 24px rgba(15,60,60,.08)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}body{min-height:100vh}
+button,input,select,textarea{font:inherit}button{touch-action:manipulation}.hidden{display:none!important}
+.shell{min-height:100vh;padding-bottom:84px}.topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:12px}.brand{font-weight:800;font-size:20px;letter-spacing:.02em}.spacer{flex:1}.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;color:var(--ink)}
+.content{padding:16px;max-width:1200px;margin:auto}.hero{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}.hero h1{font-size:24px;margin:0}.hero p{margin:4px 0 0;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 18px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;box-shadow:var(--shadow)}.kpi b{font-size:24px;display:block}.kpi span{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}.toolbar input,.toolbar select{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;min-height:44px}.toolbar input{flex:1;min-width:180px}.btn{border:0;border-radius:12px;padding:11px 14px;background:var(--brand);color:#fff;font-weight:700}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.warn{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}.btn.danger{background:#fff1f2;color:var(--danger);border:1px solid #fecdd3}.btn:disabled{opacity:.45}
+.section{margin:18px 0}.section-title{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;margin:0 0 8px}.count{font-size:12px;background:#dff5f1;color:#0f766e;padding:3px 8px;border-radius:999px}
+.patient-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.patient-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow);cursor:pointer;min-height:104px}.patient-card:active{transform:scale(.99)}.pc-head{display:flex;align-items:center;gap:8px}.bed{font-size:13px;font-weight:800;color:#0f766e;background:#e6fffb;border-radius:8px;padding:4px 7px}.name{font-size:17px;font-weight:800}.pc-meta{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.tag{font-size:11px;border-radius:999px;padding:4px 8px;background:#eef2f2;color:#425556}.tag.orange{background:#fff7ed;color:#9a3412}.tag.red{background:#fff1f2;color:#b91c1c}.tag.green{background:#ecfdf5;color:#047857}.tag.purple{background:#f5f3ff;color:#6d28d9}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 8px calc(6px + env(safe-area-inset-bottom));backdrop-filter:blur(14px)}.navbtn{border:0;background:transparent;padding:9px 4px;color:var(--muted);font-size:12px;font-weight:700}.navbtn.active{color:var(--brand)}.navbtn .ico{display:block;font-size:22px;margin-bottom:2px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}.panel h2,.panel h3{margin:0 0 12px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field label{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;min-height:42px}.field textarea{min-height:82px;resize:vertical}.span2{grid-column:span 2}
+.modal{position:fixed;inset:0;z-index:80;background:rgba(7,28,29,.42);display:flex;align-items:stretch;justify-content:center}.sheet{background:var(--bg);width:min(100%,1100px);height:100%;overflow:auto}.sheethead{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;gap:10px;align-items:center}.sheethead h2{margin:0;font-size:20px}.tabs{position:sticky;top:65px;z-index:4;background:var(--bg);display:flex;gap:6px;overflow:auto;padding:8px 14px;border-bottom:1px solid var(--line)}.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}.sheetbody{padding:14px;max-width:1000px;margin:auto}
+.timeline{display:flex;flex-direction:column;gap:8px}.note{border-left:4px solid var(--brand2);background:#fff;border-radius:10px;padding:10px 12px}.note .time{font-size:11px;color:var(--muted)}.note .type{font-weight:800;margin:3px 0}.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+.drug-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.drug{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}.drug b{font-size:17px}.drug .small{font-size:12px;color:var(--muted);margin-top:4px}.drug .effect{font-size:13px;white-space:pre-wrap;margin-top:8px}
+.lockwrap{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#dff7f3,#f7fbfb)}.lockcard{width:min(100%,430px);background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(10,60,60,.15)}.lockcard h1{margin:0 0 5px}.lockcard p{color:var(--muted)}.lockcard input{width:100%;font-size:22px;letter-spacing:.12em;text-align:center;padding:14px;border:1px solid var(--line);border-radius:14px;margin:10px 0}.notice{font-size:12px;color:var(--muted);line-height:1.6}.alert{padding:10px 12px;border-radius:10px;margin:10px 0;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}.success{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+.settings-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.settings-row:last-child{border-bottom:0}.settings-row small{display:block;color:var(--muted);margin-top:3px}.storagebar{height:10px;background:#e7eeee;border-radius:999px;overflow:hidden;margin-top:8px}.storagebar>div{height:100%;background:var(--brand2)}
+@media(max-width:800px){.patient-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,1fr)}.drug-list{grid-template-columns:1fr}}
+@media(max-width:520px){.patient-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.span2{grid-column:span 1}.topbar{padding-left:10px;padding-right:10px}.content{padding:10px}.hero h1{font-size:21px}}
+@media print{.topbar,.bottomnav,.toolbar,.no-print,.tabs{display:none!important}.shell{padding:0}.content{max-width:none;padding:0}.patient-grid{display:table;width:100%;border-collapse:collapse}.patient-card{display:table-row;box-shadow:none;border:0}.patient-card>*{display:table-cell;border-bottom:1px solid #aaa;padding:6px}.tags{display:none}.section{page-break-inside:avoid}.kpis,.hero p{display:none}.hero{margin:0}.hero h1{font-size:18px}}
+
+.field select[data-master-field]{background:#fff;cursor:pointer}.field select[data-master-field]:focus{outline:2px solid rgba(20,184,166,.18);border-color:var(--brand2)}
+.backupwarn{background:#fff7ed;color:#9a3412;border-color:#fed7aa;font-weight:800}
+@media(max-width:620px){.topbar .pill:nth-of-type(2){display:none}.backupwarn{display:inline-block!important}}
+
+
+/* ===== 病床マップ Ver.1.0.1 ===== */
+
+.map-section{
+  margin:18px 0 28px;
+}
+
+.map-section-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.map-section-title > div{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+
+.map-section-title strong{
+  font-size:20px;
+}
+
+.map-section-title span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.map-section-title .count{
+  margin-left:auto;
+}
+
+.room-map{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.room-block{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+
+.room-title{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.bed-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+
+.bed-slot{
+  appearance:none;
+  width:100%;
+  min-height:130px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--card);
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.bed-slot:hover{
+border-color:var(--brand);
+}
+
+.bed-slot b{
+  font-size:14px;
+}
+
+.bed-slot strong{
+  font-size:16px;
+}
+
+.bed-slot > span{
+  font-size:13px;
+}
+
+.bed-slot small{
+  color:var(--muted);
+}
+
+.bed-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+}
+
+.empty-bed{
+  border-style:dashed;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  opacity:.75;
+}
+
+.empty-bed span{
+  font-size:16px;
+  font-weight:700;
+}
+
+.occupied-bed{
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+
+@media(max-width:800px){
+  .room-map{
+    grid-template-columns:1fr;
+  }
+
+  .bed-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media(max-width:520px){
+  .bed-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+
+/* ===== 朝一患者一覧 印刷 Ver.1.0.5 ===== */
+.morning-print{display:none}
+@media print{
+  @page{size:A4 portrait;margin:4.5mm 5mm}
+  html,body{margin:0!important;padding:0!important;background:#fff!important}
+  body>*:not(.morning-print){display:none!important}
+  .morning-print{display:block!important;color:#000;background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+  .morning-page{display:block;width:100%;height:auto!important;min-height:0!important;overflow:visible!important;break-after:page;page-break-after:always}
+  .morning-page:last-child{break-after:auto;page-break-after:auto}
+  .morning-head{height:7mm;display:flex;align-items:flex-start;justify-content:space-between;gap:4mm;white-space:nowrap}
+  .morning-head h1{font-size:13pt;line-height:1;margin:0;font-weight:800}
+  .morning-head div{font-size:7pt;line-height:1.2}
+  .morning-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:5.8pt;line-height:1}
+  .morning-table th,.morning-table td{border:.35pt solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;white-space:nowrap;overflow:hidden;text-overflow:clip}
+  .morning-table th{height:8mm;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:5.5pt;font-weight:700}
+  .morning-table td{height:7.5mm}
+  .morning-table tr{break-inside:avoid;page-break-inside:avoid}
+  .morning-table .c-bed{width:5.1%}.morning-table .c-id{width:6.1%}.morning-table .c-name{width:9.7%}.morning-table .c-admit{width:5.6%}.morning-table .c-doc{width:5.1%}.morning-table .c-disease{width:9.7%}.morning-table .c-care{width:5.1%}.morning-table .c-facility{width:12.8%}.morning-table .c-memo{width:27.6%}.morning-table .c-family{width:6.6%}.morning-table .c-days{width:6.6%}
+}
+
+/* Ver.1.0.8: show every patient assigned to the same bed */
+.duplicate-bed{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px}
+.duplicate-bed .bed-line{align-self:stretch;text-align:left}
+.duplicate-bed strong{font-size:15px}
+.duplicate-list{padding:14px;max-width:850px;margin:auto;display:flex;flex-direction:column;gap:12px}
+.duplicate-patient{display:flex;flex-direction:column;gap:10px}
+.duplicate-patient .patient-card{cursor:default}
+.duplicate-open{align-self:flex-start}
+
+/* v1.0.9: visible duplicate indicator and inline bed reassignment */
+.duplicate-bed strong,.duplicate-warning{color:#c62828;font-weight:800}
+.duplicate-patient-row{display:flex;gap:12px;align-items:flex-start}
+.duplicate-patient-info{flex:1;min-width:0}
+.duplicate-move{width:155px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.duplicate-move label{font-size:13px;font-weight:700}
+.duplicate-bed-select{max-width:100%;min-height:40px;border:1px solid #aaa;border-radius:8px;background:white;padding:5px}
+.duplicate-move-save{white-space:normal}
+@media(max-width:520px){.duplicate-patient-row{flex-wrap:wrap}.duplicate-move{width:100%;flex-direction:row;align-items:center;flex-wrap:wrap}.duplicate-move label{width:100%}.duplicate-bed-select{flex:1;min-width:100px}}
+
+/* Approved 67-bed demo layout: room cards in a vertical stack. */
+.general-room-map{display:flex!important;flex-direction:column;gap:11px;min-width:0}
+.general-room-map>.standard-room{display:block;min-width:0;grid-column:auto!important}
+.general-room-map .room-block{background:#fff;border:1px solid #dce4ed;border-radius:13px;padding:11px;min-width:0;box-shadow:0 1px 5px #21354d0b}
+.general-room-map .room-title{font-size:16px;margin-bottom:9px;color:#23334b}
+.general-room-map .standard-room .bed-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(148px,1fr);grid-template-columns:none!important;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.general-room-map .bed-slot{min-width:0;min-height:76px;padding:8px;border:1px solid #d6e1ee;border-radius:10px;gap:4px}
+.general-room-map .occupied-bed{background:#f1f7ff}
+.general-room-map .empty-bed{background:#f8fafc;border-style:dashed;opacity:1}
+.general-room-map .bed-slot b{font-size:11px;color:#426c99}
+.general-room-map .bed-slot strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.general-room-map .bed-meta.admission-line{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;gap:5px;align-items:center;width:100%;max-width:100%;font-size:11px!important;white-space:nowrap;overflow:hidden}
+.general-room-map .admission-line .doctor{min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.general-room-map .admission-line .days{white-space:nowrap;font-weight:700;color:#185e9d}
+.general-room-map .compact-room-guide{font-size:12px;color:#61728a;margin-top:4px;padding:2px 4px}
+.general-room-map .compact-room-guide span{font-weight:700;color:#185e9d}
+.general-room-map .compact-room-scroll{display:block;min-width:0;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:7px;scrollbar-width:auto}
+.general-room-map .compact-room-row{display:flex;align-items:stretch;gap:10px;width:max-content;min-width:max-content}
+.general-room-map .compact-room-row .compact-room{flex:none;width:172px;min-width:172px}
+.general-room-map .compact-room-row .two-bed-room{width:330px;min-width:330px}
+.general-room-map .compact-room-row .room-block{height:100%;padding:11px}
+.general-room-map .compact-room-row .bed-grid{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:7px}
+.general-room-map .compact-room-row .two-bed-room .bed-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.general-room-map .compact-room-row .bed-slot{width:100%}
+@media(max-width:600px){.general-room-map .room-block{padding:9px}.general-room-map .compact-room-row{gap:8px}}
+
+/* Layout demo parity: explicit full-width room rows. */
+#patientList .general-room-map{display:flex!important;flex-direction:column!important;gap:12px!important;width:100%;min-width:0}
+#patientList .general-room-map>.standard-room{display:block!important;width:100%!important;min-width:0!important}
+#patientList .general-room-map>.standard-room .bed-grid{display:grid!important;grid-auto-flow:column!important;grid-auto-columns:minmax(148px,1fr)!important;grid-template-columns:none!important;overflow-x:auto!important}
+#patientList .general-room-map>.compact-room-scroll{width:100%!important;overflow-x:auto!important}
+#patientList .general-room-map .compact-room-row{display:flex!important;flex-wrap:nowrap!important;width:max-content!important}
+#patientList .general-room-map .compact-room-row>.compact-room{display:block!important;flex:0 0 172px!important}
+#patientList .general-room-map .compact-room-row>.two-bed-room{flex-basis:330px!important}
+#patientList .general-room-map .compact-room-row .two-bed-room .bed-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-flow:row!important}
+#patientList .general-room-map .compact-room-row .compact-room:not(.two-bed-room) .bed-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-flow:row!important}
+
+/* iPad mini fit-to-width ward map: no horizontal clipping of official beds. */
+#patientList .general-room-map>.standard-room .bed-grid{
+  display:grid!important;grid-auto-flow:row!important;grid-auto-columns:auto!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  overflow-x:visible!important;gap:4px!important;
+}
+#patientList .general-room-map>.standard-room:has(.bed-grid>.bed-slot:nth-child(7)) .bed-grid{
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+}
+#patientList .general-room-map>.compact-room-scroll{overflow-x:visible!important;padding-bottom:0!important}
+#patientList .general-room-map .compact-room-row{
+  display:grid!important;grid-template-columns:2fr 2fr 1fr 1fr 1fr!important;
+  width:100%!important;min-width:0!important;gap:5px!important;
+}
+#patientList .general-room-map .compact-room-row>.compact-room,
+#patientList .general-room-map .compact-room-row>.two-bed-room{
+  width:auto!important;min-width:0!important;flex-basis:auto!important;
+}
+#patientList .general-room-map .compact-room-row .room-block{padding:5px!important}
+#patientList .general-room-map .compact-room-row .bed-grid{gap:3px!important}
+#patientList .general-room-map .compact-room-guide{display:none!important}
+#patientList .icu-map{display:flex!important;flex-direction:column!important;gap:11px!important;min-width:0}
+#patientList .icu-map>.room-block{width:100%;min-width:0}
+#patientList .icu-map>.room-block .bed-grid{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:4px!important}
+#patientList .icu-map>.room-block:has(.bed-grid>.bed-slot:nth-child(9)) .bed-grid{grid-template-columns:repeat(9,minmax(0,1fr))!important}
+#patientList .general-room-map .bed-slot,#patientList .icu-map .bed-slot{
+  min-width:0!important;min-height:76px;padding:5px 3px!important;gap:3px!important;overflow:hidden;
+}
+#patientList .general-room-map .bed-slot b,#patientList .icu-map .bed-slot b{font-size:clamp(8px,1.4vw,11px)!important;overflow-wrap:anywhere}
+#patientList .general-room-map .bed-slot strong,#patientList .icu-map .bed-slot strong{font-size:clamp(10px,1.65vw,14px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#patientList .general-room-map .bed-meta.admission-line,#patientList .icu-map .bed-meta.admission-line{display:flex!important;justify-content:space-between;gap:2px!important;white-space:nowrap;font-size:clamp(7px,1.1vw,10px)!important;min-width:0}
+#patientList .general-room-map .bed-meta.admission-line>* ,#patientList .icu-map .bed-meta.admission-line>*{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#patientList .general-room-map .bed-slot .tags,#patientList .icu-map .bed-slot .tags{display:none!important}
+#patientList .general-room-map .room-title,#patientList .icu-map .room-title{font-size:14px;margin-bottom:5px}
+@media(max-width:800px){
+  #patientList .general-room-map .room-block,#patientList .icu-map .room-block{padding:6px}
+  #patientList .general-room-map>.standard-room .bed-grid,#patientList .icu-map .bed-grid{gap:3px!important}
+  #patientList .general-room-map .compact-room-row{gap:3px!important}
+}
+
+/* 20261013c: iPad mini viewport fit — ICU full width, small rooms no intrinsic overflow. */
+#patientList .icu-map{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;gap:10px!important}
+#patientList .icu-map>.room-block{grid-column:1 / -1!important;min-width:0!important;width:100%!important}
+#patientList .icu-map>.room-block .bed-grid{display:grid!important;grid-auto-flow:row!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;min-width:0!important;width:100%!important;overflow:visible!important}
+#patientList .icu-map>.room-block:nth-child(3) .bed-grid{grid-template-columns:repeat(9,minmax(0,1fr))!important}
+#patientList .general-room-map>.compact-room-scroll{max-width:100%!important;min-width:0!important;overflow-x:clip!important}
+#patientList .general-room-map .compact-room-row{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(0,2fr) repeat(3,minmax(0,1fr))!important;width:100%!important;max-width:100%!important;min-width:0!important;gap:3px!important}
+#patientList .general-room-map .compact-room-row>.compact-room{min-width:0!important;width:100%!important;max-width:100%!important;overflow:hidden!important}
+#patientList .general-room-map .compact-room-row .room-block{min-width:0!important;max-width:100%!important;overflow:hidden!important;padding:3px!important}
+#patientList .general-room-map .compact-room-row .bed-grid{min-width:0!important;width:100%!important;grid-auto-columns:minmax(0,1fr)!important}
+#patientList .general-room-map .compact-room-row .two-bed-room .bed-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#patientList .general-room-map .compact-room-row .bed-slot{min-width:0!important;width:100%!important;padding:3px 1px!important;overflow:hidden!important}
+#patientList .general-room-map .compact-room-row .room-title{font-size:clamp(9px,1.5vw,13px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#patientList .general-room-map .compact-room-row .bed-slot b{font-size:clamp(7px,1vw,10px)!important}
+#patientList .general-room-map .compact-room-row .bed-slot strong{font-size:clamp(8px,1.3vw,12px)!important}
+#patientList .general-room-map .compact-room-row .admission-line{font-size:clamp(6px,0.85vw,9px)!important}
+
+.preview-warning{font-size:12px;font-weight:700;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:5px 8px}.lockcard .preview-warning{line-height:1.5}
+@media(max-width:750px){.topbar .preview-warning{font-size:10px;padding:4px}}
+@media print{.preview-warning{display:none!important}}
+
+/* Ver.1.0.12: accessible compact grouped bed picker and journal table */
+.bed-picker-shade{position:fixed;inset:0;background:rgba(20,30,45,.27);z-index:20000;display:flex;align-items:center;justify-content:center;padding:14px}
+.bed-picker-panel{width:min(420px,100%);max-height:min(75vh,620px);background:white;border-radius:14px;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;overflow:hidden}
+.bed-picker-head{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd}
+.bed-picker-scroll{overflow-y:auto;padding:12px;overscroll-behavior:contain}
+.bed-picker-room{margin-top:12px;border-top:1px solid #bbb;padding-top:9px}
+.bed-picker-room h3{font-size:15px;margin:0 0 8px;color:#334155}
+.bed-picker-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.bed-picker-choice{min-height:40px;border:1px solid #aeb8c5;border-radius:7px;background:#fff;color:#18263a;font-size:14px;font-weight:600;padding:6px;cursor:pointer}
+.bed-picker-choice.chosen{background:#e5f0ff;border:2px solid #2870c8}
+.bed-picker-scroll>.bed-picker-choice{width:100%;text-align:left;padding-left:12px}
+.journal-warning{border:2px solid #b56d14}
+.journal-photo{display:inline-block;cursor:pointer}
+.journal-table-wrap{overflow-x:auto}
+.journal-table{width:100%;border-collapse:collapse;font-size:14px;min-width:370px}
+.journal-table th,.journal-table td{padding:10px 7px;border-bottom:1px solid #dce1e7;text-align:left;vertical-align:middle}
+.journal-table th{background:#f1f5f9;font-weight:700}
+.journal-bed-btn{white-space:nowrap;font-size:13px;padding:8px 10px}
+.journal-add-toggle{margin-top:12px;width:100%}
+.journal-entry{background:#f1f5f9;border-radius:10px;margin-top:12px;padding:13px}
+.journal-entry h3{font-size:16px;margin:0 0 10px}
+.journal-entry-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.journal-entry-fields label{display:flex;flex-direction:column;gap:5px;font-weight:600}
+.journal-entry-fields input{width:100%;min-width:0}
+.journal-entry-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.duplicate-bed-pick{min-height:40px;white-space:normal}
+
+/* v1.0.13 scan experiment */
+.journal-scan-preview{margin-top:12px;display:grid;gap:10px}.journal-scan-preview img{max-width:100%;max-height:420px;object-fit:contain;border:1px solid #ddd;border-radius:8px}.journal-scan-preview textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:110px;font:inherit;padding:9px}
+
+.bed-picker-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.bed-picker-top .bed-picker-choice{width:100%;font-size:13px;padding:7px 3px}
+.discharge-choice{border-color:#c66;color:#9c2424;background:#fff8f8}
+.discharge-content{padding:18px;display:grid;gap:14px;overflow:auto}
+.discharge-content label{display:grid;gap:8px;font-weight:600}
+.discharge-content input[type=date]{min-height:42px;font-size:16px}
+
+.journal-actions{display:flex;gap:4px;align-items:center;white-space:nowrap}.journal-actions .btn{padding:7px 8px;font-size:12px}
+
+/* Ver.1.0.17: reserve real space below scroll content for the fixed iPad navigation. */
+.shell{padding-bottom:0!important;min-height:100vh;min-height:100dvh}
+.content{padding-bottom:calc(145px + env(safe-area-inset-bottom))!important}
+#main{padding-bottom:16px}
+.archive-list{display:grid;gap:10px}.archive-item{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.archive-actions{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:600px){.archive-item{align-items:flex-start;flex-direction:column}}
+
+/* Ver.1.0.18: autosave feedback beside patient details, iPad mini friendly. */
+.patient-sheet-title{min-width:0}
+.patient-sheet-title h2{overflow-wrap:anywhere}
+.patient-save-status{font-size:12px;line-height:1.4;white-space:nowrap;border-radius:9px;padding:7px 9px;background:#ecfdf5;color:#047857;font-weight:700}
+.patient-save-status[data-state="pending"],.patient-save-status[data-state="saving"]{background:#fffbeb;color:#92400e}
+.patient-save-status[data-state="error"]{background:#fff1f2;color:#b91c1c;white-space:normal}
+@media(max-width:680px){.sheethead{flex-wrap:wrap}.sheethead .spacer{flex-basis:0}.patient-save-status{order:5;margin-left:45px}.sheethead #saveP{font-size:12px;padding:9px 10px}}
+
+
+/* Ver.1.0.19: compact, editable patient overview for iPad mini. */
+/* Keep the tab rail within the modal; only the content zone scrolls if necessary. */
+#modal .sheet{display:flex;flex-direction:column;overflow:hidden;height:100%;height:100dvh}
+#modal .sheethead,#modal .tabs{position:relative;top:auto;flex-shrink:0}
+#modal .tabs{scrollbar-width:thin;overscroll-behavior-x:contain}
+#modal .sheetbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;width:100%;max-width:1100px;padding:10px 12px calc(16px + env(safe-area-inset-bottom))}
+.basic-dashboard{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(230px,1fr);gap:10px;align-items:start}
+.basic-information,.basic-photo-card,.basic-admission-card{min-width:0;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px}
+.basic-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px;align-items:start}
+.basic-field{min-width:0}
+.basic-field.basic-wide{grid-column:span 2}
+.basic-field label{font-weight:700;font-size:11px;color:#485e61;margin-bottom:3px}
+.basic-field input,.basic-field select,.basic-field textarea{padding:7px 9px;min-height:35px;border-radius:8px;font-size:14px;line-height:1.3}
+.basic-field textarea{height:48px;min-height:48px;resize:vertical}
+.basic-field input:focus,.basic-field textarea:focus{outline:2px solid rgba(20,184,166,.28);border-color:var(--brand)}
+.basic-bed-picker{font-size:13px;padding:7px 9px;width:100%;min-height:35px;text-align:left;white-space:normal}
+.basic-readonly{border:1px solid #d8e7e4;border-radius:8px;background:#edf8f6;color:#155e59;font-size:14px;font-weight:700;padding:7px 9px;min-height:35px}
+.basic-docs{display:grid;gap:10px;min-width:0}
+.basic-card-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:7px}
+.basic-card-title span{font-size:11px;color:var(--muted);white-space:nowrap}
+.basic-gen-preview{width:100%;height:clamp(180px,32vh,310px);background:#f7fafb;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;line-height:1.7;overflow:hidden;padding:5px}
+.basic-gen-preview img{display:block;width:100%;height:100%;object-fit:contain}
+.basic-gen-preview img[hidden]{display:none}
+.basic-gen-preview:focus-visible,.basic-admission-open:focus-visible{outline:3px solid var(--brand2)}
+.basic-admission-open{border:1px solid var(--line);border-radius:9px;background:#f7fafb;display:flex;align-items:center;gap:9px;padding:12px 10px;min-height:64px;width:100%;text-align:left;font-size:13px;font-weight:700;color:var(--ink)}
+.basic-document-icon{font-size:22px}
+.basic-admission-open span:nth-child(2){flex:1;min-width:0}
+.basic-admission-open small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:3px}
+.basic-admission-open span:last-child{font-size:22px;color:var(--brand)}
+@media(min-width:900px) and (max-height:800px){
+  #modal .sheethead{padding-top:8px;padding-bottom:8px}
+  #modal .tabs{padding-top:5px;padding-bottom:5px}
+  .basic-gen-preview{height:clamp(160px,27vh,220px)}
+}
+@media(max-width:680px){
+  .basic-dashboard{grid-template-columns:1fr}
+  .basic-docs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .basic-gen-preview{height:190px}
+}
+@media(max-width:420px){.basic-form-grid{grid-template-columns:1fr}.basic-field.basic-wide{grid-column:span 1}.basic-docs{grid-template-columns:1fr}}
+
+.basic-extra{margin-top:9px;border-top:1px solid var(--line);padding-top:6px}
+.basic-extra summary{cursor:pointer;color:var(--brand);font-size:12px;font-weight:700;padding:4px 0;line-height:1.5}
+.basic-extra-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:8px}
+@media(max-width:420px){.basic-extra-grid{grid-template-columns:1fr}.basic-extra-grid .span2{grid-column:span 1}}
+
+/* Ver.1.0.21 MVP01: daily work overview and optional deadlines */
+.mvp-task-label{display:block;font-weight:700;margin:12px 0 8px}
+.mvp-task-label input{display:block;width:100%;margin-top:5px}
+.mvp-task-options{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin-bottom:8px}
+.mvp-task-options>label{display:flex;flex-direction:column;gap:4px;font-weight:650;font-size:13px}
+.mvp-task-options .mvp-urgent{flex-direction:row;align-items:center;padding:8px 0;font-size:14px}
+.mvp-task-options input[type="date"]{min-height:42px}
+.mvp-task-options .btn{min-height:44px}
+.mvp-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 18px}
+.mvp-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.mvp-kpi b{font-size:25px}.mvp-kpi span{font-size:12px;color:var(--muted)}
+.mvp-task-group{margin-bottom:13px}.mvp-task-group h3{margin-top:0}
+.mvp-count{font-size:13px;color:var(--muted);font-weight:600}
+button.mvp-taskjump{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;font:inherit;color:inherit;cursor:pointer;text-align:left;min-height:57px}
+button.mvp-taskjump:hover{background:var(--bg)}
+.mvp-task-summary{display:block;min-width:0;flex:1}
+.mvp-task-copy{display:block;overflow-wrap:anywhere;margin-top:4px}
+.mvp-task-status{display:inline-flex;flex-wrap:wrap;gap:5px;margin-top:5px;font-size:12px}
+.mvp-due,.mvp-priority{display:inline-block;border-radius:6px;padding:2px 6px;background:#eef2f7;color:#334155;font-size:12px}
+.mvp-due.overdue{background:#fee2e2;color:#991b1b;font-weight:700}
+.mvp-due.today{background:#fef3c7;color:#92400e;font-weight:700}
+.mvp-due.future{background:#e0f2fe;color:#075985}
+.mvp-priority{background:#fce7f3;color:#9d174d;font-weight:700}
+@media(max-width:700px){.mvp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Security draft: hide all patient data while app is being background-locked. */
+body.msw-private { visibility: hidden !important; }
+</style></head><body>
+<div id="app"><div style="padding:24px;color:#b91c1c;font-weight:700">架空データ専用の画面を読み込み中です。実際の患者情報は入力しないでください。</div></div>
+<input id="fileInput" type="file" hidden>
+<script>'use strict';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const enc=new TextEncoder(), dec=new TextDecoder();
+const DB_NAME='mswdb_mvp01_rc3m_standalone_fake_20261020', STORE='kv'; // Separate, draft-only database; never touch installed MVP01 data.
+let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
+const APP_VERSION='1.0.21-MVP01-sec13-RC3M-PREVIEW';
+// NOTE: THIS BUNDLE IS FICTIONAL-DATA ONLY. An operator-provided host-specific
+// release must be built after authorization. Code cannot verify medical consent.
+const DEPLOYMENT_POLICY=Object.freeze({
+  origin:'https://piimanbokumetsu-code.github.io',
+  basePath:'/msw-v1010-test/msw-mvp01-sec13/',
+  fictionalOnly:true
+});
+function deploymentLocationAllowed(loc){
+  if(!DEPLOYMENT_POLICY.fictionalOnly)return false;
+  // Single-file preview is test-only; not a clinical origin allowlist.
+  // In a secure browser context the file can be previewed without an actual deployment.
+  return Boolean(loc && (loc.protocol==='https:' || loc.protocol==='blob:' || loc.protocol==='file:'));
+}
+
+
+// Data minimization policy for structured fields. This is NOT a content scanner:
+// notes, tasks, arbitrary text, uploaded images and exported PDFs still need
+// operator review before storage. Legacy attachment filenames are normalized. Keep FileMaker 番号 and hospital ＩＤ intact.
+function isProhibitedContactField(field){
+  const normalized=String(field??'').normalize('NFKC').toLowerCase().replace(/[\s_\-]/g,'');
+  return /住所|所在地|電話|携帯|連絡先|郵便|メール|fax|tel|phone|mobile|address|email|postal|zipcode|zip/.test(normalized);
+}
+function removeProhibitedContactFieldsFromState(candidate){
+  let removed=0,nonempty=0;
+  for(const patient of candidate?.patients||[]){
+    if(!patient||typeof patient!=='object')continue;
+    if(patient.data&&typeof patient.data==='object'){
+      for(const f of Object.keys(patient.data)){
+        if(!isProhibitedContactField(f))continue;
+        if(String(patient.data[f]??'').trim())nonempty++;
+        delete patient.data[f];removed++;
+      }
+    }
+    // Legacy backups may contain an original photo filename with a patient's
+    // address, telephone number or email in it. Preserve only the metadata
+    // the photo viewer actually uses; original filenames are not required.
+    const safePhotoKeys=new Set(['id','type','name','addedAt','order']);
+    for(const photo of Array.isArray(patient.attachments)?patient.attachments:[]){
+      if(!photo||typeof photo!=='object')continue;
+      for(const attr of Object.keys(photo)){
+        if(safePhotoKeys.has(attr))continue;
+        if(String(photo[attr]??'').trim())nonempty++;
+        delete photo[attr];removed++;
+      }
+      const generic=photo.type==='genogram'?'ジェノグラム画像':'入院時画像';
+      if(photo.name!==generic){
+        if(typeof photo.name==='string'&&photo.name.trim()){
+          nonempty++;removed++;
+        }
+        photo.name=generic;
+      }
+    }
+  }
+  if(candidate?.masters&&typeof candidate.masters==='object'){
+    for(const f of Object.keys(candidate.masters)){
+      if(!isProhibitedContactField(f))continue;
+      const entries=candidate.masters[f];
+      if(Array.isArray(entries)&&entries.some(x=>String(x??'').trim()))nonempty++;
+      delete candidate.masters[f];removed++;
+    }
+  }
+  return {removed,nonempty};
+}
+const DATA_MINIMIZATION_NOTICE='住所・電話番号・連絡先は登録しません。自由記述や写真に含まれる情報は自動除去できないため、入力・撮影前に確認してください。';
+
+const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
+const defaultMasters={
+  '進捗ステータス':['未設定','情報収集中','家族調整中','施設調整中','介護申請中','退院先決定','要対応'],
+  '経過記録種別':['面談','家族連絡','施設連絡','院内連携','制度・申請','その他'],
+  '介護度':['未申請','申請中','非該当','要支援1','要支援2','要介護1','要介護2','要介護3','要介護4','要介護5'],
+  '入院時介護度':['未申請','申請中','非該当','要支援1','要支援2','要介護1','要介護2','要介護3','要介護4','要介護5'],
+  '食事':['自立','見守り','一部介助','全介助'],
+  '移乗':['自立','見守り','一部介助','全介助'],
+  '移動器具':['独歩','杖','歩行器','車椅子','ストレッチャー'],
+  '睡眠':['良好','不良','不明'],
+  'コール':['自立','使用可','使用困難','不明']
+};
+function ensureStateSchema(target=state){
+  if(!target)return;
+  target.version=APP_VERSION;
+  target.masters??={};
+  for(const [k,vals] of Object.entries(defaultMasters)) target.masters[k]=uniq([...(target.masters[k]||[]),...vals]);
+  for(const f of masterFields){
+    const fromPatients=(target.patients||[]).map(p=>String(p.data?.[f]??'').trim()).filter(Boolean);
+    if(f==='ベッド番号')continue; // Official 67 beds are independent of imported values.
+    target.masters[f]=uniq([...(target.masters[f]||[]),...fromPatients]);
+  }
+}
+function uniq(a){return [...new Set(a.map(x=>String(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));}
+function officialBeds(){return [...BED_LAYOUT,...ICU_LAYOUT].flatMap(r=>r.beds.map(n=>bedKey(r.room,n)))}
+function masterValues(f,current=''){
+  if(f==='ベッド番号')return officialBeds();
+  ensureStateSchema();return uniq([...(state.masters?.[f]||[]),...(current?[current]:[])]);
+}
+function masterSelectHtml(f,v='',attrs='data-field="'+f+'"'){
+  if(f==='ベッド番号'){
+    const current=String(v||'').trim(),valid=officialBeds().some(b=>normalizeBed(b)===normalizeBed(current));
+    const opts=officialBeds().map(b=>`<option value="${esc(b)}" ${normalizeBed(current)===normalizeBed(b)?'selected':''}>${esc(b)}</option>`).join('');
+    // Preserve legacy/invalid value until user explicitly chooses a valid bed.
+    const legacy=current&&!valid?`<option value="${esc(current)}" selected>その他・未配置（現在：${esc(current)}）</option>`:'';
+    return `<select ${attrs} data-master-field="ベッド番号"><option value="" ${!current?'selected':''}>その他・未配置（ベッド未選択）</option>${legacy}${opts}</select>`;
+  }
+  const opts=masterValues(f,v).map(x=>`<option value="${esc(x)}" ${String(v)===String(x)?'selected':''}>${esc(x)}</option>`).join('');
+  return `<select ${attrs} data-master-field="${esc(f)}"><option value="">未選択</option>${opts}<option value="__add__">＋ リストにない → 新規登録</option></select>`;
+}
+function bindMasterSelects(root=document){
+  root.querySelectorAll?.('[data-master-field]').forEach(el=>el.onchange=async()=>{
+    if(el.value!=='__add__')return;
+    const f=el.dataset.masterField; const v=(prompt(`${f} の新しい候補を登録してください`)||'').trim();
+    if(!v){el.value='';return;}
+    const previous=state.masters[f]||[];
+    state.masters[f]=uniq([...previous,v]);
+    try{await save();}
+    catch(e){
+      state.masters[f]=previous;
+      el.value='';
+      alert('新しい入力候補を保存できませんでした。元の候補を保持しています：'+(e.message||e));
+      return;
+    }
+    const addOpt=[...el.options].find(o=>o.value==='__add__');
+    const o=document.createElement('option');o.value=v;o.textContent=v;el.insertBefore(o,addOpt);el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+}
+
+const legacyFields=['ADL調査日','DM注','ＩＤ','KP','KP職業','KP年齢','MMT右下','MMT右上','MMT左下','MMT左上','かかりつけ','ケアマネ・施設','コール','スケール','スケール：点数','ベッド番号','リハ状況','移乗','移動器具','家屋','家構','介護度','介護連携','介護情報','検討会','高次脳','氏名','主治医','術式','食事','食事：介助量','水分：トロミ','睡眠','睡眠：薬剤','退院支援','調査日','入院元','入院時介護度','入院日','入院日数','排泄','排泄：介助量','排泄：尿便意','排泄：利用','番号','備考','病名','保険','本人職業','問題行動'];
+const groups={
+  basic:['ベッド番号','ＩＤ','氏名','入院日','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構'],
+  care:['KP','KP職業','KP年齢','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援'],
+  adl:['ADL調査日','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','スケール：点数','MMT右上','MMT右下','MMT左上','MMT左下','リハ状況','DM注','コール'],
+};
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function nowISO(){return new Date().toISOString()}
+function fmtDate(v){if(!v)return'';const d=new Date(v);if(isNaN(d))return v;return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`}
+function daysSince(v){
+  if(!v)return'';
+  // A date-only string is parsed as UTC by Safari. Compare local calendar dates,
+  // otherwise admission-day count changes at 09:00 JST rather than midnight.
+  const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+  if(m){
+    const y=+m[1],mo=+m[2],day=+m[3];
+    const date=new Date(y,mo-1,day);
+    if(date.getFullYear()!==y||date.getMonth()!==mo-1||date.getDate()!==day)return'';
+    const today=new Date();
+    return Math.max(0,Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(y,mo-1,day))/86400000)+1);
+  }
+  const d=new Date(v);if(isNaN(d))return'';
+  const today=new Date();
+  return Math.max(0,Math.round((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()))/86400000)+1);
+}
+function bedGroup(b){b=String(b||'未配置').toUpperCase();if(b.startsWith('ICU')){const m=b.match(/^ICU(\d)/);return m?`ICU${m[1]}`:'ICU'}const m=b.match(/^(\d{3})/);return m?m[1].slice(0,2)+'0':'その他'}
+function humanBytes(n){if(!n)return'0 B';const u=['B','KB','MB','GB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return `${n.toFixed(i?1:0)} ${u[i]}`}
+async function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE);r.onsuccess=()=>{db=r.result;res(db)};r.onerror=()=>rej(r.error)})}
+function idbGet(k){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readonly').objectStore(STORE).get(k);t.onsuccess=()=>res(t.result);t.onerror=()=>rej(t.error)})}
+function idbSet(k,v){return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error||new Error('保存に失敗しました'));tx.onabort=()=>rej(tx.error||new Error('保存が中断されました'));tx.objectStore(STORE).put(v,k)})}
+function idbDel(k){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite').objectStore(STORE).delete(k);t.onsuccess=()=>res();t.onerror=()=>rej(t.error)})}
+function idbKeys(){return new Promise((resolve,reject)=>{const req=db.transaction(STORE,'readonly').objectStore(STORE).getAllKeys();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+// One IndexedDB transaction removes the encrypted index, authentication metadata,
+// every encrypted photo, and any auxiliary keys. Failure leaves the DB unchanged.
+function idbClearAll(){return new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readwrite');
+  tx.oncomplete=()=>resolve();
+  tx.onerror=()=>reject(tx.error||new Error('全消去に失敗しました'));
+  tx.onabort=()=>reject(tx.error||new Error('全消去が中断されました'));
+  tx.objectStore(STORE).clear();
+})}
+// Restore related records in a single IndexedDB transaction: all-or-nothing on storage errors.
+function idbSetMany(records){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');const store=tx.objectStore(STORE);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||new Error('保存に失敗しました'));tx.onabort=()=>reject(tx.error||new Error('保存が中断されました'));for(const [k,v] of records)store.put(v,k)})}
+// Commit photo additions/deletions and the encrypted patient index together.
+function idbApplyChanges(puts,deletes=[]){return new Promise((resolve,reject)=>{
+  const tx=db.transaction(STORE,'readwrite'),store=tx.objectStore(STORE);
+  tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error||new Error('保存に失敗しました'));
+  tx.onabort=()=>reject(tx.error||new Error('保存が中断されました'));
+  for(const [k,v] of puts)store.put(v,k);
+  for(const k of deletes)store.delete(k);
+})}
+// Avoid spreading megabyte-sized encrypted photo buffers into function arguments.
+function b64(a){
+  const bytes=new Uint8Array(a);let binary='';
+  for(let i=0;i<bytes.length;i+=16384)binary+=String.fromCharCode(...bytes.subarray(i,i+16384));
+  return btoa(binary);
+}
+function unb64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+async function derive(pin,salt){const km=await crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function encryptObj(obj,k=key){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,enc.encode(JSON.stringify(obj)));return {iv:b64(iv),ct:b64(ct)}}
+// Only patient-index writes use this wrapper. Photos and authentication metadata
+// have distinct schemas and must not be altered by the structured-field policy.
+async function encryptPatientIndex(target,k=key){
+  const minimal=JSON.parse(JSON.stringify(target));
+  removeProhibitedContactFieldsFromState(minimal);
+  return encryptObj(minimal,k);
+}
+async function decryptObj(blob,k=key){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(blob.iv)},k,unb64(blob.ct));return JSON.parse(dec.decode(pt))}
+// Keep normal encrypted patient-index writes in order. An earlier slow encryption
+// must never overwrite a more recent edit.
+let dataWriteTail=Promise.resolve(), resetInProgress=false;
+// Prevent admin-level destructive operations from overlapping one another,
+// patient edits, photo writes, CSV migration or auto-lock.  The privacy curtain
+// still covers the page immediately when iPadOS backgrounds Safari.
+let maintenanceAction=null,maintenanceDone=Promise.resolve(),maintenanceRelease=null;
+function maintenanceBusyReason({allowCsv=false,allowDrugCsv=false}={}){
+  if(maintenanceAction)return '別の管理処理（'+maintenanceAction+'）が進行中です。';
+  if(selectedPatient)return '患者編集画面を閉じ、保存完了を確認してください。';
+  if((patientCsvBusy&&!allowCsv)||(drugCsvBusy&&!allowDrugCsv)||photoImportBusy||photoRotateBusy||photoDeleteBusy||photoReorderBusy||pdfExportBusy||noteWriteBusy||taskWriteBusy||taskTogglePending.size>0)
+    return 'データ・写真の保存処理が進行中です。';
+  return '';
+}
+async function beginMaintenance(name,{allowCsv=false,allowDrugCsv=false}={}){
+  const reason=maintenanceBusyReason({allowCsv,allowDrugCsv});if(reason)throw new Error(reason);
+  if(!key||!state)throw new Error('ロック中のため実行できません。');
+  maintenanceAction=name;
+  maintenanceDone=new Promise(resolve=>{maintenanceRelease=resolve});
+  try{
+    await dataWriteTail;
+    if(!key||!state)throw new Error('ロック状態が変わりました。');
+    // Guard re-entrancy even after an asynchronous write is finished.
+    if(selectedPatient||(patientCsvBusy&&!allowCsv)||(drugCsvBusy&&!allowDrugCsv)||photoImportBusy||photoRotateBusy||photoDeleteBusy||photoReorderBusy||pdfExportBusy||noteWriteBusy||taskWriteBusy||taskTogglePending.size)
+      throw new Error('別の操作が始まったため中止しました。');
+  }catch(e){endMaintenance(name);throw e}
+}
+function endMaintenance(name){
+  if(maintenanceAction!==name)return;
+  maintenanceAction=null;
+  const release=maintenanceRelease;maintenanceRelease=null;
+  if(release)release();
+}
+
+function orderedDataWrite(work){
+  const next=dataWriteTail.then(work);
+  dataWriteTail=next.catch(()=>{}); // A failed write must not block later retries.
+  return next;
+}
+async function save(){
+  if(resetInProgress||maintenanceAction)throw new Error('データ管理処理中は保存できません');
+  if(!key||!state)throw new Error('ロック中のため保存できません');
+  state.updatedAt=nowISO();
+  const activeKey=key, fallbackState=state;
+  return orderedDataWrite(async()=>{
+    // Snapshot when our turn in the queue arrives: a photo operation may have
+    // updated attachment metadata since save() was requested.
+    const current=key===activeKey&&state?state:fallbackState;
+    removeProhibitedContactFieldsFromState(current);
+    await idbSet('data',await encryptPatientIndex(current,activeKey));
+    if(key===activeKey)resetAutoLock();
+  });
+}
+function blankState(){return{version:APP_VERSION,patients:[],drugs:[],masters:{},settings:{retentionDays:null,autoLockMin:5,lastBackupAt:null},createdAt:nowISO(),updatedAt:nowISO()}}
+async function init(){
+  // Fail closed before even opening IndexedDB: only the exact, approved
+  // fictional-data testing origin/path can start this release.
+  // This check is NOT a same-origin security boundary. Clinical releases require
+  // their own origin, controlled code delivery and a separate approval process.
+  if(!deploymentLocationAllowed(location)){
+    document.getElementById('app').textContent =
+      '配信先が承認済みの架空データ検証URLと一致しないため、保存領域を開かず起動を停止しました。';
+    return;
+  }
+  if(typeof isSecureContext==='boolean'&&!isSecureContext){
+    document.getElementById('app').textContent='HTTPSの安全な接続が必要です。';
+    return;
+  }
+  await openDB();meta=await idbGet('meta');/* standalone fictional preview: no service worker registration *//* no persistent-storage permission request in preview */renderLock()}
+function renderLock(msg=''){document.getElementById('morningPrint')?.remove();const fresh=!meta;$('#app').innerHTML=`<div class="lockwrap"><div class="lockcard"><h1>MSW患者管理</h1><p style="font-weight:700">架空データ検証用 Ver.${APP_VERSION}</p><p>${fresh?'初回設定：この端末用の暗証を作成します。':'暗証を入力してロック解除してください。'}</p>${msg?`<div class="alert">${esc(msg)}</div>`:''}<input id="pin" type="password" inputmode="text" autocomplete="off" placeholder="12文字以上・文字と数字" /><button class="btn" id="unlock" style="width:100%">${fresh?'暗証を設定':'ロック解除'}</button><p class="notice">この画面は既存版と別の検証用保存領域を使います。実際の患者情報は入力しないでください。氏名・病名は登録できますが、住所・電話番号・連絡先の専用項目は保存しません。端末内で暗号化して保存します。暗証を忘れると復旧できません。端末自体のパスコード・紛失対策も必ず有効にしてください。</p></div></div>`;$('#unlock').onclick=fresh?setup:unlock;$('#pin').onkeydown=e=>{if(e.key==='Enter')$('#unlock').click()};setTimeout(()=>$('#pin').focus(),80)}
+function strongNewPin(pin){return typeof pin==='string'&&pin.length>=12&&/[0-9]/.test(pin)&&/\p{L}/u.test(pin)}
+async function setup(){
+  const pin=$('#pin').value;
+  if(!strongNewPin(pin))return renderLock('暗証は12文字以上で、数字と文字を組み合わせてください。');
+  try{
+    // Missing authentication metadata must never silently orphan old encrypted photos.
+    // Reject *any* pre-existing record before generating new authentication keys.
+    if((await idbKeys()).length)throw new Error('認証情報がない一方、既存の保存データが残っています。初期設定を中止しました。');
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const freshKey=await derive(pin,salt);
+    const freshState=blankState();ensureStateSchema(freshState);
+    const freshMeta={version:1,salt:b64(salt),check:await encryptObj({ok:true},freshKey),createdAt:nowISO()};
+    // Meta and ciphertext are committed in one IndexedDB transaction.
+    await idbSetMany([['meta',freshMeta],['data',await encryptPatientIndex(freshState,freshKey)]]);
+    key=freshKey;meta=freshMeta;state=freshState;ensureStateSchema();
+    render();
+  }catch(e){key=null;meta=null;state=null;renderLock('初回設定を完了できませんでした：'+(e.message||'保存領域を確認してください。'))}
+}
+async function unlock(){
+  if(Number(meta?.lockUntil||0)>Date.now())return renderLock('暗証の入力を一時的に制限しています。15分後に再度お試しください。');
+  const pin=$('#pin').value;
+  try{
+    key=await derive(pin,unb64(meta.salt));
+    await decryptObj(meta.check);
+  }catch(e){
+    key=null;
+    const attempts=Math.max(0,Number(meta?.failedAttempts)||0)+1;
+    const locked=attempts>=5;
+    const nextMeta={...meta,failedAttempts:locked?0:attempts,lockUntil:locked?Date.now()+15*60000:0};
+    try{await idbSet('meta',nextMeta);meta=nextMeta}
+    catch(_){return renderLock('認証試行の保存に失敗したため、ロックを解除できません。')}
+    return renderLock(locked?'暗証の入力を15分間制限します。':'暗証が違います。');
+  }
+  // Separate authentication errors from storage errors. Never misreport a
+  // failed patient-index read or write as an incorrect PIN.
+  try{
+    const blob=await idbGet('data');
+    if(!blob)throw new Error('暗号化患者データが存在しません');
+    state=await decryptObj(blob);
+    if(!state||!Array.isArray(state.patients))throw new Error('患者データの形式が不正です');
+    const cleared={...meta,failedAttempts:0,lockUntil:0};
+    await idbSet('meta',cleared);meta=cleared;
+    ensureStateSchema();await save();render();
+  }catch(e){
+    key=null;state=null;
+    renderLock('患者情報を読み込めませんでした。空き容量やデータの状態を確認してください。');
+  }
+}
+async function lock(automatic=false){
+  let unsaved=false;
+  if(selectedPatient){
+    const ok=await flushPatientAutoSave();
+    if(!ok||patientSavedRev<patientChangeRev){
+      unsaved=true;
+      if(!automatic){
+        patientSaveIndicator('未保存：ロック前に保存してください','error');
+        alert('未保存の患者情報があります。氏名または患者IDと保存状態を確認してください。');
+        resetAutoLock();return;
+      }
+    }
+  }
+  await maintenanceDone; // Never forget the active encryption key mid-backup, PIN change, or restore.
+  await dataWriteTail; // Give queued photo/data commits time to finish before forgetting the key.
+  clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();
+  document.querySelectorAll('#modal,#duplicateModal,#groupedBedPicker,#dischargeFlow,#morningPrint').forEach(el=>el.remove());
+  key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);
+  renderLock(unsaved?'自動ロックしました。ただし直前の編集は保存できていない可能性があります。保存容量を確認してください。':'');
+}
+function resetAutoLock(){clearTimeout(lockTimer);if(!state)return;lockTimer=setTimeout(()=>lock(true),(state.settings.autoLockMin||5)*60000)}
+['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(key)resetAutoLock()},{passive:true}));
+// Safari pauses background timers: hide patient information immediately and
+// require the app PIN again after backgrounding. Pending text edits are flushed
+// before clearing the key; the curtain stays up until that flush is finished.
+let backgroundLockPromise=null;
+function secureBackground(){
+  if(!key||!state)return;
+  document.body.classList.add('msw-private');
+  if(backgroundLockPromise)return;
+  backgroundLockPromise=lock(true).catch(()=>{
+    // Even if a failed write prevents a normal lock, never expose an unlocked UI.
+    clearPatientAutoTimer();dismissPhotoViewer();
+    document.querySelectorAll('#modal,#duplicateModal,#groupedBedPicker,#dischargeFlow').forEach(el=>el.remove());
+    key=null;state=null;selectedPatient=null;renderLock('アプリをロックしました。直前の編集が保存されたかご確認ください。');
+  }).finally(()=>{
+    backgroundLockPromise=null;
+    if(document.visibilityState==='visible')document.body.classList.remove('msw-private');
+  });
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')secureBackground();
+  else if(backgroundLockPromise)void backgroundLockPromise.finally(()=>document.body.classList.remove('msw-private'));
+  else if(key&&state)secureBackground(); // return from a suspended, unfinished lock
+  else document.body.classList.remove('msw-private');
+});
+window.addEventListener('msw-pwa-update-available',()=>{if(key&&state&&!selectedPatient&&!patientCsvBusy)render();});
+window.addEventListener('pagehide',secureBackground);
+window.addEventListener('pageshow',()=>{
+  if(document.body.classList.contains('msw-private')&&document.visibilityState==='visible'){
+    if(backgroundLockPromise)void backgroundLockPromise.finally(()=>document.body.classList.remove('msw-private'));
+    else if(key&&state)secureBackground();
+    else document.body.classList.remove('msw-private');
+  }
+});
+// Ver.1.0.17: archived patient records are never deleted automatically.
+// No periodic backup deadline for a short-stay acute-care workflow.
+// A manual encrypted export remains available under Settings when truly needed.
+async function applySafePwaUpdate(){
+  if(!window.MSW_PWA_UPDATE_PENDING)return;
+  if(selectedPatient||patientCsvBusy||photoImportBusy||photoRotateBusy||photoDeleteBusy||photoReorderBusy||noteWriteBusy||taskWriteBusy||taskTogglePending.size>0||restoreBusy||backupBusy||resetInProgress||maintenanceAction){
+    alert('患者の編集画面を閉じ、保存・移行処理が終わってから更新してください。');return;
+  }
+  if(!confirm('入力中の画面がないことを確認しました。アプリをロックして最新版を再読み込みしますか？'))return;
+  try{
+    await dataWriteTail;
+    if(selectedPatient||patientCsvBusy||photoImportBusy||noteWriteBusy||taskWriteBusy)throw new Error('別の操作が始まりました');
+    await lock(false);
+    if(key||state)throw new Error('ロックできませんでした。');
+    // Allow the new service worker to take over only after the user confirms
+    // and patient data has been locked. On a pending update, do not reload
+    // before controllerchange; that could bring back the old cached shell.
+    const reg = ('serviceWorker' in navigator) ? await navigator.serviceWorker.getRegistration(new URL('./',location.href).href) : null;
+    if(reg?.waiting){
+      await new Promise((resolve,reject)=>{
+        let done=false;
+        const worker=reg.waiting;
+        const cleanup=()=>{clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',changed)};
+        const changed=()=>{if(done)return;done=true;cleanup();resolve()};
+        const timer=setTimeout(()=>{if(done)return;done=true;cleanup();reject(new Error('更新の有効化が時間内に完了しませんでした。再度お試しください。'))},12000);
+        navigator.serviceWorker.addEventListener('controllerchange',changed);
+        worker.postMessage({type:'SKIP_WAITING'});
+      });
+    }
+    window.MSW_PWA_UPDATE_PENDING=false;
+    location.reload();
+  }catch(e){alert('アプリを更新できません：'+(e.message||e))}
+}
+function render(){resetAutoLock();const net=navigator.onLine?'通信あり':'通信なし';$('#app').innerHTML=`<div class="shell"><header class="topbar"><div class="brand">MSW患者管理</div><span class="pill" style="background:#b91c1c;color:#fff">架空患者限定・実患者入力禁止 Ver.${APP_VERSION}</span><span class="pill">${net}</span>${window.MSW_PWA_UPDATE_PENDING?'<button class="pill" id="safeUpdateBtn" type="button">更新可能</button>':''}<div class="spacer"></div><button class="pill" id="lockBtn">🔒</button></header><main class="content" id="main"></main><nav class="bottomnav"><button class="navbtn ${(screen==='patients'||screen==='archive')?'active':''}" data-screen="patients"><span class="ico">🏥</span>患者</button><button class="navbtn ${screen==='journal'?'active':''}" data-screen="journal"><span class="ico">📄</span>日誌</button><button class="navbtn ${screen==='tasks'?'active':''}" data-screen="tasks"><span class="ico">✅</span>今日・要対応</button><button class="navbtn ${screen==='drugs'?'active':''}" data-screen="drugs"><span class="ico">💊</span>薬情</button><button class="navbtn ${screen==='masters'?'active':''}" data-screen="masters"><span class="ico">📋</span>マスター</button><button class="navbtn ${screen==='settings'?'active':''}" data-screen="settings"><span class="ico">⚙️</span>設定</button></nav></div>`;$('#lockBtn').onclick=()=>lock(false);if($('#safeUpdateBtn'))$('#safeUpdateBtn').onclick=applySafePwaUpdate;$$('.navbtn').forEach(b=>b.onclick=()=>{screen=b.dataset.screen;render()});({patients:renderPatients,archive:renderArchive,journal:renderJournalPreview,tasks:renderTasks,drugs:renderDrugs,masters:renderMasters,settings:renderSettings}[screen])()}
+function activePatients(){return state.patients.filter(p=>!p.dischargeDate)}
+function getStatus(p){return p.status||'未設定'}
+function statusTag(s){const c=s.includes('要')?'red':s.includes('決定')?'green':s.includes('施設')?'purple':s==='未設定'?'':'orange';return `<span class="tag ${c}">${esc(s)}</span>`}
+function renderPatients(){const ps=activePatients();$('#main').innerHTML=`<div class="hero"><div><h1>入院患者</h1><p>在院患者を管理します。退院確定後の患者は「退院患者記録」から確認できます。</p></div><div class="spacer"></div><button class="btn secondary" id="openArchive">退院患者記録</button><button class="btn" id="newP">＋患者</button></div><div class="kpis"><div class="kpi"><b>${ps.length}</b><span>在院患者</span></div><div class="kpi"><b>${ps.filter(p=>p.tasks?.some(t=>!t.done)).length}</b><span>要対応あり</span></div><div class="kpi"><b>${ps.filter(p=>getStatus(p).includes('施設')).length}</b><span>施設調整中</span></div><div class="kpi"><b>${ps.filter(p=>getStatus(p).includes('決定')).length}</b><span>退院先決定</span></div></div><div class="toolbar"><input id="q" placeholder="氏名・病名・病床で検索"><select id="ward"><option value="">全病棟</option><option value="一般病棟">一般病棟</option><option value="ICU">ICU</option><option value="その他">その他・未配置</option></select><button class="btn secondary" id="print">朝一患者一覧を印刷</button></div><div id="patientList"></div>`;$('#openArchive').onclick=()=>{screen='archive';render()};$('#newP').onclick=()=>openPatient(newPatient());$('#print').onclick=printMorningList;$('#q').oninput=drawPatientList;$('#ward').onchange=drawPatientList;drawPatientList()}
+function printText(v,max=0){const a=Array.from(String(v??'').trim());return esc(max?a.slice(0,max).join(''):a.join(''))}
+function shortCareLevel(v){const s=String(v||'').trim();return s.replace('要介護','要').replace('要支援','支')}
+function printPatientForBed(bed,patients){return patientsForBed(bed,patients)[0]||null}
+function printRowHtml(bed,patients){
+  const p=printPatientForBed(bed,patients);
+  if(!p)return`<tr><td>${esc(bed)}</td>${'<td></td>'.repeat(10)}</tr>`;
+  const d=p.data||{},days=daysSince(d['入院日'])||d['入院日数']||'';
+  return`<tr><td>${esc(bed)}</td><td>${printText(d['ＩＤ'])}</td><td>${printText(d['氏名'])}</td><td>${esc(shortAdmissionDate(d['入院日']))}</td><td>${printText(d['主治医'],3)}</td><td class="clip">${printText(d['病名'])}</td><td>${esc(shortCareLevel(d['介護度']))}</td><td class="clip">${printText(d['ケアマネ・施設'],12)}</td><td class="memo"></td><td>${printText(d['家構'])}</td><td>${esc(days)}</td></tr>`
+}
+function printTableHtml(beds,patients){
+  return`<table class="morning-table"><colgroup><col class="c-bed"><col class="c-id"><col class="c-name"><col class="c-admit"><col class="c-doc"><col class="c-disease"><col class="c-care"><col class="c-facility"><col class="c-memo"><col class="c-family"><col class="c-days"></colgroup><thead><tr>${['部屋','ID','氏名','入院日','主治医','病名','介護度','ケアマネ・施設','メモ','家族','日数'].map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${beds.map(b=>printRowHtml(b,patients)).join('')}</tbody></table>`
+}
+function printExtraTableHtml(patients){
+  const headers=['部屋','ID','氏名','入院日','主治医','病名','介護度','ケアマネ・施設','メモ','家族','日数'];
+  const rows=patients.map(p=>{
+    const d=p.data||{},days=daysSince(d['入院日'])||d['入院日数']||'';
+    const cells=[d['ベッド番号']||'未配置',d['ＩＤ'],d['氏名'],shortAdmissionDate(d['入院日']),String(d['主治医']||'').slice(0,3),d['病名'],shortCareLevel(d['介護度']),String(d['ケアマネ・施設']||'').slice(0,12),'',d['家構'],days];
+    return `<tr>${cells.map(x=>`<td>${printText(x)}</td>`).join('')}</tr>`;
+  }).join('');
+  return `<table class="morning-table"><colgroup><col class="c-bed"><col class="c-id"><col class="c-name"><col class="c-admit"><col class="c-doc"><col class="c-disease"><col class="c-care"><col class="c-facility"><col class="c-memo"><col class="c-family"><col class="c-days"></colgroup><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+function printMorningList(){
+  const patients=activePatients(),general=layoutBedNumbers(BED_LAYOUT,patients),icu=layoutBedNumbers(ICU_LAYOUT,patients);
+  const bedsFor=rooms=>rooms.flatMap(name=>general.find(r=>r.room===name)?.beds||[]);
+  const icuBeds=icu.flatMap(r=>r.beds);
+  const pages=[
+    {ward:'一般病棟',beds:bedsFor(['201','202','203'])},
+    {ward:'一般病棟',beds:bedsFor(['205','206','207','208','210','211','212','213'])},
+    {ward:'ICU',beds:icuBeds}
+  ];
+  const unplaced=patients.filter(p=>!isMappedBed(p.data['ベッド番号']));
+  // A second patient on the same official bed must never disappear from print.
+  const duplicates=officialBeds().flatMap(b=>patientsForBed(b,patients).slice(1));
+  const extra=[...unplaced,...duplicates];
+  if(extra.length)pages.push({ward:'その他・未配置／重複',extra});
+  const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  $('#morningPrint')?.remove();
+  const root=document.createElement('div');root.id='morningPrint';root.className='morning-print';
+  root.innerHTML=pages.map((pg,i)=>`<section class="morning-page"><div class="morning-head"><h1>入院患者一覧</h1><div>${date}　朝　　${pg.ward}　${i+1}/${pages.length}</div></div>${pg.extra?printExtraTableHtml(pg.extra):printTableHtml(pg.beds,patients)}</section>`).join('');
+  document.body.appendChild(root);
+  // iPadOS may dispatch afterprint while the printer is being selected.
+  // Keep the print DOM until the next print or app lock, so the preview
+  // remains intact during AirPrint's printer-selection re-pagination.
+  setTimeout(()=>window.print(),50);
+}
+function drawPatientList(){const q=($('#q')?.value||'').trim().toLowerCase(),w=$('#ward')?.value||'',all=activePatients();const filtered=all.filter(p=>patientMatches(p,q)&&(!w||wardForBed(p.data['ベッド番号'])===w));const root=$('#patientList');if(q&&!filtered.length){root.innerHTML='<div class="empty">該当する患者がいません</div>';return}
+  const general=layoutBedNumbers(BED_LAYOUT,all),icu=layoutBedNumbers(ICU_LAYOUT,all);let html='';
+  if(!w||w==='一般病棟'){html+=`<section class="map-section"><div class="map-section-title"><div><strong>一般病棟</strong><span>病室・ベッドマップ</span></div><span class="count">${general.reduce((n,r)=>n+r.beds.length,0)}床</span></div><div class="room-map general-room-map">${general.filter(room=>!['208','210','211','212','213'].includes(room.room)).map(room=>`<div class="room-map-item standard-room">${roomMapHtml(room,filtered,q)}</div>`).join('')}<div class="compact-room-guide">208・210・211・212・213号室</div><div class="compact-room-scroll" role="region" aria-label="208・210・211・212・213号室（横スクロール可能）" tabindex="0"><div class="compact-room-row">${general.filter(room=>['208','210','211','212','213'].includes(room.room)).map(room=>`<div class="room-map-item compact-room ${room.beds.length===2?'two-bed-room':''}">${roomMapHtml(room,filtered,q)}</div>`).join('')}</div></div></div></section>`}
+  if(!w||w==='ICU'){html+=`<section class="map-section"><div class="map-section-title"><div><strong>ICU</strong><span>集中治療室</span></div><span class="count">${icu.reduce((n,r)=>n+r.beds.length,0)}床</span></div><div class="room-map icu-map">${icu.map(room=>roomMapHtml(room,filtered,q,true)).join('')}</div></section>`}
+  const other=filtered.filter(p=>!isMappedBed(p.data['ベッド番号']));if((!w||w==='その他')&&other.length)html+=`<section class="map-section"><style>@media(max-width:900px){.unplaced-patient-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}@media(max-width:540px){.unplaced-patient-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}</style><div class="map-section-title"><div><strong>その他・未配置</strong><span>標準マップ外の患者</span></div><span class="count">${other.length}人</span></div><div class="room-map unplaced-patient-grid" style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px">${other.map(p=>patientBedHtml(p.data['ベッド番号']||'未配置',[p])).join('')}</div></section>`;
+  root.innerHTML=html||'<div class="empty">該当する患者がいません</div>';bindPatientMapEvents()}
+const BED_LAYOUT=[
+  {room:'201',beds:[1,2,3,4,5,6]},
+  {room:'202',beds:[1,2,3,4,5,6]},
+  {room:'203',beds:[1,2,3,4,5,6,7]},
+  {room:'205',beds:[1,2,3,4,5,6]},
+  {room:'206',beds:[1,2,3,4,5,6]},
+  {room:'207',beds:[1,2,3,4,5,6]},
+  {room:'208',beds:[1,2]},
+  {room:'210',beds:[1,2]},
+  {room:'211',beds:['']},
+  {room:'212',beds:['']},
+  {room:'213',beds:['']}
+];
+
+const ICU_LAYOUT=[
+  {room:'ICU1',beds:[1,2,3,4,5,6,7]},
+  {room:'ICU2',beds:[1,2,3,4,5,6,7]},
+  {room:'ICU3',beds:[1,2,3,4,5,6,7,8,9]}
+];
+
+function normalizeBed(v){return String(v||'').trim().replace(/\s+/g,'').replace(/[‐-‒–—―ー－]/g,'-').toUpperCase()}
+function bedKey(room,n){return n===''?room:`${room}-${n}`}
+function isMappedBed(v){const b=normalizeBed(v);return [...BED_LAYOUT,...ICU_LAYOUT].some(room=>room.beds.some(n=>normalizeBed(bedKey(room.room,n))===b))}
+function wardForBed(v){const b=normalizeBed(v);if(!isMappedBed(b))return'その他';return b.startsWith('ICU')?'ICU':'一般病棟'}
+function patientMatches(p,q){if(!q)return true;return[p.data['氏名'],p.data['病名'],p.data['ベッド番号'],p.data['主治医']].join(' ').toLowerCase().includes(q)}
+function patientsForBed(bed,patients=activePatients()){const key=normalizeBed(bed);return patients.filter(p=>normalizeBed(p.data['ベッド番号'])===key)}
+function layoutBedNumbers(layout,patients){
+  // Fixed bed map: imported patient bed numbers never create new bed slots.
+  return layout.map(room=>({room:room.room,beds:room.beds.map(n=>bedKey(room.room,n))}));
+}
+function shortAdmissionDate(v){if(!v)return'';const d=new Date(v);if(Number.isNaN(d.getTime()))return esc(v);return`${d.getMonth()+1}/${d.getDate()}`}
+function patientBedHtml(bed,patients=[]){
+  if(!patients.length)return`<button class="bed-slot empty-bed" data-new-bed="${esc(bed)}"><b>${esc(bed)}</b><span>空床</span><small>タップして登録</small></button>`;
+  if(patients.length>1)return`<button class="bed-slot occupied-bed duplicate-bed" data-bed="${esc(bed)}"><div class="bed-line"><b>${esc(bed)}</b></div><strong>${patients.length}名重複あり</strong><span>タップして全員を表示</span></button>`;
+  const p=patients[0],days=daysSince(p.data['入院日'])||p.data['入院日数']||'',date=shortAdmissionDate(p.data['入院日']),tasks=p.tasks?.filter(t=>!t.done).length||0;
+  return`<button class="bed-slot occupied-bed" data-id="${esc(p.id)}"><div class="bed-line"><b>${esc(bed)}</b></div><strong>${esc(p.data['氏名']||'氏名未入力')}</strong><span class="bed-meta admission-line"><span>${date?esc(date):'—'}</span><span class="doctor">${esc(String(p.data['主治医']||'').replace(/医師\s*$/,'').trim()||'—')}</span><span class="days">${days?`${esc(days)}日目`:'—'}</span></span><div class="tags">${statusTag(getStatus(p))}${tasks?`<span class="tag red">要対応 ${tasks}</span>`:''}</div></button>`;
+}
+function roomMapHtml(room,patients,q){
+  return`<div class="room-block"><div class="room-title">${esc(room.room)}${room.room.startsWith('ICU')?'':'号室'}</div><div class="bed-grid">${room.beds.map(bed=>{const ps=patientsForBed(bed,patients);if(q&&!ps.length)return'';return patientBedHtml(bed,ps)}).join('')}</div></div>`;
+}
+function openDuplicateBed(bed){
+  $('#duplicateModal')?.remove();
+  const ps=patientsForBed(bed);
+  if(ps.length<2){drawPatientList();return}
+  document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="duplicateModal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeDuplicate">← 戻る</button><div><h2>${esc(bed)}</h2><div class="notice duplicate-warning">${ps.length}名重複あり・下へスクロールして全員確認できます</div></div></div><div class="duplicate-list">${ps.map((p,i)=>`<article class="panel duplicate-patient"><h3>患者 ${i+1}／${ps.length}</h3><div class="duplicate-patient-row"><div class="duplicate-patient-info">${patientCard(p)}</div><div class="duplicate-move"><label>ベッド変更</label><input type="hidden" class="duplicate-bed-select" data-id="${esc(p.id)}" value="${esc(p.data['ベッド番号']||'')}"><button class="btn secondary duplicate-bed-pick" data-id="${esc(p.id)}" type="button">${esc(p.data['ベッド番号']||'その他・未配置')} ▾</button><button class="btn duplicate-move-save" data-id="${esc(p.id)}">変更を保存</button></div></div><button class="btn secondary duplicate-open" data-id="${esc(p.id)}">この患者の詳細・編集を開く</button></article>`).join('')}</div></div></div>`);
+  $$('.duplicate-bed-pick').forEach(btn=>btn.onclick=()=>{
+    const sel=[...$$('.duplicate-bed-select')].find(x=>x.dataset.id===btn.dataset.id);
+    if(!sel)return;
+    showGroupedBedPicker(sel.value,value=>{sel.value=value;btn.textContent=(value||'その他・未配置')+' ▾'});
+  });
+  $('#closeDuplicate').onclick=()=>$('#duplicateModal')?.remove();
+  $$('.duplicate-open').forEach(btn=>btn.onclick=()=>{const p=state.patients.find(p=>p.id===btn.dataset.id);$('#duplicateModal')?.remove();if(p)openPatient(p)});
+  $$('.duplicate-move-save').forEach(btn=>btn.onclick=async()=>{
+    const p=state.patients.find(p=>p.id===btn.dataset.id);
+    const sel=[...$$('.duplicate-bed-select')].find(x=>x.dataset.id===btn.dataset.id);
+    if(!p||!sel)return;
+    const target=sel.value,old=p.data['ベッド番号'];
+    if(normalizeBed(target)===normalizeBed(old)){alert('変更先のベッドを選んでください。');return}
+    const occupied=patientsForBed(target).filter(x=>x.id!==p.id).length;
+    const message=`${p.data['氏名']||'この患者'}のベッドを ${old||'未配置'} → ${target||'その他・未配置'} に変更します。${occupied?`\n※変更先にはすでに${occupied}名います。重複になります。`:''}\nよろしいですか？`;
+    if(!confirm(message))return;
+    p.data['ベッド番号']=target;p.updatedAt=nowISO();
+    try{await save();drawPatientList();openDuplicateBed(bed)}catch(e){p.data['ベッド番号']=old;alert('保存できませんでした。再度お試しください。')}
+  });
+}
+function bindPatientMapEvents(){
+  $$('.duplicate-bed').forEach(x=>x.onclick=()=>openDuplicateBed(x.dataset.bed));
+  $$('.occupied-bed:not(.duplicate-bed)').forEach(x=>x.onclick=()=>{const p=state.patients.find(p=>p.id===x.dataset.id);if(p)openPatient(p)});
+  $$('.empty-bed').forEach(x=>x.onclick=()=>openPatient(newPatient(x.dataset.newBed)));
+}function patientCard(p){const days=daysSince(p.data['入院日'])||p.data['入院日数']||'';const tasks=p.tasks?.filter(t=>!t.done).length||0;return `<article class="patient-card" data-id="${p.id}"><div class="pc-head"><span class="bed">${esc(p.data['ベッド番号']||'未配置')}</span><span class="name">${esc(p.data['氏名']||'氏名未入力')}</span></div><div class="pc-meta"><span>主治医 ${esc(p.data['主治医']||'-')}</span><span>入院 ${esc(days)}日</span><span>${esc(p.data['病名']||'')}</span></div><div class="tags">${statusTag(getStatus(p))}${tasks?`<span class="tag red">要対応 ${tasks}</span>`:''}</div></article>`}
+function newPatient(bed=''){const data={};legacyFields.forEach(k=>data[k]='');data['ベッド番号']=bed;return{id:uid(),data,status:'未設定',tasks:[],notes:[],dischargeDate:null,createdAt:nowISO(),updatedAt:nowISO(),_new:true}}
+// Ver.1.0.18: autosave patient form edits, with a visible durable-save status.
+const PATIENT_AUTOSAVE_DELAY=650;
+let patientAutoTimer=null, patientChangeRev=0, patientSavedRev=0, patientWriteBusy=null, patientTransitionBusy=false, patientIME=false;
+function clearPatientAutoTimer(){clearTimeout(patientAutoTimer);patientAutoTimer=null}
+function patientSaveIndicator(message,kind='idle'){
+  const el=$('#patientSaveStatus');if(!el)return;
+  el.textContent=message;el.dataset.state=kind;
+}
+function capturePatientForm(){
+  const p=selectedPatient;if(!p)return false;
+  let changed=false;
+  $$('#tabbody [data-field]').forEach(el=>{
+    const f=el.dataset.field,v=el.value;
+    if(isProhibitedContactField(f))return;
+    if(v==='__add__')return; // A temporary master-registration choice is not patient data.
+    if(String(p.data[f]??'')!==String(v)){p.data[f]=v;changed=true}
+  });
+  const status=$('#status');if(status&&String(p.status??'')!==status.value){p.status=status.value;changed=true}
+  const date=$('#dischargeDate');if(date&&(p.dischargeDate||'')!==date.value){p.dischargeDate=date.value||null;changed=true}
+  if(changed){patientChangeRev++;patientSaveIndicator('未保存の変更あり','pending')}
+  return changed;
+}
+function patientCanSave(p){return !!(String(p?.data?.['氏名']||'').trim()||String(p?.data?.['ＩＤ']||'').trim())}
+function schedulePatientAutoSave(){
+  clearPatientAutoTimer();
+  if(!selectedPatient)return;
+  const p=selectedPatient;
+  if(p._new&&!patientCanSave(p)){
+    patientSaveIndicator('氏名か患者IDの入力後に自動保存','pending');return;
+  }
+  patientAutoTimer=setTimeout(()=>{patientAutoTimer=null;void flushPatientAutoSave()},PATIENT_AUTOSAVE_DELAY);
+}
+function onPatientFormEdit(e){
+  const el=e.target;
+  if(!el?.matches?.('[data-field], #status, #dischargeDate'))return;
+  if(el.value==='__add__'||e.isComposing||patientIME)return;
+  if(capturePatientForm())schedulePatientAutoSave();
+}
+function bindPatientAutosave(){
+  const root=$('#tabbody');
+  if(!root)return;
+  root.addEventListener('compositionstart',()=>{patientIME=true});
+  root.addEventListener('compositionend',e=>{patientIME=false;onPatientFormEdit(e)});
+  root.addEventListener('input',onPatientFormEdit);
+  root.addEventListener('change',onPatientFormEdit);
+  root.addEventListener('focusout',()=>{if(!patientIME&&patientChangeRev>patientSavedRev)void flushPatientAutoSave()});
+  patientSaveIndicator(selectedPatient?._new?'氏名か患者IDの入力後に自動保存':'保存済み（自動保存）',selectedPatient?._new?'pending':'saved');
+}
+async function flushPatientAutoSave(){
+  clearPatientAutoTimer();
+  const patient=selectedPatient;
+  if(!patient)return true;
+  if(patientIME)return false; // Do not commit an unfinished Japanese IME composition.
+  capturePatientForm();
+  if(patient._new&&!patientCanSave(patient)){
+    patientSaveIndicator('氏名か患者IDが必要です（未保存）','error');
+    return false;
+  }
+  // Another flush may already be writing this patient. Wait and retry any later edit.
+  if(patientWriteBusy){
+    try{await patientWriteBusy}catch(e){}
+    if(selectedPatient!==patient)return false;
+    if(!patient._new&&patientSavedRev>=patientChangeRev)return true;
+  }
+  if(!patient._new&&patientSavedRev>=patientChangeRev){
+    patientSaveIndicator('保存済み（自動保存）','saved');return true;
+  }
+  if(!key||!state){patientSaveIndicator('保存失敗：ロック状態です','error');return false}
+  const rev=patientChangeRev;
+  let registered=false;
+  if(patient._new){delete patient._new;state.patients.push(patient);registered=true}
+  patient.updatedAt=nowISO();
+  patientSaveIndicator('保存中…','saving');
+  const writing=save();patientWriteBusy=writing;
+  try{
+    await writing;
+    patientSavedRev=Math.max(patientSavedRev,rev);
+    if(selectedPatient===patient){
+      if(patientSavedRev>=patientChangeRev)patientSaveIndicator('保存済み（自動保存）','saved');
+      else{patientSaveIndicator('変更を保存待ち','pending');schedulePatientAutoSave()}
+    }
+    return true;
+  }catch(e){
+    // Keep the entered content in memory so the user can retry without retyping.
+    // If creation failed, also retain its identity in memory for the next retry.
+    if(registered)patient._new=false;
+    if(selectedPatient===patient)patientSaveIndicator('保存失敗：再試行してください','error');
+    return false;
+  }finally{if(patientWriteBusy===writing)patientWriteBusy=null}
+}
+// A new patient is not saved until a name or patient ID is supplied. Merely
+// tapping an empty bed must be reversible without a save error. Never discard
+// entered details (including tabs other than Basic) without confirmation.
+function newPatientHasEnteredData(p){
+  if(!p)return false;
+  if(Object.entries(p.data||{}).some(([field,value])=>
+    !['ベッド番号','入院日数'].includes(field)&&String(value??'').trim()!==''))return true;
+  return (p.tasks||[]).length>0||(p.notes||[]).length>0||
+    (p.attachments||[]).length>0||!!p.dischargeDate||
+    (!!p.status&&p.status!=='未設定');
+}
+async function finishPatientAndNavigate(next,{closing=false}={}){
+  if(patientTransitionBusy)return;
+  // A photo operation uses an atomic transaction for metadata and encrypted pixels.
+  // Do not navigate away while it is still running.
+  if(photoImportBusy||photoRotateBusy||photoDeleteBusy||photoReorderBusy||pdfExportBusy||noteWriteBusy){
+    alert('写真・PDFの処理が終わってから画面を切り替えてください。');return;
+  }
+  patientTransitionBusy=true;
+  const controls=$$('#modal .sheethead button, #modal .tab');
+  controls.forEach(b=>b.disabled=true);
+  try{
+    capturePatientForm();
+    const draft=selectedPatient;
+    if(draft?._new&&!patientCanSave(draft)){
+      // Tab changes keep the in-memory draft intact; leaving the sheet discards
+      // it only if untouched or the user explicitly authorizes discarding edits.
+      if(closing&&newPatientHasEnteredData(draft)&&
+        !confirm('氏名・患者IDが未入力のため保存できません。入力した内容を破棄して戻りますか？'))return;
+      if(!closing)patientSaveIndicator('氏名か患者IDの入力後に自動保存','pending');
+      next();return;
+    }
+    // If the user entered more text while a save was pending, flush it too.
+    let ok=false;
+    for(let attempt=0;attempt<4;attempt++){
+      ok=await flushPatientAutoSave();
+      if(!ok||!selectedPatient||patientSavedRev>=patientChangeRev)break;
+    }
+    if(!ok||patientSavedRev<patientChangeRev){
+      alert('患者情報を保存できませんでした。入力内容は画面に残っています。保存状態を確認して再試行してください。');
+      return;
+    }
+    next();
+  }finally{
+    patientTransitionBusy=false;
+    controls.forEach(b=>{if(b.isConnected)b.disabled=false});
+  }
+}
+function openPatient(p){
+  clearBasicPhotoPreview();dismissPhotoViewer();clearPatientAutoTimer();
+  selectedPatient=p;activeTab='basic';patientChangeRev=0;patientSavedRev=0;patientWriteBusy=null;patientIME=false;
+  renderPatientModal();
+}
+function renderPatientModal(){
+  const p=selectedPatient;
+  document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeM">←</button><div class="patient-sheet-title"><h2>${esc(p.data['氏名']||'新規患者')}</h2><div class="notice">${esc(p.data['ベッド番号']||'病床未設定')}　${esc(p.data['病名']||'')}</div></div><div class="spacer"></div><span id="patientSaveStatus" role="status" aria-live="polite" class="patient-save-status">保存済み（自動保存）</span><button class="btn secondary" id="saveP">保存して閉じる</button></div><div class="tabs">${[['basic','基本'],['care','家族・介護'],['adl','ADL'],['support','退院支援'],['notes','経過記録'],['photos','写真・書類']].map(([k,n])=>`<button class="tab ${activeTab===k?'active':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="sheetbody" id="tabbody"></div></div></div>`);
+  $('#closeM').onclick=()=>finishPatientAndNavigate(closePatient,{closing:true});
+  $('#saveP').onclick=()=>finishPatientAndNavigate(closePatient,{closing:true});
+  $$('.tab').forEach(t=>t.onclick=()=>finishPatientAndNavigate(()=>{
+    activeTab=t.dataset.tab;clearBasicPhotoPreview();$('#modal').remove();renderPatientModal();
+  }));
+  renderTab();bindPatientAutosave();
+}
+function closePatient(){clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();selectedPatient=null;$('#modal')?.remove();if(key&&state&&$('#main'))render()}
+function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='photos'){renderPhotosTab();return;}if(activeTab==='basic'){renderBasicDashboard();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><label class="mvp-task-label">対応内容<input id="newTask" maxlength="300" placeholder="例：家族に連絡、施設へ確認"></label><div class="mvp-task-options"><label>対応期限（任意）<input type="date" id="newTaskDue"></label><label class="mvp-urgent"><input type="checkbox" id="newTaskUrgent"> 優先対応</label><button class="btn" id="addTask">＋ タスク追加</button></div><p class="notice">期限を空欄にしたタスクも「要対応」一覧に残ります。</p></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院患者の情報は自動削除されず、退院患者記録に保持されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><p class="notice">${esc(DATA_MINIMIZATION_NOTICE)}</p><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button><p id="noteSaveState" class="notice" role="status" aria-live="polite"></p></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
+// Ver.1.0.19: compact basic information overview. Preserve each existing data key so
+// backups, morning print, and the family shorthand (家構: e.g. 2同別) continue working.
+const BASIC_FIELDS=[
+  ['ベッド番号','ベッド番号'],['氏名','氏名'],
+  ['ＩＤ','ID'],['入院日','入院日'],
+  ['入院日数','入院日数'],['主治医','主治医'],
+  ['病名','病名'],
+  ['保険','保険'],['家構','家族構成'],
+  ['介護度','介護度'],['介護情報','介護情報'],
+  ['備考','備考']
+];
+function basicFieldHtml(field,label){
+  const p=selectedPatient,v=p.data?.[field]??'';
+  const span=['病名','介護情報','備考'].includes(field)?' basic-wide':'';
+  if(field==='ベッド番号')return `<div class="field basic-field"><label>ベッド番号</label><input type="hidden" data-field="ベッド番号" id="patientBedValue" value="${esc(v)}"><button type="button" class="btn secondary basic-bed-picker" id="patientBedPick">${esc(v||'その他・未配置')} ▾</button></div>`;
+  if(field==='入院日数')return `<div class="field basic-field"><label>入院日数（自動計算）</label><div id="basicAdmissionDays" class="basic-readonly" aria-live="polite">${esc(daysSince(p.data['入院日'])||p.data['入院日数']||'—')}日</div></div>`;
+  const placeholder=field==='家構'?'例：2同別':field==='介護情報'?'ケアマネ・介護サービス・連絡事項など':'';
+  const type=field==='入院日'?'date':'text';
+  const suggest=['保険','主治医','介護度'].includes(field)?` list="basicList_${field}"`:'';
+  const datalist=suggest?`<datalist id="basicList_${field}">${masterValues(field,v).map(item=>`<option value="${esc(item)}"></option>`).join('')}</datalist>`:'';
+  const common=`data-field="${esc(field)}" aria-label="${esc(label)}" placeholder="${esc(placeholder)}"`;
+  const control=['介護情報','備考'].includes(field)?`<textarea ${common} rows="2">${esc(v)}</textarea>`:`<input type="${type}" ${common}${suggest} value="${esc(v)}">`;
+  return `<div class="field basic-field${span}"><label>${esc(label)}</label>${control}${datalist}</div>`;
+}
+function basicDocumentHtml(){
+  const gen=photoList(selectedPatient,'genogram');
+  const admission=photoList(selectedPatient,'admission');
+  return `<aside class="basic-docs">
+    <section class="basic-photo-card" aria-label="ジェノグラム">
+      <div class="basic-card-title"><strong>ジェノグラム</strong><span>タップで拡大</span></div>
+      <button type="button" class="basic-gen-preview" id="basicGenogramOpen" aria-label="${gen.length?'ジェノグラムを拡大表示':'ジェノグラムの写真を登録'}">
+        ${gen.length?'<span id="basicGenogramLoading">読み込み中…</span><img id="basicGenogramImg" alt="ジェノグラムのプレビュー" hidden>':'<span>未登録<br>写真・書類から登録</span>'}
+      </button>
+    </section>
+    <section class="basic-admission-card">
+      <div class="basic-card-title"><strong>入院時患者情報</strong></div>
+      <button type="button" class="basic-admission-open" id="basicAdmissionOpen">
+        <span class="basic-document-icon" aria-hidden="true">📄</span>
+        <span>${admission.length?`登録済み（${admission.length}ページ）`:'未登録'}<small>${admission.length?'タップして写真・書類を閲覧':'タップして写真・書類を登録'}</small></span>
+        <span aria-hidden="true">›</span>
+      </button>
+    </section>
+  </aside>`;
+}
+function renderBasicDashboard(){
+  const root=$('#tabbody');
+  // Two zones keep the important patient data readable without vertical scrolling
+  // on the iPad mini where space allows. Very narrow screens scroll as a fallback.
+  root.innerHTML=`<div class="basic-dashboard">
+    <section class="basic-information" aria-label="患者基本情報">
+      <p class="notice privacy-notice">${esc(DATA_MINIMIZATION_NOTICE)}</p><div class="basic-form-grid">${BASIC_FIELDS.map(([field,label])=>basicFieldHtml(field,label)).join('')}</div>
+      <details class="basic-extra"><summary>その他の既存項目（本人職業・術式・入院元・かかりつけ）</summary>
+        <div class="basic-extra-grid">${['本人職業','術式','入院元','かかりつけ'].map(fieldHtml).join('')}</div>
+      </details>
+    </section>
+    ${basicDocumentHtml()}
+  </div>`;
+  bindPatientBedPicker();
+  bindMasterSelects(root); // Preserve legacy basic fields via the collapsed extra section.
+  const input=root.querySelector('[data-field="入院日"]');
+  input?.addEventListener('input',()=>{
+    const el=$('#basicAdmissionDays');if(el)el.textContent=(daysSince(input.value)||'—')+'日';
+  });
+  const patient=selectedPatient;
+  const gen=photoList(patient,'genogram'),admission=photoList(patient,'admission');
+  $('#basicGenogramOpen').onclick=()=>gen.length?viewPhoto(gen[0].id):openPatientPhotosFromBasic();
+  $('#basicAdmissionOpen').onclick=()=>admission.length?viewPhoto(admission[0].id):openPatientPhotosFromBasic();
+  loadBasicGenogramPreview(patient,root,gen[0]);
+}
+function openPatientPhotosFromBasic(){
+  finishPatientAndNavigate(()=>{activeTab='photos';clearBasicPhotoPreview();$('#modal').remove();renderPatientModal()});
+}
+let basicPhotoPreviewUrl=null,basicPhotoPreviewToken=0;
+function clearBasicPhotoPreview(){
+  basicPhotoPreviewToken++;
+  if(basicPhotoPreviewUrl){URL.revokeObjectURL(basicPhotoPreviewUrl);basicPhotoPreviewUrl=null}
+}
+async function loadBasicGenogramPreview(patient,root,meta){
+  clearBasicPhotoPreview();
+  if(!meta)return;
+  const request=basicPhotoPreviewToken;
+  try{
+    const data=await readPhotoRecord(meta.id);
+    if(request!==basicPhotoPreviewToken||selectedPatient!==patient||activeTab!=='basic'||!root.isConnected)return;
+    const jpeg=await photoJpeg(data);
+    if(request!==basicPhotoPreviewToken||selectedPatient!==patient||activeTab!=='basic'||!root.isConnected)return;
+    const url=URL.createObjectURL(new Blob([jpeg.bytes],{type:'image/jpeg'}));
+    if(request!==basicPhotoPreviewToken||selectedPatient!==patient||activeTab!=='basic'||!root.isConnected){URL.revokeObjectURL(url);return}
+    basicPhotoPreviewUrl=url;
+    const img=root.querySelector('#basicGenogramImg'),loading=root.querySelector('#basicGenogramLoading');
+    if(img){img.onload=()=>{if(request===basicPhotoPreviewToken){img.hidden=false;loading?.remove()}};img.onerror=()=>{if(request===basicPhotoPreviewToken){loading.textContent='プレビュー不可（タップして確認）'}};img.src=url}
+  }catch(e){
+    if(request===basicPhotoPreviewToken&&selectedPatient===patient&&root.isConnected){
+      const el=root.querySelector('#basicGenogramLoading');if(el)el.textContent='プレビュー不可（タップして確認）';
+    }
+  }
+}
+// Photo documents are individually encrypted; only small metadata lives in the patient record.
+function photoList(p,type){return (p.attachments||[]).filter(x=>x.type===type).sort((a,b)=>a.order-b.order)}
+function nextPhotoOrder(list){return list.length?Math.max(...list.map(m=>Number.isFinite(m.order)?m.order:-1))+1:0}
+function photoKey(id){return 'photo:'+id}
+async function savePhotoRecord(id,data){await idbSet(photoKey(id),await encryptObj(data))}
+async function readPhotoRecord(id){const v=await idbGet(photoKey(id));if(!v)throw new Error('写真データが見つかりません');return decryptObj(v)}
+async function fileToPhoto(file){
+  if(!file.type.startsWith('image/'))throw new Error('画像ファイルを選択してください');
+  // Prevent oversized camera files from exhausting Safari memory during decoding.
+  if(file.size>20*1024*1024)throw new Error('写真は1枚20MB以下にしてください');
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('画像を読み込めません'));i.src=url});
+    if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>60000000)throw new Error('画像が大きすぎます（最大6000万画素）');
+    const max=1800,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    try{
+      const ctx=canvas.getContext('2d');
+      if(!ctx)throw new Error('画像処理用メモリを確保できません');
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      return {dataUrl:canvas.toDataURL('image/jpeg',.84),width:canvas.width,height:canvas.height,rotation:0};
+    }finally{
+      // Release canvas pixels even when drawing or JPEG encoding throws (e.g. memory pressure).
+      canvas.width=0;canvas.height=0;
+    }
+  }finally{URL.revokeObjectURL(url)}
+}
+function rotatePhoto(data){data.rotation=((data.rotation||0)+90)%360;return data}
+// Validate decrypted backup photos without decoding pixels or allocating a canvas.
+// A damaged or oversized record must be rejected before replacing local data.
+function validateStoredPhoto(data){
+  if(!data||typeof data.dataUrl!=='string'||!data.dataUrl.startsWith('data:image/jpeg;base64,'))throw new Error('JPEGデータが不正です');
+  if(!Number.isSafeInteger(data.width)||!Number.isSafeInteger(data.height)||data.width<1||data.height<1||data.width>1800||data.height>1800)throw new Error('画像サイズが不正です');
+  if(![0,90,180,270].includes(data.rotation??0))throw new Error('回転情報が不正です');
+  const encoded=data.dataUrl.slice('data:image/jpeg;base64,'.length);
+  if(encoded.length<8||encoded.length>20*1024*1024*4/3||!/^[-A-Za-z0-9+/]*={0,2}$/.test(encoded))throw new Error('JPEGデータが不正です');
+  // Inspect the first quartet and final TWO quartets: a padded last quartet can
+  // contain only one decoded byte, which is insufficient to check JPEG's FF D9.
+  // Decoding the whole JPEG here
+  // would temporarily allocate another multi-megabyte string for every photo
+  // during backup/restore validation, increasing Safari memory pressure.
+  if(encoded.length%4!==0)throw new Error('JPEGデータが不正です');
+  let head,tail;
+  try{head=atob(encoded.slice(0,4));tail=atob(encoded.slice(-8))}
+  catch(e){throw new Error('JPEGデータが不正です')}
+  if(head.length<2||tail.length<2||head.charCodeAt(0)!==255||head.charCodeAt(1)!==216||tail.charCodeAt(tail.length-2)!==255||tail.charCodeAt(tail.length-1)!==217)throw new Error('JPEG形式が不正です');
+  return true;
+}
+async function photoJpeg(data){
+  // Check bounds and JPEG markers before allocating decoded bytes or a rotation canvas.
+  // This protects PDF export and the photo viewer even if a local record is damaged.
+  validateStoredPhoto(data);
+  const rotation=data.rotation||0;
+  if(![0,90,180,270].includes(rotation))throw new Error('回転情報が不正です');
+  // Avoid an extra full-resolution canvas and JPEG re-encoding for unrotated photos.
+  if(rotation===0){
+    const raw=atob(data.dataUrl.slice('data:image/jpeg;base64,'.length));
+    const n=raw.length;
+    if(n<4||raw.charCodeAt(0)!==255||raw.charCodeAt(1)!==216||raw.charCodeAt(n-2)!==255||raw.charCodeAt(n-1)!==217)throw new Error('JPEG形式が不正です');
+    const bytes=new Uint8Array(n);
+    for(let i=0;i<n;i++)bytes[i]=raw.charCodeAt(i);
+    return {bytes,width:data.width,height:data.height};
+  }
+  const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('画像読込失敗'));i.src=data.dataUrl});
+  const rotated=rotation%180!==0,w=rotated?img.height:img.width,h=rotated?img.width:img.height;
+  const c=document.createElement('canvas');c.width=w;c.height=h;
+  try{
+    const x=c.getContext('2d');if(!x)throw new Error('画像処理用メモリを確保できません');
+    x.fillStyle='#fff';x.fillRect(0,0,w,h);x.translate(w/2,h/2);x.rotate(rotation*Math.PI/180);x.drawImage(img,-img.width/2,-img.height/2);
+    const encoded=c.toDataURL('image/jpeg',.85).split(',')[1];
+    return {bytes:Uint8Array.from(atob(encoded),v=>v.charCodeAt(0)),width:w,height:h};
+  }finally{c.width=0;c.height=0} // Also release pixels if rendering or encoding fails.
+}
+// Minimal, offline-capable JPEG PDF writer. A4 pages, aspect-ratio preserving margins.
+function makePhotoPdf(images){
+  // Bound memory use before building an in-memory PDF on iPad Safari.
+  if(!Array.isArray(images)||images.length===0)throw new Error('PDFにする写真がありません');
+  if(images.length>100)throw new Error('PDFは一度に100ページまでです');
+  let totalBytes=0;
+  for(const img of images){
+    if(!img||!(img.bytes instanceof Uint8Array)||!img.bytes.length||!Number.isSafeInteger(img.width)||!Number.isSafeInteger(img.height)||img.width<1||img.height<1)throw new Error('写真データが不正です');
+    totalBytes+=img.bytes.length;
+    if(totalBytes>80*1024*1024)throw new Error('写真データが80MBを超えています');
+  }
+  const chunks=[],offsets=[0];let pos=0;
+  const push=x=>{const a=typeof x==='string'?enc.encode(x):x;chunks.push(a);pos+=a.length};
+  const obj=(n,content)=>{offsets[n]=pos;push(`${n} 0 obj\n${content}\nendobj\n`)};
+  push('%PDF-1.4\n');const count=2+images.length*3;
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,`<< /Type /Pages /Kids [${images.map((_,i)=>3+i*3+' 0 R').join(' ')}] /Count ${images.length} >>`);
+  images.forEach((img,i)=>{
+    const page=3+i*3,im=page+1,stream=page+2;
+    const ratio=Math.min(535/img.width,782/img.height),w=img.width*ratio,h=img.height*ratio,x=(595-w)/2,y=(842-h)/2;
+    const cmd=`q\n${w.toFixed(3)} 0 0 ${h.toFixed(3)} ${x.toFixed(3)} ${y.toFixed(3)} cm\n/Im1 Do\nQ\n`;
+    obj(page,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im1 ${im} 0 R >> >> /Contents ${stream} 0 R >>`);
+    offsets[im]=pos;push(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${img.width} /Height ${img.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.bytes.length} >>\nstream\n`);push(img.bytes);push('\nendstream\nendobj\n');
+    obj(stream,`<< /Length ${enc.encode(cmd).length} >>\nstream\n${cmd}endstream`);
+  });
+  const start=pos;push(`xref\n0 ${count+1}\n0000000000 65535 f \n`);
+  for(let i=1;i<=count;i++)push(`${String(offsets[i]).padStart(10,'0')} 00000 n \n`);
+  push(`trailer\n<< /Size ${count+1} /Root 1 0 R >>\nstartxref\n${start}\n%%EOF`);
+  return new Blob(chunks,{type:'application/pdf'});
+}
+function renderPhotosTab(){
+  const p=selectedPatient,gen=photoList(p,'genogram'),info=photoList(p,'admission');
+  const items=a=>a.length?a.map((m,i)=>`<div class="settings-row"><div><b>${i+1}ページ</b><small>${esc(m.name||'撮影画像')} ・ ${esc(fmtDate(m.addedAt))}</small></div><div class="toolbar"><button class="btn secondary photo-view" data-id="${esc(m.id)}">表示</button><button class="btn secondary photo-rotate" data-id="${esc(m.id)}">90°回転</button><button class="btn secondary photo-up" data-id="${esc(m.id)}">↑</button><button class="btn danger photo-del" data-id="${esc(m.id)}">削除</button></div></div>`).join(''):'<div class="notice">まだ登録されていません。</div>';
+  $('#tabbody').innerHTML=`<div class="panel"><h3>ジェノグラム（基本1枚）</h3>${items(gen)}<input id="genFile" type="file" accept="image/*" hidden><button class="btn secondary" id="genAdd">${gen.length?'写真を差し替える':'撮影・画像を登録'}</button></div><div class="panel"><h3>入院時患者情報（複数ページ）</h3>${items(info)}<input id="infoFile" type="file" accept="image/*" multiple hidden><button class="btn secondary" id="infoAdd">＋ 写真を追加</button> <button class="btn" id="photoPdf" ${info.length?'':'disabled'}>全ページをPDF化</button><p class="notice">後日追加できます。↑でページ順を変更できます。写真は暗号化してこの端末に保存します。住所・電話番号が写った画像は登録しないでください（自動判別できません）。</p></div>`;
+  $('#genAdd').onclick=()=>$('#genFile').click();$('#infoAdd').onclick=()=>$('#infoFile').click();
+  $('#genFile').onchange=e=>addPhotos(e.target.files,'genogram');$('#infoFile').onchange=e=>addPhotos(e.target.files,'admission');
+  $$('.photo-view').forEach(b=>b.onclick=()=>viewPhoto(b.dataset.id));
+  $$('.photo-rotate').forEach(b=>b.onclick=()=>rotateStoredPhoto(b.dataset.id));
+  $$('.photo-del').forEach(b=>b.onclick=()=>deletePhoto(b.dataset.id));
+  $$('.photo-up').forEach(b=>b.onclick=()=>movePhotoUp(b.dataset.id));
+  $('#photoPdf').onclick=exportAdmissionPdf;
+}
+function ensurePhotoPatient(){
+  saveFieldsOnly();
+  const p=selectedPatient;
+  if(p._new&&!p.data['氏名']&&!p.data['ＩＤ']){
+    alert('写真を登録する前に氏名または患者IDを入力してください。');
+    return false;
+  }
+  return true;
+}
+let photoImportBusy=false;
+async function addPhotos(files,type){
+  if(!files?.length||photoImportBusy||maintenanceAction)return;
+  // Process a bounded batch: avoids holding dozens of encoded camera images in Safari memory.
+  if(type==='admission'&&files.length>10){alert('一度に登録できる写真は10枚までです。残りは追加登録してください。');return}
+  // Preflight the whole batch before decoding any image. This avoids spending
+  // memory on earlier photos only to reject a later oversized or invalid file.
+  const batch=Array.from(files).slice(0,type==='genogram'?1:10);
+  if(batch.some(f=>!f||typeof f.size!=='number'||!Number.isFinite(f.size)||f.size<=0||f.size>20*1024*1024||typeof f.type!=='string'||!f.type.startsWith('image/'))){
+    alert('画像形式またはファイルサイズを確認してください（1枚20MB以下）。');return;
+  }
+  if(batch.reduce((total,f)=>total+f.size,0)>40*1024*1024){alert('一度に登録する写真の合計は40MB以下にしてください。分けて追加できます。');return}
+  if(!confirm('登録する写真に住所・電話番号・連絡先が写っていないことを確認しましたか？\n画像の中身はアプリでは自動検査・除去できません。'))return;
+  photoImportBusy=true;
+  let p=null;
+  const addButtons=['#genAdd','#infoAdd'].map(selector=>$(selector)).filter(Boolean);
+  addButtons.forEach(button=>button.disabled=true);
+  try{
+    if(!ensurePhotoPatient())return;
+    p=selectedPatient;
+    const oldList=photoList(p,type);
+    if(type==='genogram'&&oldList.length&&!confirm('登録済みのジェノグラムを差し替えますか？'))return;
+    // Prepare every photo before changing the saved patient index.
+    const additions=[];
+    for(const file of batch){
+      const data=await fileToPhoto(file),id=uid();
+      additions.push({entry:{id,type,name:type==='genogram'?'ジェノグラム画像':'入院時画像',addedAt:nowISO(),order:nextPhotoOrder([...oldList,...additions.map(x=>x.entry)])},cipher:await encryptObj(data)});
+    }
+    if(!additions.length)return;
+    // Never commit an import for a patient whose sheet was closed or replaced.
+    if(selectedPatient!==p)return;
+    const committed=await orderedDataWrite(async()=>{
+      if(selectedPatient!==p||!key)return false;
+      const previous=p.attachments||[];
+      const removed=type==='genogram'?photoList(p,type):[];
+      const next=previous.filter(m=>!removed.some(x=>x.id===m.id)).concat(additions.map(x=>x.entry));
+      const updatedPatient={...p,attachments:next};delete updatedPatient._new;
+      const newPatients=p._new?[...state.patients,updatedPatient]:state.patients.map(x=>x===p?updatedPatient:x);
+      const newState={...state,patients:newPatients,updatedAt:nowISO()};
+      const stateCipher=await encryptPatientIndex(newState);
+      if(selectedPatient!==p)return false;
+      await idbApplyChanges([...additions.map(x=>[photoKey(x.entry.id),x.cipher]),['data',stateCipher]],removed.map(x=>photoKey(x.id)));
+      p.attachments=next;
+      if(p._new){delete p._new;state.patients.push(p)}
+      state.updatedAt=newState.updatedAt;
+      return true;
+    });
+    if(!committed)return;
+    // A patient switch can happen while the IndexedDB transaction is pending.
+    // Keep the committed patient's data in sync without redrawing another sheet.
+    if(selectedPatient===p){
+      if(type==='genogram'&&activeTab==='photos'){
+        // Only a successful persisted genogram import returns to the overview.
+        // Admission information retains its multi-page registration workflow.
+        activeTab='basic';clearBasicPhotoPreview();$('#modal')?.remove();renderPatientModal();
+      }else renderPhotosTab();
+    }
+  }catch(e){
+    // Do not show an obsolete import error on a different patient's sheet.
+    if(selectedPatient===p)alert('写真を保存できませんでした：'+(e.message||e));
+  }
+  finally{photoImportBusy=false;addButtons.forEach(button=>{if(button.isConnected)button.disabled=false})}
+}
+// Revoke object URLs as soon as the photo viewer closes or the patient changes.
+let activePhotoViewer=null;
+let photoViewRequest=0;
+function dismissPhotoViewer(){
+  // Invalidate any pending asynchronous decrypt/view request, even without an open viewer.
+  photoViewRequest++;
+  if(!activePhotoViewer)return;
+  const viewer=activePhotoViewer;
+  activePhotoViewer=null;
+  viewer.overlay.remove();
+  URL.revokeObjectURL(viewer.url);
+}
+async function viewPhoto(id){
+  const request=++photoViewRequest;
+  // A slow decryption must not open a previous patient's image after the user
+  // closes the sheet or switches to a different patient.
+  const patient=selectedPatient,modal=$('#modal');
+  if(!patient||!(patient.attachments||[]).some(m=>m.id===id))return;
+  try{
+    const d=await readPhotoRecord(id),image=await photoJpeg(d);
+    if(request!==photoViewRequest||selectedPatient!==patient||!modal?.isConnected||$('#modal')!==modal||!(patient.attachments||[]).some(m=>m.id===id))return;
+    dismissPhotoViewer();
+    const url=URL.createObjectURL(new Blob([image.bytes],{type:'image/jpeg'}));
+    // An in-page viewer avoids Safari blocking window.open after asynchronous decryption.
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box';
+    const close=document.createElement('button');close.type='button';close.textContent='閉じる';close.className='btn';
+    const img=document.createElement('img');img.src=url;img.alt='登録写真';img.style.cssText='max-width:100%;min-height:0;flex:1;object-fit:contain';
+    const dismiss=()=>{if(activePhotoViewer?.overlay===overlay)dismissPhotoViewer()};
+    close.onclick=dismiss;overlay.onclick=e=>{if(e.target===overlay)dismiss()};
+    const bar=document.createElement('div');bar.style.cssText='width:100%;display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:12px';
+    const pages=photoList(patient,'admission'),pageIndex=pages.findIndex(m=>m.id===id);
+    if(pageIndex>=0){
+      const previous=document.createElement('button');previous.type='button';previous.className='btn secondary';previous.textContent='← 前';previous.disabled=pageIndex===0;
+      const label=document.createElement('span');label.textContent=`入院時患者情報 ${pageIndex+1} / ${pages.length}`;label.style.cssText='color:#fff;font-weight:700';
+      const next=document.createElement('button');next.type='button';next.className='btn secondary';next.textContent='次 →';next.disabled=pageIndex===pages.length-1;
+      previous.onclick=()=>{if(pageIndex>0)void viewPhoto(pages[pageIndex-1].id)};
+      next.onclick=()=>{if(pageIndex<pages.length-1)void viewPhoto(pages[pageIndex+1].id)};
+      const pagesBar=document.createElement('div');pagesBar.style.cssText='display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px';pagesBar.append(previous,label,next);
+      overlay.append(bar,img,pagesBar);
+    }else{overlay.append(bar,img)}
+    bar.append(document.createElement('span'),close);
+    document.body.appendChild(overlay);
+    activePhotoViewer={overlay,url};
+  }catch(e){
+    // Ignore failures from an obsolete request after the viewer was closed or patient changed.
+    if(request===photoViewRequest&&selectedPatient===patient&&modal?.isConnected&&$('#modal')===modal)
+      alert('写真を開けません：'+e.message);
+  }
+}
+let photoRotateBusy=false;
+async function rotateStoredPhoto(id){
+  if(photoRotateBusy||maintenanceAction)return;
+  const patient=selectedPatient;
+  if(!patient||(patient.attachments||[]).every(m=>m.id!==id))return;
+  photoRotateBusy=true;
+  try{
+    const d=await readPhotoRecord(id);
+    if(selectedPatient!==patient||(patient.attachments||[]).every(m=>m.id!==id))return;
+    // Encrypt before committing; a slow encryption must not write a photo after
+    // the user has switched patients or deleted its attachment.
+    const cipher=await encryptObj(rotatePhoto({...d}));
+    if(selectedPatient!==patient||(patient.attachments||[]).every(m=>m.id!==id))return;
+    await orderedDataWrite(()=>idbSet(photoKey(id),cipher));
+    if(selectedPatient===patient)renderPhotosTab();
+  }catch(e){if(selectedPatient===patient)alert('写真を回転できませんでした：'+(e.message||e))}
+  finally{photoRotateBusy=false}
+}
+
+let photoDeleteBusy=false;
+async function deletePhoto(id){
+  if(photoDeleteBusy||maintenanceAction)return;
+  const patient=selectedPatient;
+  if(!patient||(patient.attachments||[]).every(m=>m.id!==id))return;
+  if(!confirm('この写真を削除しますか？'))return;
+  // Confirm dialogs may change focus; never apply a stale action to another sheet.
+  if(selectedPatient!==patient)return;
+  photoDeleteBusy=true;
+  try{
+    await orderedDataWrite(async()=>{
+      if(selectedPatient!==patient||!key)return;
+      const next=(patient.attachments||[]).filter(m=>m.id!==id);
+      const newState={...state,patients:state.patients.map(x=>x===patient?{...patient,attachments:next}:x),updatedAt:nowISO()};
+      const cipher=await encryptPatientIndex(newState);
+      if(selectedPatient!==patient)return;
+      await idbApplyChanges([['data',cipher]],[photoKey(id)]);
+      patient.attachments=next;state.updatedAt=newState.updatedAt;
+    });
+    if(selectedPatient===patient)renderPhotosTab();
+  }catch(e){if(selectedPatient===patient)alert('写真を削除できませんでした：'+(e.message||e))}
+  finally{photoDeleteBusy=false}
+}
+let photoReorderBusy=false;
+async function movePhotoUp(id){
+  if(photoReorderBusy||maintenanceAction)return;
+  const patient=selectedPatient,m=(patient?.attachments||[]).find(m=>m.id===id);
+  if(!m)return;
+  const a=photoList(patient,m.type),idx=a.findIndex(x=>x.id===id);
+  if(idx<1)return;
+  const other=a[idx-1];
+  // Work on a snapshot: never mutate live patient metadata before durable storage succeeds.
+  const nextAttachments=(patient.attachments||[]).map(entry=>
+    entry.id===m.id?{...entry,order:other.order}:
+    entry.id===other.id?{...entry,order:m.order}:entry);
+  photoReorderBusy=true;
+  try{
+    await orderedDataWrite(async()=>{
+      if(selectedPatient!==patient||!key)return;
+      const updatedAt=nowISO();
+      const nextState={...state,updatedAt,patients:state.patients.map(p=>
+        p===patient?{...p,attachments:nextAttachments}:p)};
+      const cipher=await encryptPatientIndex(nextState);
+      if(selectedPatient!==patient)return;
+      await idbSet('data',cipher);
+      patient.attachments=nextAttachments;
+      state.updatedAt=updatedAt;
+    });
+    if(selectedPatient===patient)renderPhotosTab();
+  }catch(e){if(selectedPatient===patient)alert('写真の並び替えを保存できませんでした：'+(e.message||e))}
+  finally{photoReorderBusy=false}
+}
+
+let pdfExportBusy=false;
+async function exportAdmissionPdf(){
+  if(pdfExportBusy||maintenanceAction)return;
+  // Keep the export bound to the patient whose button was pressed. The modal
+  // may be closed or another patient selected while Safari decrypts images.
+  const patient=selectedPatient;
+  if(!patient)return;
+  pdfExportBusy=true;
+  const button=$('#photoPdf');if(button)button.disabled=true;
+  try{
+    const a=photoList(patient,'admission');if(!a.length)return;
+    if(a.length>100)throw new Error('PDFは一度に100ページまでです');
+    const imgs=[];let total=0;
+    for(const m of a){
+      const img=await photoJpeg(await readPhotoRecord(m.id));total+=img.bytes.length;
+      if(total>80*1024*1024)throw new Error('写真データが80MBを超えています');
+      imgs.push(img);
+      // Stop promptly if the user leaves this patient's sheet during a long export.
+      if(selectedPatient!==patient)return;
+    }
+    // Never download a previous patient's PDF after switching to another patient.
+    if(selectedPatient!==patient)return;
+    download(makePhotoPdf(imgs),`入院時患者情報_${safeFilePart(patient.data['ＩＤ'])}_${new Date().toISOString().slice(0,10)}.pdf`);
+  }catch(e){
+    // An obsolete export must not show its error on a different patient's sheet.
+    if(selectedPatient===patient)alert('PDFを作成できません：'+e.message);
+  }
+  finally{
+    pdfExportBusy=false;
+    // Never change a button belonging to a different patient or a new modal.
+    if(button?.isConnected&&selectedPatient===patient)button.disabled=!photoList(patient,'admission').length;
+  }
+}
+function fieldHtml(f){
+  const v=selectedPatient.data[f]??'';
+  const long=['備考'].includes(f);
+  const type=['入院日','調査日','ADL調査日'].includes(f)?'date':'text';
+  const span=['病名','かかりつけ','ケアマネ・施設','リハ状況','問題行動','備考'].includes(f)?'span2':'';
+  if(f==='ベッド番号')return `<div class="field ${span}"><label>ベッド番号</label><input type="hidden" data-field="ベッド番号" id="patientBedValue" value="${esc(v)}"><button type="button" class="btn secondary" id="patientBedPick">${esc(v||'その他・未配置')} ▾</button></div>`;if(masterFields.includes(f))return `<div class="field ${span}"><label>${esc(f)}</label>${masterSelectHtml(f,v)}</div>`;
+  return `<div class="field ${span}"><label>${esc(f)}</label>${long?`<textarea data-field="${esc(f)}">${esc(v)}</textarea>`:`<input data-field="${esc(f)}" type="${type}" value="${esc(v)}">`}</div>`;
+}
+function saveFieldsOnly(){return capturePatientForm()}
+async function savePatientFromForm(){return finishPatientAndNavigate(closePatient,{closing:true})}
+// MVP01: Task deadlines are optional, preserving legacy {text, done} objects.
+function mvpLocalDate(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function mvpDueType(task,today=mvpLocalDate()){
+  const due=String(task?.dueDate||'');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(due))return 'undated';
+  if(due<today)return 'overdue';
+  if(due===today)return 'today';
+  return 'future';
+}
+function mvpDueBadge(task){
+  const kind=mvpDueType(task),due=String(task?.dueDate||'');
+  const names={overdue:'期限切れ',today:'今日',future:'期限あり',undated:'期限なし'};
+  const flag=task?.priority==='high'?' <span class="mvp-priority">優先</span>':'';
+  return `<span class="mvp-due ${kind}">${names[kind]}${due?' '+esc(due):''}</span>${flag}`;
+}
+function taskListHtml(p){
+  if(!p.tasks?.length)return'<div class="empty">タスクなし</div>';
+  return p.tasks.map((t,i)=>`<label class="settings-row"><span><input type="checkbox" data-task="${i}" ${t.done?'checked':''}> ${esc(t.text)} <span class="mvp-task-status">${mvpDueBadge(t)}</span></span><small>${t.done?'完了':'未完了'}</small></label>`).join('');
+}
+// Serialize rapid repeated changes to a single task; prevent optimistic UI from
+// claiming completion when encrypted storage fails.
+const taskTogglePending=new Set();
+function bindTaskChecks(){
+  $$('[data-task]').forEach(c=>c.onchange=async()=>{
+    const patient=selectedPatient, t=patient?.tasks?.[+c.dataset.task];
+    if(!t)return;
+    if(taskTogglePending.has(t)||taskWriteBusy||patientCsvBusy||resetInProgress||restoreBusy||maintenanceAction){
+      c.checked=!!t.done;return;
+    }
+    const old=!!t.done, desired=!!c.checked;
+    taskTogglePending.add(t);c.disabled=true;t.done=desired;
+    try{
+      if(selectedPatient!==patient||!key||!state)throw new Error('患者情報の画面が切り替わりました');
+      await save();
+      if(selectedPatient===patient&&c.isConnected){
+        const status=c.closest('.settings-row')?.querySelector('small');
+        if(status)status.textContent=t.done?'完了':'未完了';
+      }
+    }catch(e){
+      t.done=old;
+      if(selectedPatient===patient&&c.isConnected)c.checked=old;
+      if(selectedPatient===patient)alert('タスクの完了状態を保存できませんでした。もう一度お試しください。');
+    }finally{
+      taskTogglePending.delete(t);
+      if(c.isConnected)c.disabled=false;
+    }
+  });
+}
+// Only show a newly added task after IndexedDB confirms its encrypted commit.
+// Prevent accidental duplicate taps and preserve the typed text on a storage error.
+let taskWriteBusy=false;
+async function addTask(){
+  if(taskWriteBusy)return;
+  const el=$('#newTask'),btn=$('#addTask'),v=el?.value.trim();
+  if(!v||!btn)return;
+  const due=$('#newTaskDue')?.value||'';
+  if(due&&!/^\d{4}-\d{2}-\d{2}$/.test(due)){
+    alert('対応期限の形式が不正です。');return;
+  }
+  const priority=$('#newTaskUrgent')?.checked?'high':'normal';
+  const p=selectedPatient;if(!p)return;
+  if(patientCsvBusy||resetInProgress||restoreBusy||maintenanceAction){
+    alert('別のデータ処理が進行中です。完了後に再試行してください。');return;
+  }
+  taskWriteBusy=true;btn.disabled=true;
+  let task=null;
+  try{
+    if(p._new){
+      if(!patientCanSave(p))throw new Error('先に患者の氏名またはIDを入力してください。');
+      const ok=await flushPatientAutoSave();
+      if(!ok||selectedPatient!==p)throw new Error('患者情報の保存を確認してからタスクを追加してください。');
+    }
+    if(selectedPatient!==p||!key||!state||patientCsvBusy||resetInProgress||restoreBusy||maintenanceAction)
+      throw new Error('患者情報が切り替わったか、ほかの処理が始まりました。');
+    task={id:uid(),text:v,done:false,createdAt:nowISO(),dueDate:due,priority};
+    p.tasks??=[];p.tasks.push(task);
+    await save();
+    if(selectedPatient===p&&el.isConnected){
+      el.value='';
+      if($('#newTaskDue'))$('#newTaskDue').value='';
+      if($('#newTaskUrgent'))$('#newTaskUrgent').checked=false;
+      if($('#taskList'))$('#taskList').innerHTML=taskListHtml(p);
+      bindTaskChecks();
+    }
+  }catch(e){
+    if(task)p.tasks=(p.tasks||[]).filter(t=>t!==task);
+    if(selectedPatient===p)alert('タスクを保存できませんでした。入力内容は保持しています：'+(e.message||e));
+  }finally{
+    taskWriteBusy=false;
+    if(btn.isConnected)btn.disabled=false;
+  }
+}
+function notesHtml(p){const a=[...(p.notes||[])].sort((a,b)=>String(b.at).localeCompare(String(a.at)));if(!a.length)return'<div class="empty">経過記録はまだありません</div>';return a.map(n=>`<div class="note"><div class="time">${fmtDate(n.at)} ${new Date(n.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}</div><div class="type">${esc(n.type)}</div><div>${esc(n.text).replace(/\n/g,'<br>')}</div></div>`).join('')}
+// Never navigate away from a new case note before its encrypted write commits.
+// On any storage failure, keep the text in the editor and restore the old note list.
+let noteWriteBusy=false;
+async function addNote(){
+  if(noteWriteBusy||maintenanceAction)return;
+  const patient=selectedPatient, editor=$('#noteText'),btn=$('#addNote');
+  const txt=editor?.value.trim();
+  if(!patient||!txt||!btn)return;
+  const atInput=$('#noteAt')?.value||'';
+  const timestamp=new Date(atInput);
+  if(!atInput||!Number.isFinite(timestamp.getTime())){
+    alert('経過記録の日時が不正です。修正してから保存してください。');return;
+  }
+  noteWriteBusy=true;btn.disabled=true;
+  const status=$('#noteSaveState');
+  if(status)status.textContent='経過記録を暗号化して保存しています…';
+  let note=null;
+  try{
+    if(patient._new){
+      if(!patientCanSave(patient))throw new Error('先に患者の氏名またはIDを入力してください。');
+      if(!await flushPatientAutoSave()||selectedPatient!==patient)
+        throw new Error('患者基本情報の保存を確認できませんでした。');
+    }
+    if(selectedPatient!==patient||!key)throw new Error('患者情報が切り替わりました。');
+    note={id:uid(),type:$('#noteType').value,at:timestamp.toISOString(),text:txt};
+    patient.notes??=[];patient.notes.push(note);
+    await save();
+    if(selectedPatient===patient){
+      // Only committed notes are shown in the timeline.
+      activeTab='notes';$('#modal')?.remove();renderPatientModal();
+    }
+  }catch(e){
+    if(note)patient.notes=(patient.notes||[]).filter(n=>n!==note);
+    if(selectedPatient===patient){
+      const msg='経過記録を保存できませんでした。入力内容は残っています：'+(e.message||e);
+      const live=$('#noteSaveState');if(live)live.textContent=msg;
+      alert(msg);
+    }
+  }finally{
+    noteWriteBusy=false;
+    if(btn.isConnected)btn.disabled=false;
+  }
+}
+// MVP01: All pending tasks stay visible. Due dates help order work, not hide it.
+function mvpTaskRows(){
+  const rows=[];
+  activePatients().forEach(p=>(p.tasks||[]).filter(t=>!t.done).forEach(t=>rows.push({p,t})));
+  const order={overdue:0,today:1,future:2,undated:3};
+  rows.sort((a,b)=>order[mvpDueType(a.t)]-order[mvpDueType(b.t)] ||
+    Number(b.t.priority==='high')-Number(a.t.priority==='high') ||
+    String(a.t.dueDate||'').localeCompare(String(b.t.dueDate||'')) ||
+    String(a.p.data?.['ベッド番号']||'').localeCompare(String(b.p.data?.['ベッド番号']||''),'ja'));
+  return rows;
+}
+function renderTasks(){
+  const rows=mvpTaskRows(),today=rows.filter(x=>mvpDueType(x.t)==='today').length,
+  overdue=rows.filter(x=>mvpDueType(x.t)==='overdue').length,
+  noDate=rows.filter(x=>mvpDueType(x.t)==='undated').length;
+  const categories=[['overdue','期限切れ（優先して確認）'],['today','今日の対応'],['future','今後の対応'],['undated','期限未設定の対応']];
+  const items=categories.map(([type,name])=>{
+    const subset=rows.filter(x=>mvpDueType(x.t)===type);
+    if(!subset.length)return'';
+    return `<section class="panel mvp-task-group"><h3>${name} <span class="mvp-count">${subset.length}件</span></h3>${subset.map(({p,t})=>`<button type="button" class="settings-row mvp-taskjump" data-id="${esc(p.id)}"><span class="mvp-task-summary"><b>${esc(p.data?.['氏名']||'氏名未入力')}</b> <span class="tag">${esc(p.data?.['ベッド番号']||'未配置')}</span><span class="mvp-task-copy">${esc(t.text)}</span><span class="mvp-task-status">${mvpDueBadge(t)}</span></span><span aria-hidden="true">›</span></button>`).join('')}</section>`;
+  }).join('');
+  $('#main').innerHTML=`<div class="hero"><div><h1>今日の業務・要対応</h1><p>期限が過ぎたタスクから順に表示します。期限なしの業務も隠しません。</p></div></div><div class="mvp-kpis"><div class="mvp-kpi"><b>${overdue}</b><span>期限切れ</span></div><div class="mvp-kpi"><b>${today}</b><span>今日</span></div><div class="mvp-kpi"><b>${noDate}</b><span>期限なし</span></div><div class="mvp-kpi"><b>${rows.length}</b><span>未完了合計</span></div></div>${items||'<div class="empty">未完了の要対応タスクはありません</div>'}<p class="notice">操作：患者名をタップすると患者詳細が開きます。内容を確認・完了するには「退院支援」タブを開いてください。</p>`;
+  $$('.mvp-taskjump').forEach(x=>x.onclick=()=>{
+    const p=state.patients.find(p=>p.id===x.dataset.id);if(p)openPatient(p);
+  });
+}
+function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"></div><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;drawDrugs()}
+function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>'}
+
+function renderMasters(){
+  ensureStateSchema();
+  const fields=['進捗ステータス','経過記録種別',...masterFields];
+  $('#main').innerHTML=`<div class="hero"><div><h1>マスター管理</h1><p>入力候補をここで管理します。患者入力中でも「＋ リストにない → 新規登録」から追加できます。</p></div></div>
+  <div class="panel"><div class="form-grid"><div class="field span2"><label>編集する項目</label><select id="mf">${fields.map(f=>`<option>${esc(f)}</option>`).join('')}</select></div></div></div>
+  <div class="panel"><h3 id="masterTitle"></h3><div class="toolbar"><input id="newMaster" placeholder="新しい候補を入力"><button class="btn" id="addMaster">＋追加</button></div><div id="masterList"></div></div>`;
+  $('#mf').onchange=drawMasterList; $('#addMaster').onclick=addMasterFromScreen; $('#newMaster').onkeydown=e=>{if(e.key==='Enter')addMasterFromScreen()}; drawMasterList();
+}
+// Some dropdown values are system defaults or are still used by patients.
+// Deleting them here would appear to succeed, then silently recreate them
+// on the next ensureStateSchema() call. Explain why they cannot be deleted.
+function masterValueIsProtected(field,value){
+  if(field==='ベッド番号')return true; // Fixed official bed layout.
+  if((defaultMasters[field]||[]).includes(value))return true;
+  if(['進捗ステータス','経過記録種別'].includes(field))return false;
+  return (state?.patients||[]).some(p=>String(p.data?.[field]??'').trim()===String(value));
+}
+// Persist a new patient-master snapshot atomically. Never show a master change
+// as committed until the encrypted IndexedDB transaction has finished.
+let masterWriteBusy=false;
+async function commitMasterValues(field,values){
+  if(masterWriteBusy){alert('マスターの保存処理中です。少し待ってください。');return false;}
+  const action='マスターの変更';masterWriteBusy=true;let began=false;
+  try{
+    await beginMaintenance(action);began=true;
+    const activeKey=key;
+    const next={...state,masters:{...state.masters,[field]:uniq(values)},updatedAt:nowISO()};
+    await orderedDataWrite(async()=>idbSet('data',await encryptPatientIndex(next,activeKey)));
+    if(activeKey!==key)throw new Error('保存中にロック状態が変わりました。');
+    state=next;resetAutoLock();
+    return true;
+  }catch(e){alert('マスターの変更を保存できませんでした。元の候補は保持しています：'+(e.message||e));return false;}
+  finally{if(began)endMaintenance(action);masterWriteBusy=false;}
+}
+function drawMasterList(){
+  const f=$('#mf').value, vals=masterValues(f); $('#masterTitle').textContent=`${f}　${vals.length}件`;
+  $('#masterList').innerHTML=vals.length?vals.map((v,i)=>{
+    const protectedValue=masterValueIsProtected(f,v);
+    return `<div class="settings-row"><div><b>${esc(v)}</b></div>${protectedValue?'<span class="notice">標準・使用中のため削除不可</span>':`<button class="btn danger masterDel" data-i="${i}">削除</button>`}</div>`;
+  }).join(''):'<div class="empty">候補がありません</div>';
+  $$('.masterDel').forEach(b=>b.onclick=async()=>{
+    const val=vals[+b.dataset.i];
+    if(masterValueIsProtected(f,val)){drawMasterList();return;}
+    if(!confirm(`「${val}」をマスターから削除しますか？\n既存患者に入力済みの値は消えません。`))return;
+    b.disabled=true;
+    try{
+      const next=(state.masters[f]||[]).filter(x=>x!==val);
+      if(await commitMasterValues(f,next))drawMasterList();
+    }finally{if(b.isConnected)b.disabled=false;}
+  });
+}
+async function addMasterFromScreen(){
+  const input=$('#newMaster'),btn=$('#addMaster'),f=$('#mf').value,v=input?.value.trim();
+  if(!v||!btn)return;
+  btn.disabled=true;
+  try{
+    if(await commitMasterValues(f,[...(state.masters[f]||[]),v])){
+      if(input.isConnected)input.value='';
+      drawMasterList();
+    }
+  }finally{if(btn.isConnected)btn.disabled=false;}
+}
+
+// Diagnostic report intentionally contains only release/runtime facts, NOT patients,
+// passwords, photos, hospital IDs, notes, task content, or indexedDB contents.
+// It is a readiness report, not a security certification or a proof of offline behavior.
+function diagnosticCheck(name, status, detail=''){
+  return {name,status,detail};
+}
+async function collectEnvironmentDiagnostics(){
+  const tests=[];
+  tests.push(diagnosticCheck('架空プレビュー起動確認',deploymentLocationAllowed(location)?'OK':'NG',
+    deploymentLocationAllowed(location)?'架空専用プレビューで起動中（本番環境の確認ではありません）':'架空専用プレビューの起動条件に一致しません'));
+  tests.push(diagnosticCheck('HTTPS/安全なコンテキスト',
+    location.protocol==='https:'&&isSecureContext?'OK':'NG',
+    location.protocol==='https:'&&isSecureContext?'HTTPSで起動':'HTTPS接続が必要'));
+  const knownShared=location.hostname==='piimanbokumetsu-code.github.io';
+  const githubPages=location.hostname.endsWith('.github.io');
+  tests.push(diagnosticCheck('専用ホストの分離',knownShared?'NG':'要管理確認',
+    knownShared?'既存MVP01と同じオリジンです。実患者情報の入力は禁止します':
+    githubPages?'別のGitHub Pagesホストです。組織内の他の公開アプリ・配信権限を管理者が確認してください':
+    '専用ホストかどうか、管理者・配信権限は別途確認が必要です'));
+  const standalone=window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true;
+  tests.push(diagnosticCheck('ホーム画面での単独起動',standalone?'OK':'未確認',
+    standalone?'単独画面として起動中':'Safariで表示中。ホーム画面版で再診断してください'));
+  if(!('serviceWorker' in navigator)){
+    tests.push(diagnosticCheck('オフライン用制御', 'NG','この環境ではService Workerが利用できません'));
+  }else{
+    try{
+      const reg=await navigator.serviceWorker.getRegistration(new URL('./',location.href).href);
+      const controlling=!!navigator.serviceWorker.controller;
+      tests.push(diagnosticCheck('オフライン用制御',reg?.active&&controlling?'OK':'要再起動',
+        reg?.active&&controlling?'Service Workerが有効':'初回起動なら一度画面を閉じて開き直してください'));
+    }catch(e){tests.push(diagnosticCheck('オフライン用制御','未確認','登録状態を取得できません'))}
+  }
+  if(!('caches' in window)){
+    tests.push(diagnosticCheck('アプリ資産の事前保存','未確認','キャッシュAPIが利用できません'));
+  }else{
+    try{
+      const names=(await caches.keys()).filter(name=>name.startsWith('msw-mvp01-sec13-review-only-'));
+      const pathRoot=new URL('./',location.href);
+      let available=false;
+      for(const name of names){
+        const cache=await caches.open(name);
+        const start=await cache.match(new URL('./index.html',pathRoot).href);
+        const script=await cache.match(new URL('./app.js?v=mvp01-sec13-20261020r3m',pathRoot).href);
+        if(start&&script){available=true;break;}
+      }
+      tests.push(diagnosticCheck('アプリ資産の事前保存',available?'OK':'要再起動',
+        available?'画面とコードの保存を確認。実際のオフライン起動は別途必要':'初回起動後に再診断してください'));
+    }catch(e){tests.push(diagnosticCheck('アプリ資産の事前保存','未確認','キャッシュを読み取れません'))}
+  }
+  try{
+    const metadata=await idbGet('meta'),ciphertext=await idbGet('data');
+    if(metadata&&ciphertext&&key){
+      const actual=await decryptObj(ciphertext);
+      tests.push(diagnosticCheck('暗号化した保存データの読取',Array.isArray(actual?.patients)?'OK':'NG',
+        Array.isArray(actual?.patients)?'復号後の構造のみ確認。患者内容は診断に含めません':'保存データの構造が不正です'));
+    }else tests.push(diagnosticCheck('暗号化した保存データの読取','未確認','暗証解除後に実行してください'));
+  }catch(e){tests.push(diagnosticCheck('暗号化した保存データの読取','NG','保存データの読取または復号に失敗しました'))}
+  try{
+    const persistent=await navigator.storage?.persisted?.();
+    tests.push(diagnosticCheck('端末保存の永続化',persistent===true?'OK':persistent===false?'注意':'未確認',
+      persistent===true?'保持要求が承認されています':persistent===false?'通常保存。iPadOSにより消去される可能性があります':'取得できません'));
+  }catch(e){tests.push(diagnosticCheck('端末保存の永続化','未確認','保存領域の状態を取得できません'))}
+  return tests;
+}
+function formatEnvironmentDiagnostics(tests){
+  return ['MSW-MVP01 sec13 配信・端末診断（架空データ専用）',
+    '※この報告は患者情報・暗証番号を含みません。',
+    ...tests.map(t=>`[${t.status}] ${t.name}: ${t.detail}`),
+    '※実機でのオフライン起動・改ざん対策・勤務先承認は別途必要。',
+    '※GitHub Pages上には実在患者情報を入力しないでください。'].join('\n');
+}
+
+// A failed write must never falsely mark the backup as confirmed in RAM.
+// Otherwise a later unrelated save could persist a backup date that was never verified.
+async function markBackupFileVerified(){
+  if(maintenanceAction||backupBusy||restoreBusy||resetInProgress||patientCsvBusy){
+    alert('データ管理処理が終わってからバックアップ保存を確認してください。');return false;
+  }
+  if(!key||!state)return false;
+  const previous=state.settings.lastBackupAt??null,stamp=nowISO();
+  state.settings.lastBackupAt=stamp;
+  try{await save();return true}
+  catch(e){
+    if(state?.settings?.lastBackupAt===stamp)state.settings.lastBackupAt=previous;
+    alert('バックアップ確認日時を保存できませんでした：'+(e.message||e));
+    return false;
+  }
+}
+async function renderSettings(){
+  const est=navigator.storage?.estimate?await navigator.storage.estimate():{};
+  const usage=est.usage||0,quota=est.quota||0,pct=quota?Math.min(100,usage/quota*100):0;
+  let persisted='未確認'; try{if(navigator.storage?.persisted)persisted=(await navigator.storage.persisted())?'保持を要求済み':'通常保存'}catch(e){}
+  const last=state.settings.lastBackupAt?new Date(state.settings.lastBackupAt).toLocaleString('ja-JP'):'まだありません';
+  $('#main').innerHTML=`<div class="hero"><div><h1>設定</h1><p>移行・バックアップ・容量・セキュリティを管理します。</p></div></div>
+  <div class="panel"><h3>データ移行</h3><p class="notice">住所・電話番号・連絡先の列はCSVに含まれていても保存しません。氏名・病名・病院ID・FileMaker番号は取り込みます。写真や自由記述の内容は対象外です。</p><div class="settings-row"><div><b>患者CSVを読み込む</b><small>FileMakerの「番号」（必須）で患者を照合。病院の「ＩＤ」は別項目として保持し、タスク・記録・写真も残します。ICU3-10以降は未配置扱い。追加・更新は既存の記録を保持します。必要なときだけ手動でバックアップできます。</small></div><button class="btn secondary" id="impP">読込</button></div><div class="settings-row"><div><b>薬剤CSVを読み込む</b><small>医薬品分類・薬価・薬効・薬名の4列。</small></div><button class="btn secondary" id="impD">読込</button></div></div>
+  <div class="panel"><h3>初回のみ：全件入れ替え（危険・試験用）</h3><div class="settings-row"><div><b>患者CSVで全件入れ替え（記録も消去）</b><small>患者データ・タスク・経過記録・写真をすべて置換します。薬剤・マスター・設定は保持します。患者ID（番号）必須。実行前に件数を確認します。</small></div><button class="btn danger" id="replaceP">全件入れ替え</button></div></div>
+  <div class="panel"><h3>退院患者の保存</h3><p class="notice">Ver.1.0.17から退院患者の自動削除を停止しました。退院確定後も記録を保存し、患者画面の「退院患者記録」から検索・閲覧・確定取消できます。</p><div class="settings-row"><b>保存中の退院患者</b><span>${state.patients.filter(p=>p.dischargeDate).length}名</span></div></div>
+  <div class="panel"><h3>セキュリティ</h3><div class="settings-row"><div><b>自動ロック</b><small>無操作時に暗証画面へ戻ります。</small></div><select id="autolock"><option value="1">1分</option><option value="5">5分</option><option value="10">10分</option><option value="30">30分</option></select></div><div class="settings-row"><div><b>暗証を変更</b><small>現在の暗証を確認後、新しい暗証でDBを再暗号化します。</small></div><button class="btn secondary" id="changePin">変更</button></div></div>
+  <div class="panel"><h3>必要時のみ：手動バックアップ</h3><p class="notice">定期バックアップは必須にしません。患者情報を長期間保管する目的ではなく、端末故障時に残したい未完了タスクや記録がある場合、端末変更や全件入替の前など必要な場面で利用します。保存したファイルの管理・削除にも注意してください。</p><div class="settings-row"><div><b>暗号化バックアップ</b><small>患者・薬剤・経過記録・マスターを暗号化したまま書き出します。<br>保存確認済み：${esc(last)}</small></div><button class="btn secondary" id="backup">書出</button></div><div class="settings-row"><div><b>ファイルへの保存確認</b><small>「ファイル」アプリに .mswdb があることを実際に確認してから押してください。復元成功の証明ではありません。</small></div><button class="btn secondary" id="backupVerified">保存確認済み</button></div><div class="settings-row"><div><b>バックアップ復元</b><small>.mswdb ファイルを読み込みます。</small></div><button class="btn secondary" id="restore">復元</button></div></div>
+  <div class="panel"><h3>端末保存</h3><div class="settings-row"><div><b>保存領域</b><small>${esc(persisted)} / 使用量 ${humanBytes(usage)}${quota?' / 上限目安 '+humanBytes(quota):''}</small></div><button class="btn secondary" id="persist">保持を要求</button></div><div class="storagebar"><div style="width:${pct}%"></div></div><p class="notice">iPadではホーム画面から起動してください。写真・PDFの元画像は暗号化して端末内に保存します。端末故障・データ消失時はバックアップなしでは復元できません。必要性と保存先は勤務先の運用方針に従って判断してください。</p></div>
+  <div class="panel"><h3>配信・端末の診断（架空データ専用）</h3><p class="notice">ボタン1回でURL・オフライン用の保存準備・暗号化データの読取などを点検します。患者氏名・病名・記録・暗証は報告に含めません。これは実際のオフライン動作や実務利用の安全性を証明するものではありません。</p><button class="btn secondary" id="runEnvDiagnostics" type="button">環境を診断</button> <button class="btn secondary" id="copyEnvDiagnostics" type="button" hidden>結果をコピー</button><pre id="envDiagnosticsResult" class="notice" style="white-space:pre-wrap;overflow-wrap:anywhere" role="status" aria-live="polite"></pre></div>
+  <div class="panel"><h3>ソフト本体の復旧（患者データとは別）</h3><p class="notice">iPad miniが故障した場合、管理された配信先に保管済みの同じプログラムを新しい端末で開き、ホーム画面に追加できます。アプリ本体は再設置できますが、端末内の患者・タスク・記録は自動復旧しません。患者情報は電子カルテ等から再入力し、暗号化バックアップがある場合のみ別途復元します。配信先やプログラムが消えたときは、管理者が検証済み復旧キットから再配信する必要があります。</p><button class="btn secondary" id="recoverGuide" type="button">復旧手順を表示</button></div>
+  <div class="panel"><h3>初期化</h3><div class="settings-row"><div><b>この端末のMSW-DBを全消去</b><small>患者・薬剤・マスター・暗証をすべて削除します。復元にはバックアップが必要です。</small></div><button class="btn danger" id="resetAll">全消去</button></div></div>
+  <div class="panel"><div class="notice">MSW-DB 架空データ検証用 Ver.${APP_VERSION} / 在院 ${activePatients().length}人 / 薬剤 ${state.drugs.length}件</div></div>`;
+  $('#autolock').value=String(state.settings.autoLockMin??5);
+  $('#autolock').onchange=async e=>{state.settings.autoLockMin=+e.target.value;await save();resetAutoLock()};
+  $('#replaceP').onclick=()=>pickFile('.csv',replacePatientsFromFileMaker);
+  $('#impP').onclick=()=>pickFile('.csv',importPatients);$('#impD').onclick=()=>pickFile('.csv',importDrugs);
+  $('#backup').onclick=backup;$('#restore').onclick=()=>pickFile('.mswdb,application/json',restore);
+  $('#backupVerified').onclick=async()=>{
+    if(!confirm('iPadの「ファイル」アプリで .mswdb が存在することを直接確認しましたか？\nこれは復元試験の完了を意味しません。'))return;
+    if(await markBackupFileVerified())renderSettings();
+  };
+  $('#changePin').onclick=changePin;
+  $('#persist').onclick=async()=>{try{const ok=navigator.storage?.persist?await navigator.storage.persist():false;alert(ok?'保存領域の保持を要求しました。':'このブラウザでは保持要求を利用できないか、許可されませんでした。');renderSettings()}catch(e){alert('保持要求を実行できませんでした。')}};
+  $('#runEnvDiagnostics').onclick=async()=>{
+    const btn=$('#runEnvDiagnostics'),result=$('#envDiagnosticsResult'),copy=$('#copyEnvDiagnostics');
+    btn.disabled=true;result.textContent='診断中…';copy.hidden=true;
+    try{
+      const tests=await collectEnvironmentDiagnostics();
+      result.textContent=formatEnvironmentDiagnostics(tests);
+      copy.hidden=false;
+      copy.onclick=async()=>{try{await navigator.clipboard.writeText(result.textContent);alert('患者情報を含まない診断結果をコピーしました。')}catch(e){alert('コピーできませんでした。必要な場合は表示内容を選択してコピーしてください。')}};
+    }catch(e){result.textContent='診断を完了できませんでした。アプリを開き直して再実行してください。';}
+    finally{btn.disabled=false;}
+  };
+  $('#recoverGuide').onclick=()=>alert('【ソフト本体の再設置】\n1. 管理者が保管した同一バージョンの配信URLを確認\n2. 新しいiPad miniのSafariでそのURLを開く\n3. ホーム画面に追加\n4. 初期暗証を設定\n5. 電子カルテなどから必要な情報だけを再入力\n\n注意：患者・タスク・経過記録は自動で復元しません。紛失した端末のデータはこの操作では取り戻せません。公開テスト版には架空患者のみを入力してください。');
+  $('#resetAll').onclick=resetAll;
+}
+async function changePin(){
+  const action='暗証変更';
+  try{
+    await beginMaintenance(action);
+  const oldPin=prompt('現在の暗証を入力してください'); if(oldPin===null)return;
+  try{const oldKey=await derive(oldPin,unb64(meta.salt));await decryptObj(meta.check,oldKey)}catch(e){return alert('現在の暗証が違います。')}
+  const np=prompt('新しい暗証（12文字以上、数字だけでなく文字も使用）を入力してください');if(np===null)return;if(!strongNewPin(np))return alert('新しい暗証は12文字以上で、数字と文字を組み合わせてください。');
+  const np2=prompt('確認のため新しい暗証をもう一度入力してください');if(np!==np2)return alert('新しい暗証が一致しません。');
+  const salt=crypto.getRandomValues(new Uint8Array(16));const newKey=await derive(np,salt);const newMeta={version:1,salt:b64(salt),check:await encryptObj({ok:true},newKey),createdAt:meta.createdAt||nowISO(),changedAt:nowISO()};
+  // Re-encrypt every referenced photo together with the patient state and PIN metadata.
+  // Do not switch the in-memory key unless the entire IndexedDB transaction commits.
+  try{
+    await dataWriteTail; // Earlier saves must not commit after the new encryption key.
+    const records=[];
+    const ids=new Set(state.patients.flatMap(p=>(p.attachments||[]).map(m=>m.id)));
+    for(const id of ids){
+      const oldCipher=await idbGet(photoKey(id));
+      if(!oldCipher)throw new Error('写真データが見つかりません: '+id);
+      const plain=await decryptObj(oldCipher,key);
+      records.push([photoKey(id),await encryptObj(plain,newKey)]);
+    }
+    const nextState={...state,updatedAt:nowISO()};
+    records.push(['data',await encryptPatientIndex(nextState,newKey)],['meta',newMeta]);
+    await idbSetMany(records);
+    state=nextState;meta=newMeta;key=newKey;
+    alert('暗証を変更しました。写真も新しい暗証で保護されています。');
+  }catch(e){alert('暗証の変更を中止しました。以前の暗証とデータは維持されます：'+e.message)}
+  }catch(e){alert('暗証変更を開始できませんでした：'+e.message)}
+  finally{endMaintenance(action)}
+}
+async function resetAll(){
+  if(resetInProgress)return;
+  if(!confirm('この端末のMSW-DBデータをすべて削除します。\n写真を含みます。バックアップが無い場合は復元できません。'))return;
+  const word=prompt('実行する場合は「全消去」と入力してください');if(word!=='全消去')return;
+  resetInProgress=true;
+  const action='全消去';
+  try{
+    await beginMaintenance(action);
+    // Any already-queued encrypted index writes must finish before deletion.
+    // The guard above prevents new regular saves from being queued.
+    await dataWriteTail;
+    await idbClearAll();
+    clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();
+    document.querySelectorAll('#modal,#duplicateModal,#groupedBedPicker,#dischargeFlow,#morningPrint').forEach(el=>el.remove());
+    meta=null;key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);
+    alert('この端末のアプリ内データをすべて削除しました（写真を含む）。保存済みバックアップファイルは別途管理してください。');
+    renderLock();
+  }catch(e){alert('全消去に失敗しました。データが残っているか確認してください：'+(e.message||e))}
+  finally{endMaintenance(action);resetInProgress=false}
+}
+function pickFile(accept,cb){const f=$('#fileInput');f.accept=accept;f.value='';f.onchange=()=>{if(f.files[0])cb(f.files[0])};f.click()}
+// FileMaker exports can be UTF-8, Shift_JIS (CP932), or UTF-16LE.
+// Decode strictly and never import silently corrupted Japanese text.
+async function readFileMakerCsv(file){
+  if(!file||!Number.isFinite(file.size)||file.size===0||file.size>10*1024*1024)
+    throw new Error('CSVは10MB以下の空でないファイルを選んでください。');
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  let text,encoding;
+  if(bytes[0]===0xff&&bytes[1]===0xfe){
+    text=new TextDecoder('utf-16le',{fatal:true}).decode(bytes.subarray(2));encoding='UTF-16LE';
+  }else if(bytes[0]===0xfe&&bytes[1]===0xff){
+    text=new TextDecoder('utf-16be',{fatal:true}).decode(bytes.subarray(2));encoding='UTF-16BE';
+  }else{
+    try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);encoding='UTF-8'}
+    catch(e){text=new TextDecoder('shift_jis',{fatal:true}).decode(bytes);encoding='Shift_JIS'}
+  }
+  if(text.includes('\u0000')||text.includes('\ufffd'))throw new Error('CSVの文字コードが正しく判定できませんでした。');
+  return{text,encoding};
+}
+// Strict CSV parser: reject broken quotes or missing/extra columns instead of
+// truncating cells (which could overwrite patient information with blanks).
+function parseCSV(text){
+  text=String(text).replace(/^\uFEFF/,'');
+  const rows=[];let row=[],cell='',mode='start',line=1;
+  function endCell(){row.push(cell);cell='';mode='start'}
+  function endRow(){endCell();rows.push(row);row=[];if(rows.length>50001)throw new Error('CSVの行数が多すぎます。')}
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(mode==='quoted'){
+      if(c==='"'){
+        if(text[i+1]==='"'){cell+='"';i++}else mode='afterQuote';
+      }else{cell+=c;if(c==='\n')line++}
+    }else if(c===','){endCell()}
+    else if(c==='\n'||c==='\r'){
+      endRow();line++;
+      if(c==='\r'&&text[i+1]==='\n')i++;
+    }else if(mode==='start'&&c==='"'){mode='quoted'}
+    else if(c==='"'||mode==='afterQuote')throw new Error(`${line}行目：CSVの引用符（ダブルクォート）が不正です。`);
+    else{cell+=c;mode='unquoted'}
+  }
+  if(mode==='quoted')throw new Error(`${line}行目：引用符が閉じられていません。`);
+  if(row.length||cell.length||mode!=='start')endRow();
+  return rows;
+}
+function readPatientCsvRows(csvText){
+  const rows=parseCSV(csvText);
+  if(!rows.length)throw new Error('CSVに見出し行がありません。');
+  const headers=rows[0].map(h=>String(h).trim());
+  if(headers.some(h=>!h))throw new Error('CSVに空欄の列名があります。');
+  if(new Set(headers).size!==headers.length)throw new Error('CSVの列名が重複しています。');
+  const objects=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];if(r.every(v=>!String(v).trim()))continue;
+    if(r.length!==headers.length)throw new Error(`${i+1}行目：列数が見出しと異なります（${r.length}列／${headers.length}列）。`);
+    const record=Object.fromEntries(headers.map((h,j)=>[h,r[j]]));
+    // Legacy FileMaker output uses 家構; accept its readable alias as well.
+    if(headers.includes('家族構成')&&!headers.includes('家構'))record['家構']=record['家族構成'];
+    if(headers.includes('ID')&&!headers.includes('ＩＤ'))record['ＩＤ']=record['ID'];
+    objects.push(record);
+  }
+  return{headers,rows:objects};
+}
+function rowsToObjects(rows){const h=rows[0]||[];return rows.slice(1).filter(r=>r.some(x=>String(x).trim())).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]??''])))}
+function fileMakerBed(bed){
+  // Do not renumber ICU3-7~15 automatically: 7~9 are official beds,
+  // 10~15 are displayed as unassigned, retaining the original bed string.
+  return normalizeBed(bed);
+}
+// Patient safety: a different FileMaker record number must not create a second
+// active record with the same hospital ID. Staff must resolve legitimate
+// duplicate admissions explicitly; never guess which admission should win.
+function assertUniqueActiveHospitalIds(patients){
+  const seen=new Map();
+  for(const p of patients){
+    if(p.dischargeDate)continue;
+    const hospitalId=String(p.data?.['ＩＤ']??p.data?.['ID']??'').trim();
+    if(!hospitalId)continue;
+    const fileMakerId=String(p.data?.['番号']??'').trim();
+    if(seen.has(hospitalId)){
+      const prior=seen.get(hospitalId);
+      if(prior!==fileMakerId)
+        throw new Error('同じ病院IDに異なるFileMaker番号の在院患者があります。患者の取り違えを防ぐため取り込みを中止しました。');
+      throw new Error('同じ病院IDの在院患者が重複しています。取り込みを中止しました。');
+    }
+    seen.set(hospitalId,fileMakerId);
+  }
+}
+// Safe CSV add/update: FileMaker's 番号 is authoritative; keep MSW-only tasks,
+// notes, attachments and existing records unchanged unless the CSV has that field.
+function prepareFileMakerMerge(csvText,currentPatients=state.patients){
+  const {headers,rows:rowsIn}=readPatientCsvRows(csvText);
+  const idCol='番号';
+  if(!headers.includes('番号')||!headers.includes('氏名')||!headers.includes('ベッド番号'))throw new Error('必要な列（FileMakerの「番号」・氏名・ベッド番号）がありません。');
+  if(!rowsIn.length)throw new Error('患者データがありません。');
+  const patients=currentPatients.map(p=>({...p,data:{...p.data}}));
+  const seen=new Set();let added=0,updated=0,normalized=0,unplaced=0;
+  for(let i=0;i<rowsIn.length;i++){
+    const o=rowsIn[i],id=String(o[idCol]??'').trim(),name=String(o['氏名']??'').trim();
+    if(!id||!name)throw new Error(`${i+2}行目：患者IDまたは氏名が空欄です。`);
+    if(seen.has(id))throw new Error(`${i+2}行目：CSV内に患者IDが重複しています。`);
+    seen.add(id);
+    const matching=patients.filter(p=>String(p.data?.['番号']??'').trim()===id);
+    if(matching.length>1)throw new Error(`${i+2}行目：既存患者に同じIDが複数あります。取り込みを中止しました。`);
+    let p=matching[0];
+    if(p?.dischargeDate)throw new Error(`${i+2}行目：退院済みの同一IDが存在します。再入院か確認してください。`);
+    if(p){
+      const oldHospitalId=String(p.data?.['ＩＤ']||p.data?.['ID']||'').trim();
+      const csvHospitalId=String(o['ＩＤ']||o['ID']||'').trim();
+      const sameHospitalId=Boolean(oldHospitalId&&csvHospitalId&&oldHospitalId===csvHospitalId);
+      if(oldHospitalId&&csvHospitalId&&!sameHospitalId)
+        throw new Error(`${i+2}行目：FileMaker番号「${id}」の病院IDが既存患者と違います。手動照合してください。`);
+      const normalName=v=>String(v??'').replace(/[\s\u3000]/g,'');
+      if(normalName(p.data?.['氏名'])&&normalName(p.data?.['氏名'])!==normalName(name)&&!sameHospitalId)
+        throw new Error(`${i+2}行目：FileMaker番号「${id}」の氏名が既存患者と異なります。自動上書きせず手動照合してください。`);
+      const oldAdmission=String(p.data?.['入院日']??'').trim();
+      const csvAdmission=String(o['入院日']??'').trim();
+      const day=v=>String(v).replace(/\//g,'-').replace(/^(\d{4})-(\d{1,2})-(\d{1,2})$/,(_m,y,m,d)=>`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`);
+      if(oldAdmission&&csvAdmission&&day(oldAdmission)!==day(csvAdmission))
+        throw new Error(`${i+2}行目：FileMaker番号「${id}」の入院日が異なります。再入院か確認してください。`);
+    }
+    // A legacy patient without FileMaker 番号 must never be matched automatically
+    // using hospital ＩＤ or name: that would risk linking a different admission.
+    if(!p){
+      const norm=v=>String(v??'').replace(/\s/g,'');
+      const legacyCandidate=patients.some(x=>!x.dischargeDate&&!String(x.data?.['番号']??'').trim()&&(
+        (o['ＩＤ']&&String(x.data?.['ＩＤ']??'').trim()===String(o['ＩＤ']).trim())||
+        String(x.data?.['ＩＤ']??'').trim()===id||norm(x.data?.['氏名'])===norm(name)
+      ));
+      if(legacyCandidate)throw new Error(`${i+2}行目：FileMaker番号が未設定の既存患者と同一の可能性があります。手動照合が必要です。`);
+    }
+    if(!p){
+      const sameNameWithoutId=patients.some(x=>!x.dischargeDate&&String(x.data?.['氏名']??'').replace(/\s/g,'')===name.replace(/\s/g,'')&&![x.data?.['番号'],x.data?.['ＩＤ']].some(v=>String(v??'').trim()));
+      if(sameNameWithoutId)throw new Error(`${i+2}行目：患者ID未設定の同姓同名患者があります。重複を確認してください。`);
+      p=newPatient();delete p._new;patients.push(p);added++;
+    }else updated++;
+    for(const field of legacyFields){if(!isProhibitedContactField(field)&&Object.prototype.hasOwnProperty.call(o,field))p.data[field]=field==='ベッド番号'?fileMakerBed(o[field]):String(o[field]??'').trim()}
+    p.data['番号']=id; // 'ＩＤ' is the separate hospital ID, not the FileMaker record number.
+    if(String(o['ベッド番号']??'').trim()!==p.data['ベッド番号'])normalized++;
+    if(p.data['ベッド番号']&&!isMappedBed(p.data['ベッド番号']))unplaced++;
+    p.updatedAt=nowISO();
+  }
+  assertUniqueActiveHospitalIds(patients);
+  removeProhibitedContactFieldsFromState({patients});
+  return{patients,added,updated,normalized,unplaced,skippedContactColumns:headers.filter(isProhibitedContactField).length};
+}
+let patientCsvBusy=false;
+async function preflightPatientImport({reserved=false}={}){
+  if(!key||!state)throw new Error('アプリがロックされています。');
+  if(maintenanceAction||restoreBusy||backupBusy||resetInProgress)throw new Error('データ管理処理中はCSV移行できません。');
+  if((patientCsvBusy&&!reserved)||photoImportBusy||photoRotateBusy||photoDeleteBusy||photoReorderBusy||noteWriteBusy||taskWriteBusy||taskTogglePending.size>0)
+    throw new Error('他の保存・写真処理が進行中です。完了後に再試行してください。');
+  if(selectedPatient){
+    const ok=await flushPatientAutoSave();
+    if(!ok||patientSavedRev<patientChangeRev)
+      throw new Error('患者情報に未保存の変更があります。保存後に再試行してください。');
+  }
+  await dataWriteTail;
+}
+async function importPatients(file){
+  if(patientCsvBusy){alert('患者CSVの取り込み処理中です。完了後に再試行してください。');return}
+  patientCsvBusy=true;
+  const action='FileMaker CSV追加更新';
+  try{
+    await preflightPatientImport({reserved:true});
+    await beginMaintenance(action,{allowCsv:true});
+    const {text,encoding}=await readFileMakerCsv(file);
+    const result=prepareFileMakerMerge(text);
+    const {patients,added,updated,normalized,unplaced,skippedContactColumns}=result;
+    if(!confirm(`FileMakerのCSVを追加・更新します。\n新規：${added}人／既存更新：${updated}人\nベッド表記の正規化：${normalized}人／その他・未配置：${unplaced}人
+文字コード：${encoding}\n住所・電話・連絡先の除外列：${skippedContactColumns}列\n\n既存の退院支援タスク・経過記録・写真を保持します。\n更新されない患者は残ります。CSV処理は上書きのため、復元したい独自記録がある場合は事前に手動バックアップを検討してください。\n\n続行しますか？`))return;
+    const next={...state,patients,version:APP_VERSION,updatedAt:nowISO()};
+    ensureStateSchema(next);
+    // A failed IndexedDB commit must not mutate the visible in-memory state.
+    await orderedDataWrite(async()=>idbSet('data',await encryptPatientIndex(next,key)));
+    state=next;ensureStateSchema();render();
+    alert(`患者CSVの追加・更新が完了しました。\n新規 ${added}人／更新 ${updated}人`);
+  }catch(e){alert('患者CSVの追加・更新を中止しました。\n'+(e.message||'読み込みに失敗しました。'))}
+  finally{endMaintenance(action);patientCsvBusy=false}
+}
+// Ver.1.0.7: explicitly requested full replacement of TEST patient records only.
+// The original merge import remains available separately and unchanged.
+function prepareFileMakerReplacement(csvText){
+  const {headers,rows:raw}=readPatientCsvRows(csvText);
+  const idCol='番号';
+  if(!headers.includes('番号')||!headers.includes('氏名')||!headers.includes('ベッド番号'))throw new Error('必要な列（FileMakerの「番号」・氏名・ベッド番号）がありません。');
+  if(!raw.length)throw new Error('患者データがありません。');
+  const seen=new Set(), errors=[], patients=[], changed=[];
+  for(let i=0;i<raw.length;i++){
+    const o=raw[i],id=String(o[idCol]??'').trim(),name=String(o['氏名']??'').trim();
+    if(!id){errors.push(`${i+2}行目：患者IDが空欄`);continue;}
+    if(!name){errors.push(`${i+2}行目：氏名が空欄`);continue;}
+    if(seen.has(id)){errors.push(`${i+2}行目：患者IDの重複`);continue;}
+    seen.add(id);
+    const p=newPatient();delete p._new;
+    for(const k of legacyFields)if(!isProhibitedContactField(k)&&o[k]!==undefined)p.data[k]=String(o[k]??'').trim();
+    p.data['番号']=id; // 'ＩＤ' is kept from FileMaker if provided.
+    const oldBed=String(o['ベッド番号']??'').trim(),newBed=fileMakerBed(oldBed);
+    p.data['ベッド番号']=newBed;
+    if(oldBed!==newBed)changed.push({oldBed,newBed});
+    patients.push(p);
+  }
+  if(errors.length)throw new Error(`CSVを取り込めません。\n${errors.slice(0,8).join('\n')}${errors.length>8?'\nほかにもエラーがあります':''}`);
+  assertUniqueActiveHospitalIds(patients);
+  const invalid=patients.filter(p=>p.data['ベッド番号']&&!isMappedBed(p.data['ベッド番号']));
+  return {patients,changed,invalid,skippedContactColumns:headers.filter(isProhibitedContactField).length};
+}
+async function replacePatientsFromFileMaker(file){
+  if(patientCsvBusy){alert('患者CSVの取り込み処理中です。完了後に再試行してください。');return}
+  patientCsvBusy=true;
+  const action='FileMaker CSV全件入替';
+  try{
+    await preflightPatientImport({reserved:true});
+    await beginMaintenance(action,{allowCsv:true});
+    const {text,encoding}=await readFileMakerCsv(file);
+    const {patients,changed,invalid,skippedContactColumns}=prepareFileMakerReplacement(text);
+    const existingPhotoKeys=(await idbKeys()).filter(k=>typeof k==='string'&&k.startsWith('photo:'));
+    const preview=`FileMaker患者データ：${patients.length}人\n現在のアプリ患者データ：${state.patients.length}人\n削除される写真：${existingPhotoKeys.length}枚\nベッド表記の正規化：${changed.length}人
+文字コード：${encoding}\n住所・電話・連絡先の除外列：${skippedContactColumns}列\nその他・未配置：${invalid.length}人\n\n現在の患者データ（メモ・経過記録・タスク・写真を含む）をすべて削除し、CSVの患者データに入れ替えます。\n薬剤・マスター・設定・暗証は保持されます。\n事前にバックアップを保存してください。\n\n続行しますか？`;
+    if(!confirm(preview))return;
+    const word=prompt('最終確認：患者データを全件入れ替える場合は「入れ替え」と入力してください。');
+    if(word!=='入れ替え')return;
+    await dataWriteTail; // Prevent an earlier in-flight save from resurrecting deleted patient records.
+    // Remove all old photo records and replace patient state in one transaction.
+    // Do not mutate in-memory state until IndexedDB confirms the transaction committed.
+    const next={...state,patients,version:APP_VERSION,updatedAt:nowISO()};
+    ensureStateSchema(next);
+    await idbApplyChanges([['data',await encryptPatientIndex(next)]],existingPhotoKeys);
+    state=next;ensureStateSchema();
+    alert(`全件入れ替えが完了しました。\n患者 ${patients.length}人\nベッド表記の正規化 ${changed.length}人\nその他・未配置 ${invalid.length}人`);
+    render();
+  }catch(e){alert(`患者CSVの入れ替えを中止しました.\n${e.message||'ファイルの読み込みに失敗しました。'}`)}
+  finally{endMaintenance(action);patientCsvBusy=false}
+}
+function prepareDrugCsv(csvText){
+  const {headers,rows}=readPatientCsvRows(csvText);
+  const columns=['薬名','医薬品分類','薬価','薬効'];
+  for(const c of columns)if(!headers.includes(c))throw new Error('薬剤CSVに必要な列がありません：'+c);
+  if(!rows.length)throw new Error('薬剤CSVに薬剤データがありません。');
+  if(rows.length>10000)throw new Error('薬剤CSVの件数が上限を超えています（10000件まで）。');
+  return rows.map((row,i)=>{
+    const item=Object.fromEntries(columns.map(c=>[c,String(row[c]??'').trim()]));
+    if(!item['薬名'])throw new Error(`${i+2}行目：薬名が空欄です。`);
+    return item;
+  });
+}
+let drugCsvBusy=false;
+async function importDrugs(file){
+  if(drugCsvBusy){alert('薬剤CSVの取込処理中です。完了後に再試行してください。');return;}
+  drugCsvBusy=true;
+  const action='薬剤CSVの取込';
+  try{
+    await beginMaintenance(action,{allowDrugCsv:true});
+    const {text,encoding}=await readFileMakerCsv(file);
+    const drugs=prepareDrugCsv(text);
+    if(!confirm(`薬剤マスターを入れ替えます。\n現在：${state.drugs.length}件／取込：${drugs.length}件\n文字コード：${encoding}\n\n患者情報・タスク・経過記録は変更しません。\n続行しますか？`))return;
+    const activeKey=key;
+    const next={...state,drugs,version:APP_VERSION,updatedAt:nowISO()};
+    // The visible state only changes after IndexedDB has committed ciphertext.
+    await orderedDataWrite(async()=>idbSet('data',await encryptPatientIndex(next,activeKey)));
+    if(key!==activeKey)throw new Error('認証状態が変更されました。画面を再確認してください。');
+    state=next;
+    ensureStateSchema();
+    render();
+    alert(`薬剤 ${drugs.length}件の取込が完了しました。`);
+  }catch(e){alert('薬剤CSVの取込を中止しました。\n'+(e?.message||'保存に失敗しました。'));}
+  finally{endMaintenance(action);drugCsvBusy=false;}
+}
+
+let backupBusy=false;
+async function backup(){
+  if(backupBusy)return;
+  backupBusy=true;
+  const action='暗号化バックアップ';
+  try{
+    await beginMaintenance(action);
+    await dataWriteTail; // Export the latest successfully persisted patient index, not a stale snapshot.
+    // Preflight every referenced photo before claiming the backup is complete.
+    // Detect missing, duplicated, corrupted, or wrongly encrypted records.
+    const photos={},seen=new Set();
+    for(const p of state.patients){
+      if(!Array.isArray(p.attachments||[]))throw new Error('患者の写真一覧が不正です');
+      let genograms=0;const admissionOrders=new Set();
+      for(const m of p.attachments||[]){
+        if(!m||typeof m.id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(m.id)||seen.has(m.id))throw new Error('写真IDが重複または不正です');
+        if(m.type!=='genogram'&&m.type!=='admission')throw new Error('写真の種類が不正です');
+        if(!Number.isSafeInteger(m.order)||m.order<0||m.order>100000)throw new Error('写真のページ順が不正です');
+        if(m.type==='genogram'&&++genograms>1)throw new Error('ジェノグラムが複数登録されています');
+        if(m.type==='admission'){if(admissionOrders.has(m.order))throw new Error('入院時情報のページ順が重複しています');admissionOrders.add(m.order)}
+        seen.add(m.id);
+        // Match the restore limit: never offer a backup that this app cannot import.
+        if(seen.size>2000)throw new Error('写真が2000枚を超えるため、復元可能なバックアップを作成できません');
+        const data=await idbGet(photoKey(m.id));
+        if(!data)throw new Error('写真データが不足しています: '+m.id);
+        try{validateStoredPhoto(await decryptObj(data,key))}catch(e){throw new Error('写真を検証できません: '+m.id+' ('+e.message+')')}
+        photos[m.id]=data;
+      }
+    }
+    // Enforce the restore-side 120MB ceiling at export time as well. Check the
+    // encrypted payload before JSON.stringify creates another large allocation.
+    const backupLimit=120*1024*1024;
+    let estimatedBytes=1024*1024;
+    for(const [id,record] of Object.entries(photos)){
+      estimatedBytes+=id.length+record.iv.length+record.ct.length+256;
+      if(estimatedBytes>backupLimit)throw new Error('写真付きバックアップが120MBを超えるため作成できません。写真を整理してください');
+    }
+    const storedMeta=await idbGet('meta'),storedData=await idbGet('data');
+    if(storedData){
+      const savedState=await decryptObj(storedData,key);
+      if(JSON.stringify(savedState)!==JSON.stringify(state))
+        throw new Error('画面上の編集と保存済みデータに差があります。数秒待ってもう一度書き出してください。');
+    }
+    const validCipher=x=>x&&typeof x.iv==='string'&&x.iv.length>0&&typeof x.ct==='string'&&x.ct.length>0;
+    if(!storedMeta||typeof storedMeta.salt!=='string'||!storedMeta.salt||!validCipher(storedMeta.check)||!validCipher(storedData)){
+      throw new Error('保存済みの暗号化情報が不完全です。バックアップを中止しました');
+    }
+    const pack={format:'MSWDB-BACKUP',version:2,appVersion:APP_VERSION,exportedAt:nowISO(),meta:storedMeta,data:storedData,photos};
+    const serialized=JSON.stringify(pack);
+    if(new Blob([serialized]).size>backupLimit)throw new Error('バックアップが120MBを超えるため作成できません');
+    download(new Blob([serialized],{type:'application/json'}),`MSWDB_backup_${new Date().toISOString().slice(0,10)}.mswdb`);
+    // Initiating a download is not proof that Safari saved the .mswdb file.
+    // lastBackupAt is set only through the explicit 'saved file verified' action.
+    alert('暗号化バックアップの書き出しを開始しました。iPadの「ファイル」アプリで .mswdb が保存されたことを確認し、設定画面の「保存確認済み」を押してください。');
+  }catch(e){alert('バックアップを作成できません：'+e.message)}
+  finally{endMaintenance(action);backupBusy=false}
+}
+let restoreBusy=false;
+async function restore(file){
+  if(restoreBusy)return;
+  restoreBusy=true;
+  const action='バックアップ復元';
+  try{
+    await beginMaintenance(action);
+    // Reject huge backups before file.text()/JSON.parse allocate multiple large copies in Safari.
+    // This is a safety limit for iPad; larger archives need a separate import strategy.
+    if(!file||!Number.isFinite(file.size)||file.size>120*1024*1024)throw new Error('バックアップは120MB以下にしてください（メモリ保護のため）');
+    const pack=JSON.parse(await file.text());
+    if(pack.format!=='MSWDB-BACKUP'||!pack.meta||!pack.data)throw new Error('形式が違います');
+    const validCipher=x=>x&&typeof x.iv==='string'&&typeof x.ct==='string'&&x.iv.length>0&&x.ct.length>0;
+    if(!validCipher(pack.data)||!validCipher(pack.meta.check)||typeof pack.meta.salt!=='string'||!pack.meta.salt)throw new Error('暗号化データが不正です');
+    if(pack.photos!==undefined&&(typeof pack.photos!=='object'||pack.photos===null||Array.isArray(pack.photos)))throw new Error('写真情報が不正です');
+    if(Object.keys(pack.photos||{}).length>2000)throw new Error('写真が2000枚を超えるバックアップは読み込めません');
+    for(const [id,data] of Object.entries(pack.photos||{})){
+      if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||!validCipher(data))throw new Error('写真情報が不正です');
+    }
+    // Verify the backup PIN and every patient/photo association before overwriting anything.
+    // This also rejects damaged or incomplete backups while preserving current local data.
+    const backupPin=prompt('バックアップ作成時の暗証を入力してください（復元前の整合性確認）');
+    if(backupPin===null)return;
+    const backupKey=await derive(backupPin,unb64(pack.meta.salt));
+    try{const checked=await decryptObj(pack.meta.check,backupKey);if(checked!==true&&checked?.ok!==true)throw new Error('確認情報が不正です')}catch(e){throw new Error('バックアップの暗証が違うか、確認情報が破損しています')}
+    let backupState;
+    try{backupState=await decryptObj(pack.data,backupKey)}catch(e){throw new Error('患者情報を復号できません。バックアップが破損している可能性があります')}
+    if(!backupState||!Array.isArray(backupState.patients))throw new Error('患者情報の形式が不正です');
+    const privacyReduction=removeProhibitedContactFieldsFromState(backupState);
+    // Original backup remains unchanged; a declined restore does not touch the DB.
+    // Consent to remove structured fields is requested in the final restore dialog.
+    const normalizedBackupData=privacyReduction.removed
+      ?await encryptPatientIndex(backupState,backupKey):pack.data;
+    const referenced=new Set(),incomingPhotos=pack.photos||{};
+    for(const patient of backupState.patients){
+      if(!Array.isArray(patient.attachments||[]))throw new Error('患者の写真一覧が不正です');
+      let genograms=0;const admissionOrders=new Set();
+      for(const attachment of patient.attachments||[]){
+        const id=attachment?.id;
+        if(typeof id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||referenced.has(id))throw new Error('写真IDが不正、または複数患者で重複しています');
+        if(attachment.type!=='genogram'&&attachment.type!=='admission')throw new Error('写真の種類が不正です');
+        if(!Number.isSafeInteger(attachment.order)||attachment.order<0||attachment.order>100000)throw new Error('写真のページ順が不正です');
+        if(attachment.type==='genogram'&&++genograms>1)throw new Error('ジェノグラムが複数登録されています');
+        if(attachment.type==='admission'){if(admissionOrders.has(attachment.order))throw new Error('入院時情報のページ順が重複しています');admissionOrders.add(attachment.order)}
+        if(!Object.prototype.hasOwnProperty.call(incomingPhotos,id))throw new Error('バックアップに必要な写真がありません: '+id);
+        referenced.add(id);
+      }
+    }
+    for(const id of Object.keys(incomingPhotos)){
+      if(!referenced.has(id))throw new Error('患者と紐づかない写真があります: '+id);
+      try{validateStoredPhoto(await decryptObj(incomingPhotos[id],backupKey))}catch(e){throw new Error('写真データが破損または不正です: '+id+' ('+e.message+')')}
+    }
+    if(!confirm(`患者${backupState.patients.length}件・写真${referenced.size}枚を確認しました。\n${privacyReduction.removed?`旧バックアップの住所・連絡先・写真名などの不要な項目 ${privacyReduction.removed}件（値あり ${privacyReduction.nonempty}件）を除外して復元します。\n`:''}写真や自由記述内の住所・電話番号は自動除去されません。\n現在のデータを置き換えますか？`))return;
+    await dataWriteTail; // Old queued writes must not overwrite the restored encrypted index.
+    // Commit photos and encrypted patient state atomically; a failed restore must not leave half-written records.
+    // Remove old, unrelated photo records as part of the same restore transaction.
+    // A legacy backup has no photos, so its restore must also clear old photos.
+    const existingPhotoKeys=(await idbKeys()).filter(k=>typeof k==='string'&&k.startsWith('photo:'));
+    const obsoletePhotoKeys=existingPhotoKeys.filter(k=>!Object.prototype.hasOwnProperty.call(incomingPhotos,k.slice(6)));
+    await idbApplyChanges([...Object.entries(incomingPhotos).map(([id,data])=>[photoKey(id),data]),['meta',pack.meta],['data',normalizedBackupData]],obsoletePhotoKeys);
+    // A successful restore invalidates the previous patient's open sheet and photo viewer.
+    dismissPhotoViewer();
+    selectedPatient=null;
+    document.getElementById('modal')?.remove();
+    meta=pack.meta;key=null;state=null;alert('復元しました。バックアップ作成時の暗証で再度ロック解除してください。');renderLock();
+  }catch(e){alert('バックアップファイルを読み込めませんでした：'+e.message)}
+  finally{endMaintenance(action);restoreBusy=false}
+}
+function safeFilePart(value){return String(value||'患者').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').replace(/[. ]+$/g,'').slice(0,60)||'患者'}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),60000)}
+init().catch(e=>{document.getElementById('app').innerHTML=`<div class="lockwrap"><div class="lockcard"><h1>起動できません</h1><p>${esc(e.message)}</p><p class="notice">HTTPSで開いているか確認してください。iPadではSafariからホーム画面へ追加して使用します。</p></div></div>`});
+
+
+// Shared bed selector: compact 3 columns, room headings, without leaving the current screen.
+function showGroupedBedPicker(current,onChoose,options={}){
+  $('#groupedBedPicker')?.remove();
+  const groups=[...BED_LAYOUT,...ICU_LAYOUT];
+  const panel=`<div class="bed-picker-shade" id="groupedBedPicker" role="dialog" aria-modal="true" aria-label="ベッド配置先を選択"><div class="bed-picker-panel"><div class="bed-picker-head"><strong>ベッド配置先を選択</strong><button type="button" class="btn secondary" id="bedPickerClose">閉じる</button></div><div class="bed-picker-scroll"><div class="bed-picker-top"><button type="button" class="bed-picker-choice ${!current?'chosen':''}" data-bed="">その他・未配置</button>${options.onDischarge?`<button type="button" class="bed-picker-choice discharge-choice" id="pickerDischarge">退院</button>`:''}</div>${groups.map(r=>`<section class="bed-picker-room"><h3>${esc(r.room)}${r.room.startsWith('ICU')?'':'号室'}</h3><div class="bed-picker-grid">${r.beds.map(n=>{const b=bedKey(r.room,n);return `<button type="button" class="bed-picker-choice ${normalizeBed(current)===normalizeBed(b)?'chosen':''}" data-bed="${esc(b)}">${esc(b)}</button>`}).join('')}</div></section>`).join('')}</div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',panel);
+  const root=$('#groupedBedPicker');
+  const close=()=>root.remove();
+  root.addEventListener('click',e=>{if(e.target===root)close()});
+  $('#bedPickerClose').onclick=close;if(options.onDischarge)$('#pickerDischarge').onclick=()=>{close();options.onDischarge()};
+  root.querySelectorAll('[data-bed]').forEach(btn=>btn.onclick=()=>{onChoose(btn.dataset.bed);close()});
+}
+
+// Real patient discharge: preserve records and keep pending summaries visible.
+function bindPatientBedPicker(){
+ const btn=$('#patientBedPick'),input=$('#patientBedValue');if(!btn||!input)return;
+ btn.onclick=()=>showGroupedBedPicker(input.value,value=>{input.value=value;btn.textContent=(value||'その他・未配置')+' ▾';input.dispatchEvent(new Event('change',{bubbles:true}))},
+   {onDischarge:()=>startDischargeFlow()});
+}
+function startDischargeFlow(){
+ const p=selectedPatient;if(!p)return;
+ if(p._new){alert('先に患者情報を保存してください。');return;}
+ const previousBed=$('#patientBedValue')?.value??p.data['ベッド番号']??'';
+ const today=new Date().toLocaleDateString('sv-SE');
+ document.body.insertAdjacentHTML('beforeend',`<div class="bed-picker-shade" id="dischargeFlow" role="dialog" aria-modal="true" aria-label="退院日を選択"><div class="bed-picker-panel discharge-panel"><div class="bed-picker-head"><strong>退院日を選択</strong><button class="btn secondary" id="dischargeCancel">戻る</button></div><div class="discharge-content"><p><b>${esc(p.data['氏名']||'氏名未入力')}</b></p><label>退院日<input type="date" id="dischargeChosenDate" value="${today}"></label><p class="notice">退院確定後はベッドを空け、日誌の退院患者一覧に残します。サマリー入力完了までは削除されません。</p><button class="btn" id="dischargeReview">確認へ</button><div id="dischargeReviewBody"></div></div></div></div>`);
+ const root=$('#dischargeFlow');$('#dischargeCancel').onclick=()=>root.remove();
+ $('#dischargeReview').onclick=()=>{
+  const date=$('#dischargeChosenDate').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('退院日を入力してください');return;}
+  const admission=p.data['入院日'];if(admission&&/^\d{4}-\d{2}-\d{2}$/.test(admission)&&date<admission){alert('退院日は入院日以降を指定してください');return;}
+  $('#dischargeReviewBody').innerHTML=`<div class="panel"><p><b>退院処理を確定しますか？</b></p><p>${esc(p.data['氏名']||'氏名未入力')} ／ 退院日：${esc(date)} ／ 退院前：${esc(previousBed||'その他・未配置')}</p><button class="btn" id="dischargeCommit">確定して退院一覧へ</button></div>`;
+  $('#dischargeCommit').onclick=async()=>{
+   const b=$('#dischargeCommit');b.disabled=true;
+   if(!await flushPatientAutoSave()){b.disabled=false;alert('患者情報の自動保存に失敗しました。退院処理を中止しました。');return;}
+   const old={date:p.dischargeDate,pending:p.summaryPending,bed:p.data['ベッド番号'],former:p.formerBed};
+   try{p.formerBed=previousBed;p.dischargeDate=date;p.summaryPending=true;p.data['ベッド番号']='';p.updatedAt=nowISO();await save();root.remove();closePatient();screen='journal';render()}
+   catch(e){p.dischargeDate=old.date;p.summaryPending=old.pending;p.data['ベッド番号']=old.bed;p.formerBed=old.former;alert('保存できませんでした：'+e.message);b.disabled=false}
+  };
+ };
+}
+function renderPendingDischarges(){
+ const pending=state.patients.filter(p=>p.summaryPending&&p.dischargeDate);
+ return `<div class="panel"><h2>② 退院患者一覧　${pending.length}名</h2><p class="notice">電子カルテに退院サマリーを入力した後、「退院」を押してください。完了まで一覧に残ります。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${pending.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.dischargeDate||'')}</td><td>${esc(p.formerBed||'未配置')}</td><td><div class="journal-actions"><button type="button" class="btn secondary pending-cancel" data-id="${esc(p.id)}">退院取消</button><button type="button" class="btn secondary pending-complete" data-id="${esc(p.id)}">退院</button></div></td></tr>`).join('')||'<tr><td colspan="4">サマリー未完了の退院患者はいません</td></tr>'}</tbody></table></div></div>`;
+}
+// Archived discharge records remain encrypted in the same patient database.
+function renderArchive(){
+ const all=state.patients.filter(p=>!!p.dischargeDate).sort((a,b)=>String(b.dischargeDate||'').localeCompare(String(a.dischargeDate||'')));
+ $('#main').innerHTML=`<div class="hero"><div><h1>退院患者記録</h1><p>退院確定後も記録を保持します。サマリー未完了の患者も検索できます。</p></div><div class="spacer"></div><button type="button" class="btn secondary" id="archiveBack">← 入院患者へ</button></div><div class="toolbar"><input id="archiveQuery" type="search" placeholder="氏名・患者ID・退院日で検索"></div><div class="panel"><p class="notice">該当する患者を開いて情報を確認できます。「退院確定取消」はサマリー未完了の退院患者一覧へ戻す操作です。</p><div id="archiveRows"></div></div>`;
+ $('#archiveBack').onclick=()=>{screen='patients';render()};
+ const draw=()=>{const q=($('#archiveQuery').value||'').trim().toLowerCase();const rows=all.filter(p=>!q||[p.data?.['氏名'],p.data?.['ＩＤ'],p.data?.['番号'],p.dischargeDate].some(v=>String(v||'').toLowerCase().includes(q)));
+ $('#archiveRows').innerHTML=rows.length?`<div class="archive-list">${rows.map(p=>`<div class="archive-item"><div><b>${esc(p.data?.['氏名']||'氏名未入力')}</b><div class="notice">退院日：${esc(p.dischargeDate)} ／ ${p.summaryPending?'サマリー未完了':'退院確定済み'} ／ ID：${esc(p.data?.['ＩＤ']||'未入力')}</div></div><div class="archive-actions"><button type="button" class="btn secondary archive-view" data-id="${esc(p.id)}">患者情報</button>${!p.summaryPending?`<button type="button" class="btn secondary archive-undo" data-id="${esc(p.id)}">退院確定取消</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">該当する退院患者はいません</div>';
+ $$('.archive-view').forEach(b=>b.onclick=()=>openPatient(state.patients.find(p=>p.id===b.dataset.id)));
+ $$('.archive-undo').forEach(b=>b.onclick=async()=>{const p=state.patients.find(x=>x.id===b.dataset.id);if(!p||!p.dischargeDate||p.summaryPending)return;
+ if(!confirm(`${p.data?.['氏名']||'この患者'}さんの退院確定を取り消し、日誌の退院患者一覧（サマリー未完了）へ戻しますか？\n入院中には戻しません。`))return;
+ b.disabled=true;const old={pending:p.summaryPending,completed:p.summaryCompletedAt};p.summaryPending=true;p.summaryCompletedAt=null;p.updatedAt=nowISO();
+ try{await save();renderArchive()}catch(e){p.summaryPending=old.pending;p.summaryCompletedAt=old.completed;b.disabled=false;alert('保存できませんでした：'+e.message)}
+ });};$('#archiveQuery').oninput=draw;draw();
+}
+function restoreDischargePatient(p){
+ p.dischargeDate=null;p.summaryPending=false;p.summaryCompletedAt=null;p.data['ベッド番号']='';p.updatedAt=nowISO();
+ p.journalAdmissionPending=true;
+}
+function bindPendingDischarges(){
+ $$('.pending-cancel').forEach(btn=>btn.onclick=async()=>{
+  const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||!p.summaryPending)return;
+  if(!confirm(`${p.data['氏名']||'この患者'}さんの退院を取り消し、入院中（その他・未配置）へ戻しますか？\n元のベッドには自動で戻しません。`))return;
+  const snapshot={date:p.dischargeDate,pending:p.summaryPending,completed:p.summaryCompletedAt,bed:p.data['ベッド番号'],queue:p.journalAdmissionPending};
+  btn.disabled=true;restoreDischargePatient(p);
+  try{await save();renderJournalPreview()}catch(e){p.dischargeDate=snapshot.date;p.summaryPending=snapshot.pending;p.summaryCompletedAt=snapshot.completed;p.data['ベッド番号']=snapshot.bed;p.journalAdmissionPending=snapshot.queue;btn.disabled=false;alert('保存できませんでした：'+e.message)}
+ });
+ $$('.pending-complete').forEach(btn=>btn.onclick=async()=>{
+  const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||!p.summaryPending)return;
+  if(!confirm(`${p.data['氏名']||'この患者'}さんの退院サマリーは電子カルテへの入力が完了しましたか？\n完了の場合、未処理一覧から外します。`))return;
+  btn.disabled=true;p.summaryPending=false;p.summaryCompletedAt=nowISO();
+  try{await save();renderJournalPreview()}catch(e){p.summaryPending=true;p.summaryCompletedAt=null;btn.disabled=false;alert('保存できませんでした：'+e.message)}
+ });
+}
+// Admission queue uses real encrypted patient records; no automatic OCR registration.
+let journalEntryOpen=false,journalScanImage=null,journalScanText='',journalScanStatus='';
+function renderJournalPreview(){
+  const admissions=state.patients.filter(p=>!p.dischargeDate&&p.journalAdmissionPending).sort((a,b)=>String(a.data['入院日']||'').localeCompare(String(b.data['入院日']||'')));
+  const entry=`<div class="journal-entry"><h3>新しい患者を手入力</h3><div class="journal-entry-fields"><label>氏名<input id="journalNewName" type="text" autocomplete="off" placeholder="氏名を入力"></label><label>入院日<input id="journalNewDate" type="date" value="${new Date().toLocaleDateString('sv-SE')}"></label><label>ベッド配置先<button class="btn secondary journal-pick" id="journalNewBedPick" type="button">その他・未配置 ▾</button><input type="hidden" id="journalNewBed" value=""></label></div><div class="journal-entry-actions"><button type="button" class="btn secondary" id="journalCancel">キャンセル</button><button type="button" class="btn" id="journalAdd">一覧に追加</button></div></div>`;
+  $('#main').innerHTML=`<div class="hero"><div><h1>日誌・患者情報取り込み</h1><p>架空データ検証用 Ver.${APP_VERSION} ／ 入院患者の手入力と配置</p></div></div>
+  <div class="panel journal-warning"><b>手入力患者は実際の患者管理データに保存されます</b><p>写真の文字認識は未実装です。必ず架空のテスト患者を使ってください。必要なら手動バックアップを利用できます。既存患者と同姓同名の場合は追加前に確認します。</p><label class="btn secondary journal-photo">📷 日誌の写真を選択・撮影<input type="file" id="journalPhoto" accept="image/*" style="display:none"></label><div id="journalPhotoInfo" class="notice"></div><div id="journalScanPreview"></div></div>
+  <div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="notice">未配置の患者はここに残ります。ベッドへの配置が完了すると一覧から外れます。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead><tbody>${admissions.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.data['入院日']||'')}</td><td>${esc(p.data['ベッド番号']||'未配置')}</td><td><button type="button" class="btn secondary journal-bed-btn" data-id="${esc(p.id)}">部屋選択</button></td></tr>`).join('')||'<tr><td colspan="4">ベッド配置待ちの患者はいません</td></tr>'}</tbody></table></div><button type="button" class="btn secondary journal-add-toggle" id="journalEntryToggle">${journalEntryOpen?'− 手入力を閉じる':'＋ 患者を手入力'}</button>${journalEntryOpen?entry:''}</div>
+  ${renderPendingDischarges()}`;
+  bindPendingDischarges();
+  $$('.journal-bed-btn').forEach(btn=>btn.onclick=()=>{
+   const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||p.dischargeDate)return;
+   showGroupedBedPicker(p.data['ベッド番号']||'',async value=>{
+    const oldBed=p.data['ベッド番号'],oldPending=p.journalAdmissionPending;
+    if(value){const occupied=activePatients().filter(x=>x.id!==p.id&&normalizeBed(x.data['ベッド番号'])===normalizeBed(value));if(occupied.length&&!confirm(`このベッドにはすでに${occupied.length}名登録されています。重複配置しますか？`))return;}
+    if(!confirm(`${p.data['氏名']||'患者'}さんを ${value||'その他・未配置'} に配置しますか？`))return;
+    p.data['ベッド番号']=value;p.journalAdmissionPending=!value;p.updatedAt=nowISO();
+    try{await save();renderJournalPreview()}catch(e){p.data['ベッド番号']=oldBed;p.journalAdmissionPending=oldPending;alert('保存できませんでした：'+e.message)}
+   });
+  });
+  $('#journalEntryToggle').onclick=()=>{journalEntryOpen=!journalEntryOpen;renderJournalPreview()};
+  if(journalEntryOpen){
+    $('#journalNewBedPick').onclick=()=>showGroupedBedPicker($('#journalNewBed').value,value=>{$('#journalNewBed').value=value;$('#journalNewBedPick').textContent=(value||'その他・未配置')+' ▾'});
+    $('#journalCancel').onclick=()=>{journalEntryOpen=false;renderJournalPreview()};
+    $('#journalAdd').onclick=async()=>{
+     const name=$('#journalNewName').value.trim(),date=$('#journalNewDate').value,bed=$('#journalNewBed').value;
+     if(!name||!date){alert('氏名と入院日を入力してください。');return}
+     const matches=state.patients.filter(p=>!p.dischargeDate&&String(p.data['氏名']||'').replace(/\s/g,'')===name.replace(/\s/g,''));
+     if(matches.length&&!confirm(`同じ氏名の入院患者が${matches.length}名います。既存患者を確認しましたか？\nそれでも新しく登録しますか？`))return;
+     if(bed){const occupied=activePatients().filter(p=>normalizeBed(p.data['ベッド番号'])===normalizeBed(bed));if(occupied.length&&!confirm(`選択したベッドにはすでに${occupied.length}名登録されています。重複配置しますか？`))return;}
+     const btn=$('#journalAdd');btn.disabled=true;
+     const p=newPatient(bed);p.data['氏名']=name;p.data['入院日']=date;p.journalAdmissionPending=!bed;delete p._new;
+     state.patients.push(p);
+     try{await save();journalEntryOpen=false;renderJournalPreview()}catch(e){state.patients=state.patients.filter(x=>x!==p);btn.disabled=false;alert('登録できませんでした：'+e.message)}
+    };
+  }
+  const preview=$('#journalScanPreview');
+  const paintScan=()=>{preview.innerHTML=journalScanImage?`<div class="journal-scan-preview"><img src="${journalScanImage}" alt="選択した日誌写真"><p class="notice">画像はこの画面内で表示するだけです。患者データには保存しません。</p><button type="button" class="btn secondary" id="journalTryOCR">この端末で文字認識を試す</button><p class="notice" id="journalOCRStatus">${esc(journalScanStatus)}</p><label>読み取り内容（確認・修正用）<textarea id="journalOCRText" rows="5" placeholder="認識できない場合は架空の内容を手入力して試せます">${esc(journalScanText)}</textarea></label><p class="notice">安全のため、ここに入力した内容は患者一覧に自動反映しません。</p></div>`:'';
+    if(!journalScanImage)return;
+    $('#journalOCRText').oninput=e=>{journalScanText=e.target.value};
+    $('#journalTryOCR').onclick=async()=>{const status=$('#journalOCRStatus');if(!('TextDetector' in window)){status.textContent='このブラウザには文字認識機能がありません。iPad mini向けのオフライン日本語OCRエンジンは未搭載です。';return}status.textContent='端末の文字認識機能を確認中…';try{const detector=new window.TextDetector();const img=preview.querySelector('img');const lines=await detector.detect(img);journalScanText=lines.map(x=>x.rawValue||'').join('\n');$('#journalOCRText').value=journalScanText;status.textContent=journalScanText?'認識候補を表示しました。内容を必ず確認してください。':'文字を検出できませんでした。'}catch(err){status.textContent='この端末では文字認識を実行できませんでした：'+String(err.message||err)}};
+  };
+  paintScan();
+  $('#journalPhoto').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){$('#journalPhotoInfo').textContent='画像ファイルを選択してください。';return}if(f.size>15*1024*1024){$('#journalPhotoInfo').textContent='15MB以下の画像を選んでください。';return}const reader=new FileReader();reader.onload=()=>{journalScanImage=reader.result;journalScanText='';journalScanStatus='写真を読み込みました。文字認識の可否を確認できます。';$('#journalPhotoInfo').textContent='選択した写真：'+f.name;paintScan()};reader.readAsDataURL(f)};
+}
+</script>
+</body></html>
