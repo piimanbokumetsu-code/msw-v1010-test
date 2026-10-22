@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 if(typeof window.renderBasicDashboard!=='function'||typeof window.basicDocumentHtml!=='function')return;
-const CSS=String.raw\`
+const CSS=String.raw`
 #tabbody .basic-grid-d{display:grid;gap:8px;min-width:0}
 #tabbody .basic-row-d{display:grid;gap:7px;min-width:0;align-items:end}
 #tabbody .basic-row-d.r1{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) 68px}
@@ -30,7 +30,7 @@ const CSS=String.raw\`
 #tabbody .basic-city-error{color:#a33424;font-size:10px;margin:3px 0 0}
 @media(max-width:800px){#tabbody .basic-row-d{gap:5px}#tabbody .basic-row-d .basic-field label{font-size:10px}#tabbody .basic-row-d .basic-field input,#tabbody .basic-row-d .basic-bed-picker{font-size:11.5px;padding-left:4px;padding-right:4px}#tabbody .basic-row-d .basic-readonly{font-size:11px}}
 @media(max-width:450px){#tabbody .basic-row-d.r1{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) 62px}#tabbody .basic-row-d.r2{grid-template-columns:.78fr 1.08fr 1.25fr .72fr}#tabbody .basic-row-d.r4{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}}
-\`;
+`;
 const sheet=document.createElement('style');sheet.textContent=CSS;document.head.appendChild(sheet);
 const cityPattern=/^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}々ヶケー・]{1,24}[市区町村]$/u;
 const cityValid=value=>!String(value).trim()||cityPattern.test(String(value).trim());
