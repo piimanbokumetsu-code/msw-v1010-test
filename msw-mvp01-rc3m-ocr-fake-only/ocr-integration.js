@@ -122,8 +122,7 @@ async function run(indices){
 function bindScanner(){
  const input=el('journalPhoto');if(!input)return;
  input.multiple=true;input.accept='image/*';
- input.onchange=e=>{
-  const newFiles=[...(e.target.files||[])];e.target.value='';
+ const appendFiles=newFiles=>{
   if(!newFiles.length)return;
   if(busy){report('認識中は写真を追加できません。');return;}
   if(pages.length+newFiles.length>4){report('iPad miniのメモリ負担を避けるため、同時に4枚までに制限しています。');renderScanner();return;}
@@ -134,6 +133,19 @@ function bindScanner(){
   if(current<0)current=0;report(`${pages.length}枚選択しました。認識は端末上で行い、写真を患者記録には保存しません。`);
   const n=el('journalPhotoInfo');if(n)n.textContent=`写真 ${pages.length}枚（架空日誌で検証してください）`;
   renderScanner();
+ };
+ input.onchange=e=>{const selected=[...(e.target.files||[])];e.target.value='';appendFiles(selected);};
+ const sample=document.createElement('button');sample.type='button';sample.className='btn secondary';sample.textContent='架空の日誌サンプルを読み込む';
+ sample.style.marginLeft='7px';input.parentElement.insertAdjacentElement('afterend',sample);
+ sample.onclick=async()=>{
+  if(busy||pages.length){report('既存写真を消去してからサンプルを読み込んでください。');return;}
+  try{
+   const url=new URL('../ocr-auto-stage22/sample/仮想日誌_01_2026-10-14.png',document.baseURI);
+   if(url.origin!==location.origin)throw Error('同一サイトの架空画像のみ読み込めます');
+   report('架空サンプル画像を読み込んでいます…');const res=await fetch(url.href,{cache:'force-cache'});
+   if(!res.ok)throw Error('架空画像の取得に失敗しました。');
+   const blob=await res.blob();appendFiles([new File([blob],'仮想日誌_01_2026-10-14.png',{type:'image/png'})]);
+  }catch(e){report('サンプルを読み込めませんでした：'+String(e?.message||e));}
  };
  renderScanner();
 }
