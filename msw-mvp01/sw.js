@@ -8,7 +8,9 @@ self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise
 self.addEventListener('fetch',e=>{
  if(e.request.method!=='GET')return;
  const u=new URL(e.request.url);
- if(u.origin!==self.location.origin||!u.pathname.startsWith(new URL(self.registration.scope).pathname))return;
+ const scopePath=new URL(self.registration.scope).pathname;
+ const sharedUIPath=new URL('../msw-basic-ui-d.js',self.registration.scope).pathname;
+ if(u.origin!==self.location.origin||(!u.pathname.startsWith(scopePath)&&u.pathname!==sharedUIPath))return;
  e.respondWith(fetch(e.request,{cache:'no-store'}).then(r=>{
    if(r.ok){const copy=r.clone();e.waitUntil(caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{}));}
    return r;
