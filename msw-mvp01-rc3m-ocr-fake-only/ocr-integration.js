@@ -26,7 +26,25 @@ async function workerFor(){
   corePath:core,langPath:lang,workerBlobURL:false,gzip:true,cacheMethod:'none'
  });
 }
-function dateISO(s){const t=String(s||'').replace(/[〇Ｏ]/g,'0').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-0xfee0));const m=t.match(/(20\d{2})\s*[年\/-]\s*(\d{1,2})\s*[月\/-]\s*(\d{1,2})/);if(!m)return '';const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(Date.UTC(y,mo-1,d));return dt.getUTCFullYear()===y&&dt.getUTCMonth()+1===mo&&dt.getUTCDate()===d?`${m[1]}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`:'';}
+function dateISO(input){
+ const t=String(input||'').normalize('NFKC').replace(/[〇○Ｏ]/g,'0').replace(/[　\s]+/g,' ');
+ let y,month,day,found;
+ // Dates with an explicit Western year; periods are common in scanned journals.
+ found=t.match(/(20\d{2})\s*[年/.\-]\s*(\d{1,2})\s*[月/.\-]\s*(\d{1,2})\s*日?/);
+ if(found){y=Number(found[1]);month=Number(found[2]);day=Number(found[3]);}
+ else{
+   // Never guess a year: support only explicitly printed Reiwa/Heisei years.
+   found=t.match(/(令和|平成|R|H)\s*(元|\d{1,2})\s*[年/.\-]\s*(\d{1,2})\s*[月/.\-]\s*(\d{1,2})\s*日?/i);
+   if(!found)return '';
+   const era=found[1].toUpperCase(), n=found[2]==='元'?1:Number(found[2]);
+   y=n+(era==='令和'||era==='R'?2018:1988);
+   month=Number(found[3]);day=Number(found[4]);
+ }
+ if(!Number.isInteger(y)||y<1989||y>2099)return '';
+ const dt=new Date(Date.UTC(y,month-1,day));
+ if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==month-1||dt.getUTCDate()!==day)return '';
+ return [y,String(month).padStart(2,'0'),String(day).padStart(2,'0')].join('-');
+}
 async function getImage(url){const img=new Image();img.src=url;await img.decode();return img;}
 function compactCanvas(img){const max=1650,ratio=Math.min(1,max/img.width,max*1.6/img.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*ratio));c.height=Math.max(1,Math.round(img.height*ratio));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
 async function recognize(index){
