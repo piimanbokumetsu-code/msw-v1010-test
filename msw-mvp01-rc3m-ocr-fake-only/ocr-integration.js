@@ -3,6 +3,7 @@
    Uses independently hosted same-origin stage22 OCR assets. */
 (()=>{
 'use strict';
+const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";document.head.appendChild(ocrV2Css);
 const BASE = new URL('../ocr-auto-stage22/', document.baseURI);
 const expected='/msw-v1010-test/ocr-auto-stage22/';
 const pages=[];
@@ -27,7 +28,7 @@ async function workerFor(){
 }
 function dateISO(s){const t=String(s||'').replace(/[〇Ｏ]/g,'0').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-0xfee0));const m=t.match(/(20\d{2})\s*[年\/-]\s*(\d{1,2})\s*[月\/-]\s*(\d{1,2})/);if(!m)return '';const y=+m[1],mo=+m[2],d=+m[3],dt=new Date(Date.UTC(y,mo-1,d));return dt.getUTCFullYear()===y&&dt.getUTCMonth()+1===mo&&dt.getUTCDate()===d?`${m[1]}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`:'';}
 async function getImage(url){const img=new Image();img.src=url;await img.decode();return img;}
-function compactCanvas(img){const max=1400,ratio=Math.min(1,max/img.width,max*1.5/img.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*ratio));c.height=Math.max(1,Math.round(img.height*ratio));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
+function compactCanvas(img){const max=1650,ratio=Math.min(1,max/img.width,max*1.6/img.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*ratio));c.height=Math.max(1,Math.round(img.height*ratio));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
 async function recognize(index){
  const p=pages[index];if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
  let worker=null,plan=null,img=null,generic=null;
@@ -72,16 +73,99 @@ async function recognize(index){
   if(worker)try{await worker.terminate();}catch(_){/* release if available */}
  }
 }
+function selectGeometry(image){
+ const r=image.getBoundingClientRect(),nw=image.naturalWidth,nh=image.naturalHeight;
+ const scale=Math.min(r.width/nw,r.height/nh);
+ const w=nw*scale,h=nh*scale;
+ return {r,left:(r.width-w)/2,top:(r.height-h)/2,w,h};
+}
+function localCoord(image,event){
+ const g=selectGeometry(image);if(!g.w||!g.h)return null;
+ const x=(event.clientX-g.r.left-g.left)/g.w,y=(event.clientY-g.r.top-g.top)/g.h;
+ return {x:Math.max(0,Math.min(1,x)),y:Math.max(0,Math.min(1,y))};
+}
+function drawSelection(p){
+ const image=el('ocrPhotoOriginal'),box=el('ocrRangeBox');if(!image||!box)return;
+ const g=selectGeometry(image);if(!p.region||!g.w){box.hidden=true;return}
+ const a=p.region,b=box.style;
+ b.left=(g.left+a.x*g.w)+'px';b.top=(g.top+a.y*g.h)+'px';
+ b.width=(a.w*g.w)+'px';b.height=(a.h*g.h)+'px';box.hidden=false;
+}
+function selectRange(p){
+ const image=el('ocrPhotoOriginal');if(!image)return;
+ let start=null,pointer=null;
+ image.addEventListener('pointerdown',e=>{
+  if(busy||p.approved)return;
+  const pos=localCoord(image,e);if(!pos)return;
+  pointer=e.pointerId;start=pos;if(image.setPointerCapture)image.setPointerCapture(pointer);
+  image.style.touchAction='none';e.preventDefault();
+ });
+ image.addEventListener('pointermove',e=>{
+  if(start===null||pointer!==e.pointerId)return;const cur=localCoord(image,e);if(!cur)return;
+  p.region={x:Math.min(start.x,cur.x),y:Math.min(start.y,cur.y),w:Math.abs(cur.x-start.x),h:Math.abs(cur.y-start.y)};
+  drawSelection(p);e.preventDefault();
+ });
+ const finish=e=>{
+  if(start===null||pointer!==e.pointerId)return;
+  const cur=localCoord(image,e);if(cur){
+   const rect={x:Math.min(start.x,cur.x),y:Math.min(start.y,cur.y),w:Math.abs(cur.x-start.x),h:Math.abs(cur.y-start.y)};
+   p.region=(rect.w>=.018&&rect.h>=.008)?rect:null;
+   report(p.region?'囲んだ範囲を指定できました。「選択範囲だけ再認識」を押してね。':'範囲が小さすぎます。文字の周囲を少し広めに囲んでね。');
+  }
+  start=null;pointer=null;image.style.touchAction='';drawSelection(p);
+  const button=el('ocrRunRange');if(button)button.disabled=busy||!p.region;
+ };
+ image.addEventListener('pointerup',finish);image.addEventListener('pointercancel',finish);
+ image.addEventListener('load',()=>drawSelection(p),{once:true});
+ if(image.complete&&image.naturalWidth)drawSelection(p);
+}
+function closeupCanvas(image,area){
+ const sx=Math.max(0,Math.floor(area.x*image.naturalWidth)),sy=Math.max(0,Math.floor(area.y*image.naturalHeight));
+ const sw=Math.max(1,Math.min(image.naturalWidth-sx,Math.ceil(area.w*image.naturalWidth))),sh=Math.max(1,Math.min(image.naturalHeight-sy,Math.ceil(area.h*image.naturalHeight)));
+ const scale=Math.min(2.2,2300/sw,1200/sh);
+ const c=document.createElement('canvas');c.width=Math.max(1,Math.floor(sw*scale));c.height=Math.max(1,Math.floor(sh*scale));
+ c.getContext('2d').drawImage(image,sx,sy,sw,sh,0,0,c.width,c.height);
+ return c;
+}
+async function recognizeCloseup(p,index){
+ if(!p.region)throw Error('画像上で文字の範囲を指で囲んでください。');
+ let image=null,canvas=null,worker=null;
+ try{
+  image=await getImage(p.url);canvas=closeupCanvas(image,p.region);worker=await workerFor();
+  const target=p.regionTarget||'admission';
+  await worker.setParameters({tessedit_pageseg_mode:target==='date'?'7':'6'});
+  report(`${index+1}枚目：囲んだ${target==='date'?'日付':target==='admission'?'入院氏名':'退院氏名'}を認識しています…`);
+  const data=(await worker.recognize(canvas))?.data;
+  const txt=String(data?.text||'').trim();if(!txt)throw Error('範囲内の文字を検出できません。もう少し広めに囲んでください。');
+  if(target==='date'){
+   const v=dateISO(txt);if(!v)throw Error('日付の形式を読み取れませんでした。日付欄に手入力してください。OCR原文：'+txt.slice(0,40));
+   p.date=v;
+  }else{
+   const rows=words(txt).map(s=>s.replace(/\s+/g,' ').trim());
+   p[target]=[...p[target],...rows];
+  }
+  p.scanned=true;p.approved=false;p.checked={date:false,names:false,counts:false};
+  p.mode='部分拡大OCR（'+(target==='date'?'日付':target==='admission'?'入院':'退院')+'）';
+  p.warnings=['今回の部分認識は目視確認が必要です。入退院の人数と氏名を原本と照合してください。'];
+  p.raw=(p.raw?`${p.raw}\n`:'')+'【部分拡大OCR '+(target==='date'?'日付':target==='admission'?'入院':'退院')+'】'+txt;
+  report('選択範囲を認識しました。右側の入力欄で確認・修正してね。');
+ }finally{
+  if(canvas){canvas.width=canvas.height=0;}
+  if(image){image.src='';image=null;}
+  if(worker)try{await worker.terminate()}catch(_){}
+ }
+}
 function renderScanner(){
  const host=el('journalScanPreview');if(!host)return;
  const p=pages[current];
  const cards=pages.map((x,i)=>`<button type="button" class="btn secondary ocr-page" data-n="${i}" aria-pressed="${i===current}">${i+1}枚目 ${x.approved?'確認済':x.scanned?'要確認':'未認識'}</button>`).join('');
  const approved=p?.approved&&p?.scanned;
  const complete=p?.scanned&&p?.date&&p?.checked.date&&p?.checked.names&&p?.checked.counts&&p.admission.every(Boolean)&&p.discharge.every(Boolean);
- host.innerHTML=`<div class="ocr-zone"><div class="ocr-photo-bar">${cards}</div>
- ${p?`<div class="ocr-grid"><div><img class="ocr-original" src="${safe(p.url)}" alt="撮影した架空日誌"><p class="notice">${safe(p.file.name)}</p></div><div>
+ host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプルを読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><div class="ocr-photo-bar">${cards}</div>
+ ${p?`<div class="ocr-grid"><div><div class="ocr-image-wrap"><img id="ocrPhotoOriginal" class="ocr-original" src="${safe(p.url)}" alt="撮影した架空日誌"><span id="ocrRangeBox" class="ocr-range-box" hidden></span></div><p class="notice">${safe(p.file.name)}</p><p class="notice">読みたい日付・氏名の周囲を写真上で指で囲むと、その部分だけ再認識できます。</p></div><div>
  <p class="notice"><b>認識方式：</b>${safe(p.mode||'未認識')}</p>
  <div class="ocr-buttons"><button class="btn" id="journalTryOCR" ${busy?'disabled':''}>この写真を日本語OCR</button><button class="btn secondary" id="journalAllOCR" ${busy?'disabled':''}>未確認の写真を順番にOCR</button><button class="btn secondary" id="journalDiscardOCR" ${busy?'disabled':''}>写真をすべて消去</button></div>
+ <div class="ocr-region-ui"><label>部分再認識の対象 <select id="ocrRegionTarget"><option value="date" ${p.regionTarget==='date'?'selected':''}>日誌の日付</option><option value="admission" ${!p.regionTarget||p.regionTarget==='admission'?'selected':''}>入院した患者の氏名</option><option value="discharge" ${p.regionTarget==='discharge'?'selected':''}>退院した患者の氏名</option></select></label><button class="btn secondary" type="button" id="ocrRunRange" ${busy||!p.region?'disabled':''}>選択範囲だけ再認識</button><button class="btn secondary" type="button" id="ocrClearRange">範囲選択をやり直す</button></div>
  <p class="notice" id="journalOCRStatus" role="status" aria-live="polite">${safe(notice)}</p>
  ${p.warnings.length?`<p class="notice ocr-warning">${p.warnings.map(safe).join(' / ')}</p>`:''}
  <label>読み取った文字（確認・修正）<textarea id="journalOCRText" rows="5" placeholder="OCR結果がここに表示されます">${safe(p.raw)}</textarea></label>
@@ -96,7 +180,14 @@ function renderScanner(){
  el('journalTryOCR').onclick=()=>run([current]);
  el('journalAllOCR').onclick=()=>run(pages.map((_,i)=>i).filter(i=>!pages[i].approved));
  el('journalDiscardOCR').onclick=()=>{erase();renderScanner();const n=el('journalPhotoInfo');if(n)n.textContent='';};
- el('journalOCRText').oninput=e=>{p.raw=e.target.value;p.approved=false;p.checked={date:false,names:false,counts:false};renderScanner();};
+ el('journalOCRText').oninput=e=>{p.raw=e.target.value;p.approved=false;p.checked={date:false,names:false,counts:false};for(const k of ['ocrCheckDate','ocrCheckNames','ocrCheckCounts']){const box=el(k);if(box)box.checked=false}const btn=el('ocrApprove');if(btn)btn.disabled=true;};
+ el('ocrRegionTarget').onchange=e=>{p.regionTarget=e.target.value;};
+ el('ocrClearRange').onclick=()=>{p.region=null;drawSelection(p);el('ocrRunRange').disabled=true;report('もう一度、写真の文字の範囲を指で囲んでね。');};
+ el('ocrRunRange').onclick=async()=>{
+  if(busy||!p.region)return;busy=true;renderScanner();let error='';
+  try{await recognizeCloseup(p,current);}catch(e){error=String(e?.message||e)}finally{busy=false;renderScanner();if(error)report('部分再認識に失敗：'+error);}
+ };
+ selectRange(p);
  const invalidate=()=>{p.approved=false;p.checked={date:false,names:false,counts:false};renderScanner();};
  for(const [id,key,kind] of [['ocrDate','date','date'],['ocrAdmission','admission','names'],['ocrDischarge','discharge','names']]){
   el(id).onchange=e=>{p[key]=kind==='date'?e.target.value:words(e.target.value);invalidate();};
@@ -115,9 +206,9 @@ function renderScanner(){
  };
 }
 async function run(indices){
- if(busy||!indices.length)return;busy=true;renderScanner();let completed=0;
- try{for(const i of indices){if(!pages[i]||pages[i].approved)continue;current=i;renderScanner();try{await recognize(i);completed++;}catch(e){report(`${i+1}枚目の認識に失敗：${String(e?.message||e)}。画像の確認は続けられます。`);}renderScanner();}}
- finally{busy=false;report(`${indices.length}枚中 ${completed}枚でOCR処理が終了しました。氏名・人数・日付を必ず照合してください。`);renderScanner();}
+ if(busy||!indices.length)return;busy=true;renderScanner();let completed=0,failures=[];
+ try{for(const i of indices){if(!pages[i]||pages[i].approved)continue;current=i;renderScanner();try{await recognize(i);completed++;}catch(e){failures.push(`${i+1}枚目: ${String(e?.message||e).slice(0,150)}`);}renderScanner();}}
+ finally{busy=false;report(`${indices.length}枚中 ${completed}枚でOCR処理が終了。${failures.length?'失敗：'+failures.join(' / '):'氏名・人数・日付を必ず照合してください。'}`);renderScanner();}
 }
 function bindScanner(){
  const input=el('journalPhoto');if(!input)return;
