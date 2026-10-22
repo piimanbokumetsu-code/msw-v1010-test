@@ -13,6 +13,7 @@ const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'
 const words=x=>String(x||'').split(/\r?\n/).map(y=>y.trim()).filter(Boolean);
 function erase(){for(const p of pages)URL.revokeObjectURL(p.url);pages.length=0;current=-1;notice='写真を消去しました。';}
 function report(x){notice=x;const n=el('journalOCRStatus');if(n)n.textContent=x;}
+function nextPaint(){return new Promise(resolve=>{if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>resolve());else setTimeout(resolve,0);});}
 function loadScript(href){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=href;s.onload=ok;s.onerror=()=>fail(new Error('OCR部品を取得できません。通信環境と再読み込みを確認してください。'));document.head.append(s);});}
 async function workerFor(){
  if(location.protocol!=='https:' || BASE.origin!==location.origin || BASE.pathname!==expected)throw new Error('認識機能は承認したHTTPSテストURLでのみ動作します。');
@@ -23,7 +24,12 @@ async function workerFor(){
  const lang=new URL('ocr/lang/',BASE).href.replace(/\/$/,'');
  return window.Tesseract.createWorker('jpn',1,{
   workerPath:new URL('ocr/worker.min.js',BASE).href,
-  corePath:core,langPath:lang,workerBlobURL:false,gzip:true,cacheMethod:'none'
+  corePath:core,langPath:lang,workerBlobURL:false,gzip:true,cacheMethod:'none',
+  logger:m=>{
+   if(!m||!m.status||!/loading|initializing/i.test(String(m.status)))return;
+   const percent=typeof m.progress==='number'?Math.round(Math.max(0,Math.min(1,m.progress))*100):null;
+   report('日本語OCR部品を準備しています…'+(percent===null?'':percent+'%'));
+  }
  });
 }
 function dateISO(input){
@@ -49,10 +55,12 @@ async function getImage(url){const img=new Image();img.src=url;await img.decode(
 function compactCanvas(img){const max=1650,ratio=Math.min(1,max/img.width,max*1.6/img.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*ratio));c.height=Math.max(1,Math.round(img.height*ratio));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
 async function recognize(index){
  const p=pages[index];if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
+ // New attempts must not leave old OCR results marked as current if the new run fails.
+ p.scanned=false;p.checked={date:false,names:false,counts:false};
  let worker=null,plan=null,img=null,generic=null;
  try{
   report(`${index+1}枚目：画像の書式を確認しています…`);
-  img=await getImage(p.url);
+  await nextPaint();img=await getImage(p.url);
   let layoutError='';
   try{if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);plan=window.MSWJournalLayout.inspect(img);}catch(e){layoutError=String(e?.message||e);}
   worker=await workerFor();
@@ -147,6 +155,8 @@ function closeupCanvas(image,area){
 }
 async function recognizeCloseup(p,index){
  if(!p.region)throw Error('画像上で文字の範囲を指で囲んでください。');
+ // Preserve edited fields on OCR failure, but require renewed review.
+ p.checked={date:false,names:false,counts:false};p.approved=false;
  let image=null,canvas=null,worker=null;
  try{
   image=await getImage(p.url);canvas=closeupCanvas(image,p.region);worker=await workerFor();
