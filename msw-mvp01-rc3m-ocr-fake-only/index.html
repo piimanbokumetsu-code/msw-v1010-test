@@ -2506,5 +2506,5 @@ function renderJournalPreview(){
   $('#journalPhoto').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){$('#journalPhotoInfo').textContent='画像ファイルを選択してください。';return}if(f.size>15*1024*1024){$('#journalPhotoInfo').textContent='15MB以下の画像を選んでください。';return}const reader=new FileReader();reader.onload=()=>{journalScanImage=reader.result;journalScanText='';journalScanStatus='写真を読み込みました。文字認識の可否を確認できます。';$('#journalPhotoInfo').textContent='選択した写真：'+f.name;paintScan()};reader.readAsDataURL(f)};
 }
 </script>
-<script src="ocr-integration.js?v=20261022ocrv5"></script>
+<script src="ocr-integration.js?v=20261022ocrv6"></script>
 </body></html>
