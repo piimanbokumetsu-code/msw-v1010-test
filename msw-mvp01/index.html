@@ -16,7 +16,7 @@
 /* 2026-10-13: Refresh an installed PWA without clearing its IndexedDB. */
 (function(){
  if(!('serviceWorker' in navigator))return;
- var key='msw-mvp-controller-20261019a';
+ var key='msw-mvp-controller-20261022d';
  navigator.serviceWorker.addEventListener('controllerchange',function(){
    try { if(sessionStorage.getItem(key))return; sessionStorage.setItem(key,'1'); }catch(e){}
    location.reload();
@@ -43,5 +43,6 @@
 <div id="app"></div>
 <input id="fileInput" type="file" hidden />
 <script src="app.js?v=mvp01-20261019a"></script>
+<script src="../msw-basic-ui-d.js?v=20261022d"></script>
 </body>
 </html>
