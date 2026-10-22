@@ -16,7 +16,7 @@ function report(x){notice=x;const n=el('journalOCRStatus');if(n)n.textContent=x;
 function loadScript(href){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=href;s.onload=ok;s.onerror=()=>fail(new Error('OCR部品を取得できません。通信環境と再読み込みを確認してください。'));document.head.append(s);});}
 async function workerFor(){
  if(location.protocol!=='https:' || BASE.origin!==location.origin || BASE.pathname!==expected)throw new Error('認識機能は承認したHTTPSテストURLでのみ動作します。');
- if(!window.MSWJournalLayout)await loadScript(new URL('layout.js',BASE).href);
+ if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);
  if(!window.Tesseract?.createWorker)await loadScript(new URL('ocr/tesseract.min.js',BASE).href);
  report('日本語OCRエンジンと辞書を準備しています…');
  const core=new URL('ocr/core/',BASE).href.replace(/\/$/,'');
@@ -36,7 +36,7 @@ async function recognize(index){
   report(`${index+1}枚目：画像の書式を確認しています…`);
   img=await getImage(p.url);
   let layoutError='';
-  try{if(!window.MSWJournalLayout)await loadScript(new URL('layout.js',BASE).href);plan=window.MSWJournalLayout.inspect(img);}catch(e){layoutError=String(e?.message||e);}
+  try{if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);plan=window.MSWJournalLayout.inspect(img);}catch(e){layoutError=String(e?.message||e);}
   worker=await workerFor();
   let result={date:'',admission:[],discharge:[],raw:'',mode:'全文OCR',warnings:[]};
   if(plan){
@@ -155,6 +155,12 @@ async function recognizeCloseup(p,index){
   if(worker)try{await worker.terminate()}catch(_){}
  }
 }
+function refreshApproval(p){
+ const btn=el('ocrApprove');if(!btn||!p)return;
+ const complete=Boolean(!busy&&p.scanned&&p.date&&p.checked.date&&p.checked.names&&p.checked.counts&&p.admission.every(Boolean)&&p.discharge.every(Boolean));
+ btn.disabled=!complete;
+ const count=el('ocrVerifiedCount');if(count)count.textContent=[p.checked.date,p.checked.names,p.checked.counts].filter(Boolean).length+'/3 項目を確認済み';
+}
 function renderScanner(){
  const host=el('journalScanPreview');if(!host)return;
  const p=pages[current];
@@ -172,7 +178,7 @@ function renderScanner(){
  <p class="notice">模擬書式では入退院を抽出。異なる書式では全文のみ認識し、日付・氏名は手作業で確認してください。</p>
  <div class="ocr-fields"><label>日誌の日付<input type="date" id="ocrDate" value="${safe(p.date)}"></label><label>入院氏名（1行に1名）<textarea id="ocrAdmission" rows="3">${safe(p.admission.join('\n'))}</textarea></label><label>退院氏名（1行に1名）<textarea id="ocrDischarge" rows="3">${safe(p.discharge.join('\n'))}</textarea></label></div>
  <div class="ocr-checks"><label><input type="checkbox" id="ocrCheckDate" ${p.checked.date?'checked':''}> 日付を照合</label><label><input type="checkbox" id="ocrCheckNames" ${p.checked.names?'checked':''}> 全氏名を照合</label><label><input type="checkbox" id="ocrCheckCounts" ${p.checked.counts?'checked':''}> 入退院人数を照合</label></div>
- <button type="button" class="btn" id="ocrApprove" ${complete&&!busy?'':'disabled'}>${approved?'確認済み（保存・登録しません）':'この写真の確認を完了（登録しません）'}</button>
+ <p class="notice" id="ocrVerifiedCount">0/3 項目を確認済み</p><button type="button" class="btn" id="ocrApprove" ${complete&&!busy?'':'disabled'}>${approved?'確認済み（保存・登録しません）':'この写真の確認を完了（登録しません）'}</button>
  ${approved&&p.admission.length?`<div class="ocr-reviewed">${p.admission.map((name,i)=>`<button class="btn secondary ocr-copy-name" data-i="${i}">${safe(name)} → 手入力欄へ</button>`).join('')}</div>`:''}
  </div></div>`:`<p class="notice">写真はまだありません。上の「日誌の写真を選択・撮影」から架空画像を追加してください。</p>`}</div>`;
  for(const button of host.querySelectorAll('.ocr-page'))button.onclick=()=>{if(busy)return;current=Number(button.dataset.n);renderScanner();};
@@ -180,20 +186,20 @@ function renderScanner(){
  el('journalTryOCR').onclick=()=>run([current]);
  el('journalAllOCR').onclick=()=>run(pages.map((_,i)=>i).filter(i=>!pages[i].approved));
  el('journalDiscardOCR').onclick=()=>{erase();renderScanner();const n=el('journalPhotoInfo');if(n)n.textContent='';};
- el('journalOCRText').oninput=e=>{p.raw=e.target.value;p.approved=false;p.checked={date:false,names:false,counts:false};for(const k of ['ocrCheckDate','ocrCheckNames','ocrCheckCounts']){const box=el(k);if(box)box.checked=false}const btn=el('ocrApprove');if(btn)btn.disabled=true;};
+ el('journalOCRText').oninput=e=>{p.raw=e.target.value;p.approved=false;p.checked={date:false,names:false,counts:false};for(const k of ['ocrCheckDate','ocrCheckNames','ocrCheckCounts']){const box=el(k);if(box)box.checked=false}refreshApproval(p);};
  el('ocrRegionTarget').onchange=e=>{p.regionTarget=e.target.value;};
  el('ocrClearRange').onclick=()=>{p.region=null;drawSelection(p);el('ocrRunRange').disabled=true;report('もう一度、写真の文字の範囲を指で囲んでね。');};
  el('ocrRunRange').onclick=async()=>{
   if(busy||!p.region)return;busy=true;renderScanner();let error='';
   try{await recognizeCloseup(p,current);}catch(e){error=String(e?.message||e)}finally{busy=false;renderScanner();if(error)report('部分再認識に失敗：'+error);}
  };
- selectRange(p);
+ selectRange(p);refreshApproval(p);
  const invalidate=()=>{p.approved=false;p.checked={date:false,names:false,counts:false};renderScanner();};
  for(const [id,key,kind] of [['ocrDate','date','date'],['ocrAdmission','admission','names'],['ocrDischarge','discharge','names']]){
   el(id).onchange=e=>{p[key]=kind==='date'?e.target.value:words(e.target.value);invalidate();};
  }
  for(const [id,key] of [['ocrCheckDate','date'],['ocrCheckNames','names'],['ocrCheckCounts','counts']]){
-  el(id).onchange=e=>{p.checked[key]=e.target.checked;p.approved=false;renderScanner();};
+  el(id).onchange=e=>{p.checked[key]=e.target.checked;p.approved=false;refreshApproval(p);};
  }
  el('ocrApprove').onclick=()=>{if(!complete||busy)return;p.approved=true;report('原本照合を記録しました。患者データには自動登録していません。');renderScanner();};
  for(const button of host.querySelectorAll('.ocr-copy-name'))button.onclick=()=>{
