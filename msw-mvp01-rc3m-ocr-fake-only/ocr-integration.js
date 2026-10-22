@@ -3,12 +3,12 @@
    Uses independently hosted same-origin stage22 OCR assets. */
 (()=>{
 'use strict';
-const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";ocrV2Css.textContent += "\n.ocr-crop-preview{display:block;max-width:100%;width:100%;height:auto;margin:8px 0;border:1px solid #bdd9d5;border-radius:6px;background:#fff;image-rendering:auto}.ocr-crop-preview[hidden]{display:none!important}.ocr-destination-note{font-size:11px;color:#525d6c;line-height:1.45;margin-top:3px}.ocr-crop-label{font-size:12px;font-weight:700;margin:8px 0 0}.ocr-region-ui label{min-width:min(150px,100%)}";ocrV2Css.textContent += "\n.ocr-name-shortcuts{margin:8px 0 12px;padding:7px 9px;border:1px solid #c7ddd8;border-radius:8px;background:#f7fbfa}.ocr-name-shortcuts strong{display:block;font-size:12px;margin:0 0 3px}.ocr-name-list{display:grid;gap:5px;max-height:170px;overflow-y:auto;overscroll-behavior:contain}.ocr-name-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center;padding:4px;border:1px solid #e1eae7;border-radius:5px;background:#fff}.ocr-name-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ocr-name-item button{padding:5px 6px;min-height:31px;font-size:11px}.ocr-name-shortcuts p{font-size:11px;margin:3px 0 6px;color:#4e6267;line-height:1.4}.ocr-name-shortcuts .ocr-name-flag{color:#a23145;font-size:11px;font-weight:700}.ocr-target-note{font-size:12px;font-weight:700;color:#087262;margin:6px 0 4px}\n@media(max-width:440px){.ocr-name-item{grid-template-columns:minmax(0,1fr) auto}.ocr-name-item button:last-child{grid-column:2}}";ocrV2Css.textContent += "\n.ocr-batch-summary{font-size:12px;font-weight:750;margin:8px 0;padding:6px 8px;border-radius:7px;background:#edf7f4;color:#15544c;line-height:1.6}";document.head.appendChild(ocrV2Css);
+const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";ocrV2Css.textContent += "\n.ocr-crop-preview{display:block;max-width:100%;width:100%;height:auto;margin:8px 0;border:1px solid #bdd9d5;border-radius:6px;background:#fff;image-rendering:auto}.ocr-crop-preview[hidden]{display:none!important}.ocr-destination-note{font-size:11px;color:#525d6c;line-height:1.45;margin-top:3px}.ocr-crop-label{font-size:12px;font-weight:700;margin:8px 0 0}.ocr-region-ui label{min-width:min(150px,100%)}";ocrV2Css.textContent += "\n.ocr-name-shortcuts{margin:8px 0 12px;padding:7px 9px;border:1px solid #c7ddd8;border-radius:8px;background:#f7fbfa}.ocr-name-shortcuts strong{display:block;font-size:12px;margin:0 0 3px}.ocr-name-list{display:grid;gap:5px;max-height:170px;overflow-y:auto;overscroll-behavior:contain}.ocr-name-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center;padding:4px;border:1px solid #e1eae7;border-radius:5px;background:#fff}.ocr-name-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ocr-name-item button{padding:5px 6px;min-height:31px;font-size:11px}.ocr-name-shortcuts p{font-size:11px;margin:3px 0 6px;color:#4e6267;line-height:1.4}.ocr-name-shortcuts .ocr-name-flag{color:#a23145;font-size:11px;font-weight:700}.ocr-target-note{font-size:12px;font-weight:700;color:#087262;margin:6px 0 4px}\n@media(max-width:440px){.ocr-name-item{grid-template-columns:minmax(0,1fr) auto}.ocr-name-item button:last-child{grid-column:2}}";ocrV2Css.textContent += "\n.ocr-batch-summary{font-size:12px;font-weight:750;margin:8px 0;padding:6px 8px;border-radius:7px;background:#edf7f4;color:#15544c;line-height:1.6}";ocrV2Css.textContent += "\n.ocr-review-board{margin:7px 0 10px;padding:7px 9px;border:1px solid #b9d4d0;border-radius:8px;background:#f6fbfa}.ocr-review-board summary{cursor:pointer;font-size:13px;font-weight:800;color:#175d53}.ocr-review-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:7px;margin:8px 0}.ocr-review-card{background:#fff;border:1px solid #dae6e1;border-radius:7px;padding:8px;min-width:0}.ocr-review-card strong{font-size:12px}.ocr-review-card p{font-size:11px;margin:3px 0;line-height:1.55;overflow-wrap:anywhere}.ocr-review-card .ocr-review-caution{color:#ab4026;font-weight:700}.ocr-review-jump{font-size:12px;min-height:32px;padding:5px 8px;margin-top:4px}.ocr-review-hint{color:#405c57;font-size:11px;line-height:1.55;margin:5px 0}";document.head.appendChild(ocrV2Css);
 const BASE = new URL('../ocr-auto-stage22/', document.baseURI);
 const expected='/msw-v1010-test/ocr-auto-stage22/';
 const pages=[];
 let current=-1,busy=false,notice='写真を選択してください。';
-let sessionEpoch=0,activeWorker=null;
+let sessionEpoch=0,activeWorker=null,reviewBoardOpen=true;
 const el=id=>document.getElementById(id);
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const words=x=>String(x||'').split(/\r?\n/).map(y=>y.trim()).filter(Boolean);
@@ -265,6 +265,60 @@ function hasOCRContents(p){
 function pendingBulkIndices(){
  return pages.map((p,i)=>!p.approved&&!hasOCRContents(p)?i:-1).filter(i=>i>=0);
 }
+// This is a read-only, review-only aggregation. Repeated dates are common
+// across multiple daily sheets and are *not* treated as duplicates by themselves.
+function journalReviewModel(items){
+ const indexed=new Map();
+ for(let i=0;i<items.length;i++){
+  const item=items[i];
+  const date=String(item?.date||'').trim();
+  if(!date)continue;
+  for(const kind of ['admission','discharge']){
+   const seenOnSheet=new Set();
+   for(const value of item?.[kind]||[]){
+    const name=String(value??'').normalize('NFKC').replace(/[\\s　]+/g,'').trim();
+    if(!name)continue;
+    const key=JSON.stringify([date,kind,name]);
+    if(seenOnSheet.has(key))continue;
+    seenOnSheet.add(key);
+    if(!indexed.has(key))indexed.set(key,[]);
+    indexed.get(key).push(i);
+   }
+  }
+ }
+ const duplicateSheetIndices=new Set();
+ for(const all of indexed.values())if(all.length>=2)for(const i of all)duplicateSheetIndices.add(i);
+ return items.map((item,i)=>{
+  const rowsA=item?.admission||[],rowsD=item?.discharge||[];
+  const noDate=!String(item?.date||'').trim();
+  const hasBlankName=[...rowsA,...rowsD].some(x=>!String(x??'').trim());
+  const isUnknown=Boolean(item?.scanned&&item?.mode==='全文OCR');
+  const issues=[];
+  if(!item?.scanned)issues.push('OCR未完了');
+  if(noDate)issues.push('日付未入力');
+  if(hasBlankName)issues.push('氏名候補に空欄あり');
+  if(isUnknown)issues.push('全文OCRのみ（氏名欄は未抽出）');
+  if(duplicateSheetIndices.has(i))issues.push('同日・同区分・同氏名が別の写真にもある');
+  const status=item?.approved?'確認済み':item?.scanned?'照合待ち':hasOCRContents(item)?'手入力・要確認':'未読み取り';
+  return {index:i,status,date:item?.date||'',admission:rowsA.length,discharge:rowsD.length,issues,approved:Boolean(item?.approved)};
+ });
+}
+function reviewBoardHtml(reviewRows){
+ if(!reviewRows.length)return '';
+ const approvalCount=reviewRows.filter(r=>r.approved).length;
+ const cautionCount=reviewRows.filter(r=>r.issues.length>0).length;
+ return `<details id="ocrReviewBoard" class="ocr-review-board" ${reviewBoardOpen?'open':''}>
+ <summary id="ocrReviewBoardSummary">4枚まとめて照合（${approvalCount}/${reviewRows.length}枚確認済み・注意${cautionCount}枚）</summary>
+ <p class="ocr-review-hint">日付と人数はOCR候補です。重複の注意は同じ日付・入退院区分・氏名が<strong>別の写真</strong>にもある場合だけ表示します。写真と照合するまで確定情報ではありません。</p>
+ <div class="ocr-review-list">${reviewRows.map(r=>`<section class="ocr-review-card">
+ <strong>${r.index+1}枚目：${safe(r.status)}</strong>
+ <p>日付：${safe(r.date||'未入力')} ／ 入院${r.admission}名候補・退院${r.discharge}名候補</p>
+ ${r.issues.length?`<p class="ocr-review-caution">${r.issues.map(safe).join('／')}</p>`:'<p>注意項目なし（原本照合は必要）</p>'}
+ <button type="button" class="btn secondary ocr-review-jump" data-review-page="${r.index}" ${busy?'disabled':''}>${r.index+1}枚目を確認</button>
+ </section>`).join('')}</div>
+ <p class="ocr-review-hint">この一覧で患者の自動登録・保存は行いません。各写真の日付・氏名・人数を必ず原本と照合してください。</p>
+ </details>`;
+}
 function approvalReady(p){
  return Boolean(p&&!busy&&p.scanned&&p.date&&p.checked.date&&p.checked.names&&p.checked.counts
   &&p.admission.every(value=>String(value??'').trim())
@@ -313,6 +367,8 @@ function renderScanner(){
  const reviewedCount=pages.filter(x=>x.approved).length;
  const pendingCount=pages.filter(x=>!x.approved&&hasOCRContents(x)).length;
  const newCount=pendingBulkIndices().length;
+ const reviewRows=journalReviewModel(pages);
+ const reviewBoard=reviewBoardHtml(reviewRows);
  const approved=p?.approved&&p?.scanned;
  const regionTarget=p?.regionTarget||'admission';
  const destMarkup=p?destinationOptions(p,regionTarget):'';
@@ -321,7 +377,7 @@ function renderScanner(){
  const choiceIndex=/^replace:(\d+)$/.exec(chosenDestination);
  const selectionHint=choiceIndex?rowName+' '+(Number(choiceIndex[1])+1)+'行目を再認識する準備ができています。写真の文字を新しく囲んでください。':'';
  const complete=approvalReady(p);
- host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプル4枚を読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><p class="ocr-batch-summary">全${pages.length}枚　確認済み：${reviewedCount}枚 ／ 確認待ち：${pendingCount}枚 ／ 未読み取り：${newCount}枚</p><div class="ocr-photo-bar">${cards}</div>
+ host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプル4枚を読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details>${reviewBoard}<p class="ocr-batch-summary">全${pages.length}枚　確認済み：${reviewedCount}枚 ／ 確認待ち：${pendingCount}枚 ／ 未読み取り：${newCount}枚</p><div class="ocr-photo-bar">${cards}</div>
  ${p?`<div class="ocr-grid"><div><div class="ocr-image-wrap"><img id="ocrPhotoOriginal" class="ocr-original" src="${safe(p.url)}" alt="撮影した架空日誌"><span id="ocrRangeBox" class="ocr-range-box" hidden></span></div><p class="ocr-crop-label">囲んだ文字の拡大確認（選択したときだけ表示）</p><canvas id="ocrCropPreview" class="ocr-crop-preview" width="0" height="0" hidden aria-label="選択した氏名や日付の拡大表示"></canvas><p class="notice">${safe(p.file.name)}</p><p class="notice">読みたい日付・氏名の周囲を写真上で指で囲むと、その部分だけ再認識できます。</p></div><div>
  <p class="notice"><b>認識方式：</b>${safe(p.mode||'未認識')}</p>
  <div class="ocr-buttons"><button class="btn" id="journalTryOCR" ${busy?'disabled':''}>この写真を日本語OCR</button><button class="btn secondary" id="journalAllOCR" ${busy||!newCount?'disabled':''}>未読み取りの写真だけを一括OCR</button><button class="btn secondary" id="journalDiscardOCR" ${busy?'disabled':''}>写真をすべて消去</button></div>
@@ -336,6 +392,15 @@ function renderScanner(){
  <p class="notice" id="ocrVerifiedCount">0/3 項目を確認済み</p><button type="button" class="btn" id="ocrApprove" ${complete&&!busy?'':'disabled'}>${approved?'確認済み（保存・登録しません）':'この写真の確認を完了（登録しません）'}</button>
  ${approved&&p.admission.length?`<div class="ocr-reviewed">${p.admission.map((name,i)=>`<button class="btn secondary ocr-copy-name" data-i="${i}">${safe(name)} → 手入力欄へ</button>`).join('')}</div>`:''}
  </div></div>`:`<p class="notice">写真はまだありません。上の「日誌の写真を選択・撮影」から架空画像を追加してください。</p>`}</div>`;
+ const reviewSummary=el('ocrReviewBoardSummary');
+ if(reviewSummary)reviewSummary.onclick=()=>{const board=el('ocrReviewBoard');reviewBoardOpen=!board?.open;};
+ for(const button of host.querySelectorAll('.ocr-review-jump'))button.onclick=()=>{
+  if(busy)return;
+  const n=Number(button.dataset.reviewPage);
+  if(!Number.isSafeInteger(n)||n<0||n>=pages.length)return;
+  current=n;renderScanner();
+  el('ocrPhotoOriginal')?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
+ };
  for(const button of host.querySelectorAll('.ocr-page'))button.onclick=()=>{if(busy)return;current=Number(button.dataset.n);renderScanner();};
  if(!p)return;
  el('journalTryOCR').onclick=()=>{
