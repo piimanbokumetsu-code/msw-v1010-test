@@ -62,7 +62,7 @@ function bindCombo(root){
    for(const v of list){
      const b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.textContent=v;
      b.addEventListener('pointerdown',e=>e.preventDefault());
-     b.onclick=()=>{input.value=v;close();input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));input.blur()};
+     b.onclick=()=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));close();input.blur()};
      grid.append(b);
    }
    if(list.length)panel.append(grid);else{const t=document.createElement('p');t.className='basic-choice-note';t.textContent='候補なし。文字入力できます';panel.append(t)}
