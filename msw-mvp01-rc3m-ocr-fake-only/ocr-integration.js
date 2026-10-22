@@ -195,7 +195,7 @@ function renderScanner(){
  const cards=pages.map((x,i)=>`<button type="button" class="btn secondary ocr-page" data-n="${i}" aria-pressed="${i===current}">${i+1}枚目 ${x.approved?'確認済':x.scanned?'要確認':'未認識'}</button>`).join('');
  const approved=p?.approved&&p?.scanned;
  const complete=p?.scanned&&p?.date&&p?.checked.date&&p?.checked.names&&p?.checked.counts&&p.admission.every(Boolean)&&p.discharge.every(Boolean);
- host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプルを読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><div class="ocr-photo-bar">${cards}</div>
+ host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプル4枚を読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><div class="ocr-photo-bar">${cards}</div>
  ${p?`<div class="ocr-grid"><div><div class="ocr-image-wrap"><img id="ocrPhotoOriginal" class="ocr-original" src="${safe(p.url)}" alt="撮影した架空日誌"><span id="ocrRangeBox" class="ocr-range-box" hidden></span></div><p class="notice">${safe(p.file.name)}</p><p class="notice">読みたい日付・氏名の周囲を写真上で指で囲むと、その部分だけ再認識できます。</p></div><div>
  <p class="notice"><b>認識方式：</b>${safe(p.mode||'未認識')}</p>
  <div class="ocr-buttons"><button class="btn" id="journalTryOCR" ${busy?'disabled':''}>この写真を日本語OCR</button><button class="btn secondary" id="journalAllOCR" ${busy?'disabled':''}>未確認の写真を順番にOCR</button><button class="btn secondary" id="journalDiscardOCR" ${busy?'disabled':''}>写真をすべて消去</button></div>
@@ -260,17 +260,25 @@ function bindScanner(){
   renderScanner();
  };
  input.onchange=e=>{const selected=[...(e.target.files||[])];e.target.value='';appendFiles(selected);};
- const sample=document.createElement('button');sample.type='button';sample.className='btn secondary';sample.textContent='架空の日誌サンプルを読み込む';
+ const sample=document.createElement('button');sample.type='button';sample.className='btn secondary';sample.textContent='架空の日誌サンプル4枚を読み込む';
  sample.style.marginLeft='7px';input.parentElement.insertAdjacentElement('afterend',sample);
  sample.onclick=async()=>{
   if(busy||pages.length){report('既存写真を消去してからサンプルを読み込んでください。');return;}
+  sample.disabled=true;
+  const names=['仮想日誌_01_2026-10-14.png','仮想日誌_02_2026-10-14.png','仮想日誌_03_2026-10-15.png','仮想日誌_04_2026-10-15.png'];
   try{
-   const url=new URL('../ocr-auto-stage22/sample/仮想日誌_01_2026-10-14.png',document.baseURI);
-   if(url.origin!==location.origin)throw Error('同一サイトの架空画像のみ読み込めます');
-   report('架空サンプル画像を読み込んでいます…');const res=await fetch(url.href,{cache:'force-cache'});
-   if(!res.ok)throw Error('架空画像の取得に失敗しました。');
-   const blob=await res.blob();appendFiles([new File([blob],'仮想日誌_01_2026-10-14.png',{type:'image/png'})]);
+   const files=[];
+   for(let i=0;i<names.length;i++){
+    const url=new URL('../ocr-auto-stage22/sample/'+encodeURIComponent(names[i]),document.baseURI);
+    if(url.origin!==location.origin)throw Error('同一サイトの架空画像のみ読み込めます');
+    report('架空サンプルを準備しています… '+(i+1)+'/'+names.length);
+    const res=await fetch(url.href,{cache:'force-cache'});
+    if(!res.ok)throw Error((i+1)+'枚目のサンプル画像を取得できません');
+    files.push(new File([await res.blob()],names[i],{type:'image/png'}));
+   }
+   appendFiles(files);
   }catch(e){report('サンプルを読み込めませんでした：'+String(e?.message||e));}
+  finally{sample.disabled=false;}
  };
  renderScanner();
 }
