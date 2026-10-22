@@ -3,7 +3,7 @@
    Uses independently hosted same-origin stage22 OCR assets. */
 (()=>{
 'use strict';
-const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";ocrV2Css.textContent += "\n.ocr-crop-preview{display:block;max-width:100%;width:100%;height:auto;margin:8px 0;border:1px solid #bdd9d5;border-radius:6px;background:#fff;image-rendering:auto}.ocr-crop-preview[hidden]{display:none!important}.ocr-destination-note{font-size:11px;color:#525d6c;line-height:1.45;margin-top:3px}.ocr-crop-label{font-size:12px;font-weight:700;margin:8px 0 0}.ocr-region-ui label{min-width:min(150px,100%)}";ocrV2Css.textContent += "\n.ocr-name-shortcuts{margin:8px 0 12px;padding:7px 9px;border:1px solid #c7ddd8;border-radius:8px;background:#f7fbfa}.ocr-name-shortcuts strong{display:block;font-size:12px;margin:0 0 3px}.ocr-name-list{display:grid;gap:5px;max-height:170px;overflow-y:auto;overscroll-behavior:contain}.ocr-name-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center;padding:4px;border:1px solid #e1eae7;border-radius:5px;background:#fff}.ocr-name-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ocr-name-item button{padding:5px 6px;min-height:31px;font-size:11px}.ocr-name-shortcuts p{font-size:11px;margin:3px 0 6px;color:#4e6267;line-height:1.4}.ocr-name-shortcuts .ocr-name-flag{color:#a23145;font-size:11px;font-weight:700}.ocr-target-note{font-size:12px;font-weight:700;color:#087262;margin:6px 0 4px}\n@media(max-width:440px){.ocr-name-item{grid-template-columns:minmax(0,1fr) auto}.ocr-name-item button:last-child{grid-column:2}}";document.head.appendChild(ocrV2Css);
+const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";ocrV2Css.textContent += "\n.ocr-crop-preview{display:block;max-width:100%;width:100%;height:auto;margin:8px 0;border:1px solid #bdd9d5;border-radius:6px;background:#fff;image-rendering:auto}.ocr-crop-preview[hidden]{display:none!important}.ocr-destination-note{font-size:11px;color:#525d6c;line-height:1.45;margin-top:3px}.ocr-crop-label{font-size:12px;font-weight:700;margin:8px 0 0}.ocr-region-ui label{min-width:min(150px,100%)}";ocrV2Css.textContent += "\n.ocr-name-shortcuts{margin:8px 0 12px;padding:7px 9px;border:1px solid #c7ddd8;border-radius:8px;background:#f7fbfa}.ocr-name-shortcuts strong{display:block;font-size:12px;margin:0 0 3px}.ocr-name-list{display:grid;gap:5px;max-height:170px;overflow-y:auto;overscroll-behavior:contain}.ocr-name-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center;padding:4px;border:1px solid #e1eae7;border-radius:5px;background:#fff}.ocr-name-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ocr-name-item button{padding:5px 6px;min-height:31px;font-size:11px}.ocr-name-shortcuts p{font-size:11px;margin:3px 0 6px;color:#4e6267;line-height:1.4}.ocr-name-shortcuts .ocr-name-flag{color:#a23145;font-size:11px;font-weight:700}.ocr-target-note{font-size:12px;font-weight:700;color:#087262;margin:6px 0 4px}\n@media(max-width:440px){.ocr-name-item{grid-template-columns:minmax(0,1fr) auto}.ocr-name-item button:last-child{grid-column:2}}";ocrV2Css.textContent += "\n.ocr-batch-summary{font-size:12px;font-weight:750;margin:8px 0;padding:6px 8px;border-radius:7px;background:#edf7f4;color:#15544c;line-height:1.6}";document.head.appendChild(ocrV2Css);
 const BASE = new URL('../ocr-auto-stage22/', document.baseURI);
 const expected='/msw-v1010-test/ocr-auto-stage22/';
 const pages=[];
@@ -113,7 +113,7 @@ async function recognize(index){
    result.warnings=[`日誌の欄位置を認識できませんでした（${layoutError.slice(0,120)}）。全文OCRのみ表示し、氏名や日付を推定・登録しません。`];
   }
   assertLive(p,epoch);
-  p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.scanned=true;p.approved=false;p.checked={date:false,names:false,counts:false};
+  p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.scanned=true;p.approved=false;p.humanEdited=false;p.checked={date:false,names:false,counts:false};
   report(`${index+1}枚目：${result.mode}が完了。必ず写真と照合してください。`);
  }finally{
   if(generic){generic.width=0;generic.height=0;}
@@ -245,7 +245,7 @@ async function recognizeCloseup(p,index){
   const data=(await worker.recognize(canvas))?.data;assertLive(p,epoch);
   const txt=String(data?.text||'').trim();if(!txt)throw Error('範囲内の文字を検出できません。もう少し広めに囲んでください。');
   const effect=applyCloseupRecognition(p,target,txt,destination);
-  p.scanned=true;p.approved=false;p.checked={date:false,names:false,counts:false};
+  p.scanned=true;p.approved=false;p.humanEdited=true;p.checked={date:false,names:false,counts:false};
   p.mode='部分拡大OCR（'+(target==='date'?'日付':target==='admission'?'入院':'退院')+'）';
   p.warnings=[effect,'今回の部分認識は目視確認が必要です。入退院の人数と氏名を原本と照合してください。'];
   p.raw=(p.raw?`${p.raw}\n`:'')+'【部分拡大OCR '+(target==='date'?'日付':target==='admission'?'入院':'退院')+'】'+txt;
@@ -258,6 +258,13 @@ async function recognizeCloseup(p,index){
  }
 }
 // Check live edit and confirmation state (not the original render snapshot).
+function hasOCRContents(p){
+ return Boolean(p&&(p.scanned||p.humanEdited||String(p.date||'').trim()||String(p.raw||'').trim()
+  ||(p.admission||[]).length||(p.discharge||[]).length));
+}
+function pendingBulkIndices(){
+ return pages.map((p,i)=>!p.approved&&!hasOCRContents(p)?i:-1).filter(i=>i>=0);
+}
 function approvalReady(p){
  return Boolean(p&&!busy&&p.scanned&&p.date&&p.checked.date&&p.checked.names&&p.checked.counts
   &&p.admission.every(value=>String(value??'').trim())
@@ -302,7 +309,10 @@ function renderScanner(){
  const oldPreview=el('ocrCropPreview');
  if(oldPreview){oldPreview.width=oldPreview.height=0;}
  const p=pages[current];
- const cards=pages.map((x,i)=>`<button type="button" class="btn secondary ocr-page" data-n="${i}" aria-pressed="${i===current}">${i+1}枚目 ${x.approved?'確認済':x.scanned?'要確認':'未認識'}</button>`).join('');
+ const cards=pages.map((x,i)=>`<button type="button" class="btn secondary ocr-page" data-n="${i}" aria-pressed="${i===current}">${i+1}枚目 ${x.approved?'確認済':x.humanEdited?'修正済・要確認':x.scanned?'要確認':hasOCRContents(x)?'要確認':'未認識'}</button>`).join('');
+ const reviewedCount=pages.filter(x=>x.approved).length;
+ const pendingCount=pages.filter(x=>!x.approved&&hasOCRContents(x)).length;
+ const newCount=pendingBulkIndices().length;
  const approved=p?.approved&&p?.scanned;
  const regionTarget=p?.regionTarget||'admission';
  const destMarkup=p?destinationOptions(p,regionTarget):'';
@@ -311,10 +321,10 @@ function renderScanner(){
  const choiceIndex=/^replace:(\d+)$/.exec(chosenDestination);
  const selectionHint=choiceIndex?rowName+' '+(Number(choiceIndex[1])+1)+'行目を再認識する準備ができています。写真の文字を新しく囲んでください。':'';
  const complete=approvalReady(p);
- host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプル4枚を読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><div class="ocr-photo-bar">${cards}</div>
+ host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプル4枚を読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><p class="ocr-batch-summary">全${pages.length}枚　確認済み：${reviewedCount}枚 ／ 確認待ち：${pendingCount}枚 ／ 未読み取り：${newCount}枚</p><div class="ocr-photo-bar">${cards}</div>
  ${p?`<div class="ocr-grid"><div><div class="ocr-image-wrap"><img id="ocrPhotoOriginal" class="ocr-original" src="${safe(p.url)}" alt="撮影した架空日誌"><span id="ocrRangeBox" class="ocr-range-box" hidden></span></div><p class="ocr-crop-label">囲んだ文字の拡大確認（選択したときだけ表示）</p><canvas id="ocrCropPreview" class="ocr-crop-preview" width="0" height="0" hidden aria-label="選択した氏名や日付の拡大表示"></canvas><p class="notice">${safe(p.file.name)}</p><p class="notice">読みたい日付・氏名の周囲を写真上で指で囲むと、その部分だけ再認識できます。</p></div><div>
  <p class="notice"><b>認識方式：</b>${safe(p.mode||'未認識')}</p>
- <div class="ocr-buttons"><button class="btn" id="journalTryOCR" ${busy?'disabled':''}>この写真を日本語OCR</button><button class="btn secondary" id="journalAllOCR" ${busy?'disabled':''}>未確認の写真を順番にOCR</button><button class="btn secondary" id="journalDiscardOCR" ${busy?'disabled':''}>写真をすべて消去</button></div>
+ <div class="ocr-buttons"><button class="btn" id="journalTryOCR" ${busy?'disabled':''}>この写真を日本語OCR</button><button class="btn secondary" id="journalAllOCR" ${busy||!newCount?'disabled':''}>未読み取りの写真だけを一括OCR</button><button class="btn secondary" id="journalDiscardOCR" ${busy?'disabled':''}>写真をすべて消去</button></div>
  <div class="ocr-region-ui"><label>部分再認識の対象 <select id="ocrRegionTarget"><option value="date" ${p.regionTarget==='date'?'selected':''}>日誌の日付</option><option value="admission" ${!p.regionTarget||p.regionTarget==='admission'?'selected':''}>入院した患者の氏名</option><option value="discharge" ${p.regionTarget==='discharge'?'selected':''}>退院した患者の氏名</option></select></label><label>認識結果の反映先 <select id="ocrRegionDestination">${destMarkup}</select><span class="ocr-destination-note">誤認識の修正は「○行目を置き換え」を指定</span></label><button class="btn secondary" type="button" id="ocrRunRange" ${busy||!p.region?'disabled':''}>選択範囲だけ再認識</button><button class="btn secondary" type="button" id="ocrClearRange">範囲選択をやり直す</button></div>
  <p class="ocr-target-note" role="status">${safe(selectionHint)}</p><p class="notice" id="journalOCRStatus" role="status" aria-live="polite">${safe(notice)}</p>
  ${p.warnings.length?`<p class="notice ocr-warning">${p.warnings.map(safe).join(' / ')}</p>`:''}
@@ -328,10 +338,19 @@ function renderScanner(){
  </div></div>`:`<p class="notice">写真はまだありません。上の「日誌の写真を選択・撮影」から架空画像を追加してください。</p>`}</div>`;
  for(const button of host.querySelectorAll('.ocr-page'))button.onclick=()=>{if(busy)return;current=Number(button.dataset.n);renderScanner();};
  if(!p)return;
- el('journalTryOCR').onclick=()=>run([current]);
- el('journalAllOCR').onclick=()=>run(pages.map((_,i)=>i).filter(i=>!pages[i].approved));
+ el('journalTryOCR').onclick=()=>{
+  if(busy)return;
+  if(p.approved){report('確認済みの写真です。修正する場合は氏名候補の「再認識」または「手入力」を使ってください。');return;}
+  if(hasOCRContents(p)&&!confirm('この写真をもう一度OCRすると、手修正済みの氏名や日付を含む現在の結果が上書きされます。\n再認識しますか？'))return;
+  void run([current],{explicitRetry:true});
+ };
+ el('journalAllOCR').onclick=()=>{
+  const todo=pendingBulkIndices();
+  if(!todo.length){report('未読み取りの写真はありません。修正済みの結果は保護されています。');return;}
+  void run(todo);
+ };
  el('journalDiscardOCR').onclick=()=>{erase();renderScanner();const n=el('journalPhotoInfo');if(n)n.textContent='';};
- el('journalOCRText').oninput=e=>{p.raw=e.target.value;p.approved=false;p.checked={date:false,names:false,counts:false};for(const k of ['ocrCheckDate','ocrCheckNames','ocrCheckCounts']){const box=el(k);if(box)box.checked=false}refreshApproval(p);};
+ el('journalOCRText').oninput=e=>{p.raw=e.target.value;p.humanEdited=true;p.approved=false;p.checked={date:false,names:false,counts:false};for(const k of ['ocrCheckDate','ocrCheckNames','ocrCheckCounts']){const box=el(k);if(box)box.checked=false}refreshApproval(p);};
  const destinationControl=el('ocrRegionDestination');
  if(destinationControl){
   const valid=Array.from(destinationControl.options||[]).some(o=>o.value===chosenDestination);
@@ -348,7 +367,7 @@ function renderScanner(){
   finally{busy=false;if(epoch===sessionEpoch){renderScanner();if(error)report('部分再認識に失敗：'+error);}}
  };
  selectRange(p);refreshApproval(p);
- const invalidate=()=>{p.approved=false;p.checked={date:false,names:false,counts:false};renderScanner();};
+ const invalidate=()=>{p.humanEdited=true;p.approved=false;p.checked={date:false,names:false,counts:false};renderScanner();};
  for(const [id,key,kind] of [['ocrDate','date','date'],['ocrAdmission','admission','names'],['ocrDischarge','discharge','names']]){
   el(id).onchange=e=>{p[key]=kind==='date'?e.target.value:words(e.target.value);invalidate();};
  }
@@ -392,7 +411,7 @@ function renderScanner(){
   n?.scrollIntoView({block:'center',behavior:'smooth'});
  };
 }
-async function run(indices){
+async function run(indices,{explicitRetry=false}={}){
  if(busy||!indices.length)return;
  const epoch=sessionEpoch;
  busy=true;renderScanner();let attempted=0,completed=0,failures=[];
@@ -400,6 +419,7 @@ async function run(indices){
   for(const i of indices){
    if(epoch!==sessionEpoch)break;
    if(!pages[i]||pages[i].approved)continue;
+   if(!explicitRetry&&hasOCRContents(pages[i]))continue;
    attempted++;current=i;renderScanner();
    try{await recognize(i);if(epoch===sessionEpoch)completed++;}
    catch(e){
@@ -433,7 +453,7 @@ function bindScanner(){
   if(newFiles.some(f=>!f.type.startsWith('image/')||f.size>15*1024*1024||!f.size)){
    report('15MB以下の画像だけ選択してください。');renderScanner();return;
   }
-  for(const file of newFiles){pages.push({file,url:URL.createObjectURL(file),date:'',admission:[],discharge:[],raw:'',mode:'未認識',warnings:[],scanned:false,approved:false,checked:{date:false,names:false,counts:false}});}
+  for(const file of newFiles){pages.push({file,url:URL.createObjectURL(file),date:'',admission:[],discharge:[],raw:'',mode:'未認識',warnings:[],scanned:false,approved:false,humanEdited:false,checked:{date:false,names:false,counts:false}});}
   if(current<0)current=0;report(`${pages.length}枚選択しました。認識は端末上で行い、写真を患者記録には保存しません。`);
   const n=el('journalPhotoInfo');if(n)n.textContent=`写真 ${pages.length}枚（架空日誌で検証してください）`;
   renderScanner();
