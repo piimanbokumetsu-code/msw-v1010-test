@@ -183,9 +183,15 @@ async function recognizeCloseup(p,index){
   if(worker)try{await worker.terminate()}catch(_){}
  }
 }
+// Check live edit and confirmation state (not the original render snapshot).
+function approvalReady(p){
+ return Boolean(p&&!busy&&p.scanned&&p.date&&p.checked.date&&p.checked.names&&p.checked.counts
+  &&p.admission.every(value=>String(value??'').trim())
+  &&p.discharge.every(value=>String(value??'').trim()));
+}
 function refreshApproval(p){
  const btn=el('ocrApprove');if(!btn||!p)return;
- const complete=Boolean(!busy&&p.scanned&&p.date&&p.checked.date&&p.checked.names&&p.checked.counts&&p.admission.every(Boolean)&&p.discharge.every(Boolean));
+ const complete=approvalReady(p);
  btn.disabled=!complete;
  const count=el('ocrVerifiedCount');if(count)count.textContent=[p.checked.date,p.checked.names,p.checked.counts].filter(Boolean).length+'/3 項目を確認済み';
 }
@@ -194,7 +200,7 @@ function renderScanner(){
  const p=pages[current];
  const cards=pages.map((x,i)=>`<button type="button" class="btn secondary ocr-page" data-n="${i}" aria-pressed="${i===current}">${i+1}枚目 ${x.approved?'確認済':x.scanned?'要確認':'未認識'}</button>`).join('');
  const approved=p?.approved&&p?.scanned;
- const complete=p?.scanned&&p?.date&&p?.checked.date&&p?.checked.names&&p?.checked.counts&&p.admission.every(Boolean)&&p.discharge.every(Boolean);
+ const complete=approvalReady(p);
  host.innerHTML=`<div class="ocr-zone"><details class="ocr-guide" open><summary>初めての操作はこちら（4つの手順）</summary><ol><li>「架空の日誌サンプル4枚を読み込む」をタップ</li><li>「この写真を日本語OCR」をタップ</li><li>文字が違うときは、左の写真の該当部分を指で囲んで、対象を選び「選択範囲だけ再認識」</li><li>右側の日付・氏名・人数を原本と照合・修正して、3つの確認にチェック（本番患者には登録しません）</li></ol><p>写真は端末内の一時メモリだけで扱います。終了時に削除してください。</p></details><div class="ocr-photo-bar">${cards}</div>
  ${p?`<div class="ocr-grid"><div><div class="ocr-image-wrap"><img id="ocrPhotoOriginal" class="ocr-original" src="${safe(p.url)}" alt="撮影した架空日誌"><span id="ocrRangeBox" class="ocr-range-box" hidden></span></div><p class="notice">${safe(p.file.name)}</p><p class="notice">読みたい日付・氏名の周囲を写真上で指で囲むと、その部分だけ再認識できます。</p></div><div>
  <p class="notice"><b>認識方式：</b>${safe(p.mode||'未認識')}</p>
@@ -229,7 +235,7 @@ function renderScanner(){
  for(const [id,key] of [['ocrCheckDate','date'],['ocrCheckNames','names'],['ocrCheckCounts','counts']]){
   el(id).onchange=e=>{p.checked[key]=e.target.checked;p.approved=false;refreshApproval(p);};
  }
- el('ocrApprove').onclick=()=>{if(!complete||busy)return;p.approved=true;report('原本照合を記録しました。患者データには自動登録していません。');renderScanner();};
+ el('ocrApprove').onclick=()=>{if(!approvalReady(p))return;p.approved=true;report('原本照合を記録しました。患者データには自動登録していません。');renderScanner();};
  for(const button of host.querySelectorAll('.ocr-copy-name'))button.onclick=()=>{
   if(!p.approved)return;
   const name=p.admission[Number(button.dataset.i)];
@@ -241,7 +247,13 @@ function renderScanner(){
 }
 async function run(indices){
  if(busy||!indices.length)return;busy=true;renderScanner();let completed=0,failures=[];
- try{for(const i of indices){if(!pages[i]||pages[i].approved)continue;current=i;renderScanner();try{await recognize(i);completed++;}catch(e){failures.push(`${i+1}枚目: ${String(e?.message||e).slice(0,150)}`);}renderScanner();}}
+ try{for(const i of indices){if(!pages[i]||pages[i].approved)continue;current=i;renderScanner();try{await recognize(i);completed++;}catch(e){
+ const reason=String(e?.message||e).slice(0,150);
+ failures.push(`${i+1}枚目: ${reason}`);
+ const failed=pages[i];
+ if(failed){failed.approved=false;failed.scanned=false;failed.checked={date:false,names:false,counts:false};
+  failed.warnings=['今回のOCRは失敗しました。入力欄の文字が残っていても以前の結果です。原本を確認してください。',`認識エラー：${reason}`];}
+}renderScanner();}}
  finally{busy=false;report(`${indices.length}枚中 ${completed}枚でOCR処理が終了。${failures.length?'失敗：'+failures.join(' / '):'氏名・人数・日付を必ず照合してください。'}`);renderScanner();}
 }
 function bindScanner(){
