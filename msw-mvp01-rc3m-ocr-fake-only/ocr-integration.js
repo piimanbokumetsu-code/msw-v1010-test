@@ -8,29 +8,48 @@ const BASE = new URL('../ocr-auto-stage22/', document.baseURI);
 const expected='/msw-v1010-test/ocr-auto-stage22/';
 const pages=[];
 let current=-1,busy=false,notice='写真を選択してください。';
+let sessionEpoch=0,activeWorker=null;
 const el=id=>document.getElementById(id);
 const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const words=x=>String(x||'').split(/\r?\n/).map(y=>y.trim()).filter(Boolean);
-function erase(){for(const p of pages)URL.revokeObjectURL(p.url);pages.length=0;current=-1;notice='写真を消去しました。';}
+function erase(){
+ // Invalidate all in-flight camera loads, image decoding, and asynchronous OCR.
+ sessionEpoch++;
+ const active=activeWorker;activeWorker=null;
+ if(active)try{void Promise.resolve(active.terminate()).catch(()=>{});}catch(_){}
+ for(const p of pages)URL.revokeObjectURL(p.url);
+ pages.length=0;current=-1;notice='写真を消去しました。';
+}
+function assertLive(p,epoch){
+ if(epoch!==sessionEpoch||!pages.includes(p))throw Error('画面移動またはロックによりOCRを中断しました。');
+}
 function report(x){notice=x;const n=el('journalOCRStatus');if(n)n.textContent=x;}
 function nextPaint(){return new Promise(resolve=>{if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>resolve());else setTimeout(resolve,0);});}
 function loadScript(href){return new Promise((ok,fail)=>{const s=document.createElement('script');s.src=href;s.onload=ok;s.onerror=()=>fail(new Error('OCR部品を取得できません。通信環境と再読み込みを確認してください。'));document.head.append(s);});}
-async function workerFor(){
+async function workerFor(epoch){
  if(location.protocol!=='https:' || BASE.origin!==location.origin || BASE.pathname!==expected)throw new Error('認識機能は承認したHTTPSテストURLでのみ動作します。');
+ if(epoch!==sessionEpoch)throw Error('OCRは中断されました。');
  if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);
+ if(epoch!==sessionEpoch)throw Error('OCRは中断されました。');
  if(!window.Tesseract?.createWorker)await loadScript(new URL('ocr/tesseract.min.js',BASE).href);
+ if(epoch!==sessionEpoch)throw Error('OCRは中断されました。');
  report('日本語OCRエンジンと辞書を準備しています…');
  const core=new URL('ocr/core/',BASE).href.replace(/\/$/,'');
  const lang=new URL('ocr/lang/',BASE).href.replace(/\/$/,'');
- return window.Tesseract.createWorker('jpn',1,{
+ const worker=await window.Tesseract.createWorker('jpn',1,{
   workerPath:new URL('ocr/worker.min.js',BASE).href,
   corePath:core,langPath:lang,workerBlobURL:false,gzip:true,cacheMethod:'none',
   logger:m=>{
-   if(!m||!m.status||!/loading|initializing/i.test(String(m.status)))return;
+   if(epoch!==sessionEpoch||!m||!m.status||!/loading|initializing/i.test(String(m.status)))return;
    const percent=typeof m.progress==='number'?Math.round(Math.max(0,Math.min(1,m.progress))*100):null;
    report('日本語OCR部品を準備しています…'+(percent===null?'':percent+'%'));
   }
  });
+ if(epoch!==sessionEpoch){
+  try{await worker.terminate();}catch(_){}
+  throw Error('OCRは中断されました。');
+ }
+ return worker;
 }
 function dateISO(input){
  const t=String(input||'').normalize('NFKC').replace(/[〇○Ｏ]/g,'0').replace(/[　\s]+/g,' ');
@@ -54,16 +73,19 @@ function dateISO(input){
 async function getImage(url){const img=new Image();img.src=url;await img.decode();return img;}
 function compactCanvas(img){const max=1650,ratio=Math.min(1,max/img.width,max*1.6/img.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*ratio));c.height=Math.max(1,Math.round(img.height*ratio));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
 async function recognize(index){
- const p=pages[index];if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
+ const p=pages[index],epoch=sessionEpoch;
+ if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
  // New attempts must not leave old OCR results marked as current if the new run fails.
  p.scanned=false;p.checked={date:false,names:false,counts:false};
  let worker=null,plan=null,img=null,generic=null;
  try{
   report(`${index+1}枚目：画像の書式を確認しています…`);
-  await nextPaint();img=await getImage(p.url);
+  await nextPaint();assertLive(p,epoch);
+  img=await getImage(p.url);assertLive(p,epoch);
   let layoutError='';
   try{if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);plan=window.MSWJournalLayout.inspect(img);}catch(e){layoutError=String(e?.message||e);}
-  worker=await workerFor();
+  assertLive(p,epoch);
+  worker=await workerFor(epoch);activeWorker=worker;assertLive(p,epoch);
   let result={date:'',admission:[],discharge:[],raw:'',mode:'全文OCR',warnings:[]};
   if(plan){
    result.mode='模擬書式の欄別OCR';
@@ -71,14 +93,14 @@ async function recognize(index){
    await worker.setParameters({tessedit_pageseg_mode:'6'});
    report(`${index+1}枚目：日付を認識しています…`);
    let crop=window.MSWJournalLayout.crop(plan.canvas,plan.dateRect,3);
-   try{const o=await worker.recognize(crop);result.date=dateISO(o?.data?.text);}finally{crop.width=crop.height=0;}
+   try{const o=await worker.recognize(crop);assertLive(p,epoch);result.date=dateISO(o?.data?.text);}finally{crop.width=crop.height=0;}
    await worker.setParameters({tessedit_pageseg_mode:'7'});
    for(const [kind,label] of [['admission','入院'],['discharge','退院']]){
     const found=plan[kind]?.written||[];
     for(let n=0;n<found.length;n++){
      report(`${index+1}枚目：${label}氏名 ${n+1}/${found.length} を認識しています…`);
      const sub=window.MSWJournalLayout.crop(plan.canvas,found[n].rect,0);
-     try{const value=String((await worker.recognize(sub))?.data?.text||'').replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();result[kind].push(value);}finally{sub.width=sub.height=0;}
+     try{const output=await worker.recognize(sub);assertLive(p,epoch);const value=String(output?.data?.text||'').replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();result[kind].push(value);}finally{sub.width=sub.height=0;}
     }
    }
    result.raw=[`日付：${result.date||'（未認識）'}`,`入院：${result.admission.join('、')||'（なし）'}`,`退院：${result.discharge.join('、')||'（なし）'}`].join('\n');
@@ -86,16 +108,18 @@ async function recognize(index){
    report(`${index+1}枚目：登録外の書式のため、全文OCRを試しています…`);
    generic=compactCanvas(img);
    await worker.setParameters({tessedit_pageseg_mode:'3'});
-   const data=(await worker.recognize(generic))?.data;
+   const data=(await worker.recognize(generic))?.data;assertLive(p,epoch);
    result.raw=String(data?.text||'').trim();
    result.warnings=[`日誌の欄位置を認識できませんでした（${layoutError.slice(0,120)}）。全文OCRのみ表示し、氏名や日付を推定・登録しません。`];
   }
+  assertLive(p,epoch);
   p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.scanned=true;p.approved=false;p.checked={date:false,names:false,counts:false};
   report(`${index+1}枚目：${result.mode}が完了。必ず写真と照合してください。`);
  }finally{
   if(generic){generic.width=0;generic.height=0;}
   if(plan?.canvas){plan.canvas.width=0;plan.canvas.height=0;}
   if(img){img.src='';img=null;}
+  if(activeWorker===worker)activeWorker=null;
   if(worker)try{await worker.terminate();}catch(_){/* release if available */}
  }
 }
@@ -154,16 +178,19 @@ function closeupCanvas(image,area){
  return c;
 }
 async function recognizeCloseup(p,index){
+ const epoch=sessionEpoch;
  if(!p.region)throw Error('画像上で文字の範囲を指で囲んでください。');
+ assertLive(p,epoch);
  // Preserve edited fields on OCR failure, but require renewed review.
  p.checked={date:false,names:false,counts:false};p.approved=false;
  let image=null,canvas=null,worker=null;
  try{
-  image=await getImage(p.url);canvas=closeupCanvas(image,p.region);worker=await workerFor();
+  image=await getImage(p.url);assertLive(p,epoch);
+  canvas=closeupCanvas(image,p.region);worker=await workerFor(epoch);activeWorker=worker;assertLive(p,epoch);
   const target=p.regionTarget||'admission';
   await worker.setParameters({tessedit_pageseg_mode:target==='date'?'7':'6'});
   report(`${index+1}枚目：囲んだ${target==='date'?'日付':target==='admission'?'入院氏名':'退院氏名'}を認識しています…`);
-  const data=(await worker.recognize(canvas))?.data;
+  const data=(await worker.recognize(canvas))?.data;assertLive(p,epoch);
   const txt=String(data?.text||'').trim();if(!txt)throw Error('範囲内の文字を検出できません。もう少し広めに囲んでください。');
   if(target==='date'){
    const v=dateISO(txt);if(!v)throw Error('日付の形式を読み取れませんでした。日付欄に手入力してください。OCR原文：'+txt.slice(0,40));
@@ -180,6 +207,7 @@ async function recognizeCloseup(p,index){
  }finally{
   if(canvas){canvas.width=canvas.height=0;}
   if(image){image.src='';image=null;}
+  if(activeWorker===worker)activeWorker=null;
   if(worker)try{await worker.terminate()}catch(_){}
  }
 }
@@ -224,8 +252,10 @@ function renderScanner(){
  el('ocrRegionTarget').onchange=e=>{p.regionTarget=e.target.value;};
  el('ocrClearRange').onclick=()=>{p.region=null;drawSelection(p);el('ocrRunRange').disabled=true;report('もう一度、写真の文字の範囲を指で囲んでね。');};
  el('ocrRunRange').onclick=async()=>{
-  if(busy||!p.region)return;busy=true;renderScanner();let error='';
-  try{await recognizeCloseup(p,current);}catch(e){error=String(e?.message||e)}finally{busy=false;renderScanner();if(error)report('部分再認識に失敗：'+error);}
+  if(busy||!p.region)return;
+  const epoch=sessionEpoch;busy=true;renderScanner();let error='';
+  try{await recognizeCloseup(p,current);}catch(e){error=String(e?.message||e)}
+  finally{busy=false;if(epoch===sessionEpoch){renderScanner();if(error)report('部分再認識に失敗：'+error);}}
  };
  selectRange(p);refreshApproval(p);
  const invalidate=()=>{p.approved=false;p.checked={date:false,names:false,counts:false};renderScanner();};
@@ -246,15 +276,35 @@ function renderScanner(){
  };
 }
 async function run(indices){
- if(busy||!indices.length)return;busy=true;renderScanner();let completed=0,failures=[];
- try{for(const i of indices){if(!pages[i]||pages[i].approved)continue;current=i;renderScanner();try{await recognize(i);completed++;}catch(e){
- const reason=String(e?.message||e).slice(0,150);
- failures.push(`${i+1}枚目: ${reason}`);
- const failed=pages[i];
- if(failed){failed.approved=false;failed.scanned=false;failed.checked={date:false,names:false,counts:false};
-  failed.warnings=['今回のOCRは失敗しました。入力欄の文字が残っていても以前の結果です。原本を確認してください。',`認識エラー：${reason}`];}
-}renderScanner();}}
- finally{busy=false;report(`${indices.length}枚中 ${completed}枚でOCR処理が終了。${failures.length?'失敗：'+failures.join(' / '):'氏名・人数・日付を必ず照合してください。'}`);renderScanner();}
+ if(busy||!indices.length)return;
+ const epoch=sessionEpoch;
+ busy=true;renderScanner();let attempted=0,completed=0,failures=[];
+ try{
+  for(const i of indices){
+   if(epoch!==sessionEpoch)break;
+   if(!pages[i]||pages[i].approved)continue;
+   attempted++;current=i;renderScanner();
+   try{await recognize(i);if(epoch===sessionEpoch)completed++;}
+   catch(e){
+    if(epoch!==sessionEpoch)break;
+    const reason=String(e?.message||e).slice(0,150);
+    failures.push(`${i+1}枚目: ${reason}`);
+    const failed=pages[i];
+    if(failed){
+     failed.approved=false;failed.scanned=false;failed.checked={date:false,names:false,counts:false};
+     failed.warnings=['今回のOCRは失敗しました。入力欄の文字が残っていても以前の結果です。原本を確認してください。',`認識エラー：${reason}`];
+    }
+   }
+   if(epoch===sessionEpoch)renderScanner();
+  }
+ }finally{
+  busy=false;
+  // Locked/erased sessions must not render or report stale results.
+  if(epoch===sessionEpoch){
+   report(`${attempted}枚中 ${completed}枚でOCR処理が終了。${failures.length?'失敗：'+failures.join(' / '):'氏名・人数・日付を必ず照合してください。'}`);
+   renderScanner();
+  }
+ }
 }
 function bindScanner(){
  const input=el('journalPhoto');if(!input)return;
@@ -272,11 +322,14 @@ function bindScanner(){
   renderScanner();
  };
  input.onchange=e=>{const selected=[...(e.target.files||[])];e.target.value='';appendFiles(selected);};
- const sample=document.createElement('button');sample.type='button';sample.className='btn secondary';sample.textContent='架空の日誌サンプル4枚を読み込む';
+ // Render may run repeatedly; do not stack duplicate load controls.
+ document.getElementById('ocrLoadSyntheticSamples')?.remove();
+ const sample=document.createElement('button');sample.id='ocrLoadSyntheticSamples';sample.type='button';sample.className='btn secondary';sample.textContent='架空の日誌サンプル4枚を読み込む';
  sample.style.marginLeft='7px';input.parentElement.insertAdjacentElement('afterend',sample);
  sample.onclick=async()=>{
   if(busy||pages.length){report('既存写真を消去してからサンプルを読み込んでください。');return;}
   sample.disabled=true;
+  const epoch=sessionEpoch;
   const names=['仮想日誌_01_2026-10-14.png','仮想日誌_02_2026-10-14.png','仮想日誌_03_2026-10-15.png','仮想日誌_04_2026-10-15.png'];
   try{
    const files=[];
@@ -285,12 +338,14 @@ function bindScanner(){
     if(url.origin!==location.origin)throw Error('同一サイトの架空画像のみ読み込めます');
     report('架空サンプルを準備しています… '+(i+1)+'/'+names.length);
     const res=await fetch(url.href,{cache:'force-cache'});
+    if(epoch!==sessionEpoch)return;
     if(!res.ok)throw Error((i+1)+'枚目のサンプル画像を取得できません');
-    files.push(new File([await res.blob()],names[i],{type:'image/png'}));
+    const blob=await res.blob();if(epoch!==sessionEpoch)return;
+    files.push(new File([blob],names[i],{type:'image/png'}));
    }
-   appendFiles(files);
-  }catch(e){report('サンプルを読み込めませんでした：'+String(e?.message||e));}
-  finally{sample.disabled=false;}
+   if(epoch===sessionEpoch)appendFiles(files);
+  }catch(e){if(epoch===sessionEpoch)report('サンプルを読み込めませんでした：'+String(e?.message||e));}
+  finally{if(sample.isConnected)sample.disabled=false;}
  };
  renderScanner();
 }
