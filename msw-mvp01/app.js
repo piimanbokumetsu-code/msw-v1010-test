@@ -403,6 +403,9 @@ async function finishPatientAndNavigate(next,{closing=false}={}){
   const controls=$$('#modal .sheethead button, #modal .tab');
   controls.forEach(b=>b.disabled=true);
   try{
+    if(activeTab==='rx02'&&document.querySelector('#rxRows')){
+      if(!await rx02Store(false))return;
+    }
     capturePatientForm();
     const draft=selectedPatient;
     if(draft?._new&&!patientCanSave(draft)){
@@ -456,9 +459,10 @@ function rx02DraftRows(){return [...document.querySelectorAll('#rxRows [data-rx-
 })}
 async function rx02Store(confirmPrescription){
  if(!selectedPatient)return false;
- const rows=rx02DraftRows().filter(x=>Object.values(x).some(v=>Array.isArray(v)?v.length:String(v||'').trim()));
+ const rows=rx02DraftRows().filter(x=>String(x.name||'').trim() || String(x.qty||'').trim() || String(x.freq||'').trim() || String(x.price||'').trim() || (x.slots||[]).length);
  if(rows.some(x=>!String(x.name||'').trim())){alert('薬剤名が未入力の行があります');return false}
  if(confirmPrescription&&(!rows.length||rows.some(x=>!(Number(x.qty)>0)||!(Number(x.freq)>0)||!x.timing))){alert('薬剤名・1回量・回数・用法を確認してください');return false}
+ if(selectedPatient._new&&!patientCanSave(selectedPatient)){alert('氏名または患者IDを登録してから処方を保存してください');return false}
  const before=selectedPatient.rx02Prescription;
  const after={items:rows,confirmed:!!confirmPrescription,date:new Date().toISOString().slice(0,10)};
  selectedPatient.rx02Prescription=after;
@@ -483,15 +487,19 @@ function renderRX02Tab(rows){
  '<div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
  $('#rxAdd').onclick=()=>renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}]);
  root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete))));
- root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>el.onchange=()=>{$('#rxSaveStatus').textContent='未保存の変更があります'});
- $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました'}};
- $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み'}};
+ root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true};el.addEventListener('input',dirty);el.addEventListener('change',dirty)});
+ $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました';$('#rxPrint').disabled=true}};
+ $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み';$('#rxPrint').disabled=false}};
+ $('#rxPrint').disabled=!selectedPatient?.rx02Prescription?.confirmed;
  $('#rxPrint').onclick=()=>rx02PrintView();
 }
+function rx02RowsEqual(a,b){return JSON.stringify(a.map(rx02NormalizeRow))===JSON.stringify((b||[]).map(rx02NormalizeRow))}
+function rx02NormalizeRow(x){return {name:String(x.name||''),qty:String(x.qty||''),unit:String(x.unit||''),freq:String(x.freq||''),timing:String(x.timing||''),price:String(x.price||''),slots:Array.isArray(x.slots)?x.slots:[]}}
 function rx02PrintView(){
  const rec=selectedPatient?.rx02Prescription;
  if(!rec?.confirmed)return alert('保存済みの確定処方だけ印刷できます');
  if(!confirm('電子カルテの最新処方と照合しましたか？'))return;
+ if(document.querySelector('#rxRows') && !rx02RowsEqual(rx02DraftRows(),rec.items)){alert('未保存の変更があります。もう一度処方確定してから印刷してください');return}
  const win=window.open('','_blank');
  if(!win)return alert('印刷画面を開けませんでした');
  const rs=rec.items.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+esc(r.qty)+' '+esc(r.unit)+'</td><td>'+esc(r.freq)+'回/日</td><td>'+esc((r.slots||[]).join('・')+' '+r.timing)+'</td></tr>').join('');
