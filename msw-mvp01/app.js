@@ -478,10 +478,22 @@ function rx02LegacyInfo(name){
  if(!d)return '';
  return '登録済み：'+[d['医薬品分類'],d['薬効'],d['薬価']?'旧薬価記載 '+d['薬価']:''].filter(Boolean).join(' ／ ');
 }
+function rx02LegacySpecs(name){
+ const d=(state.drugs||[]).find(d=>String(d['薬名']||'').trim()===String(name||'').trim());
+ if(!d)return [];
+ const raw=String(d['薬価']||'').normalize('NFKC').replace(/㎎/g,'mg').replace(/μg/g,'µg');
+ const rx=/(\d+(?:\.\d+)?)\s*(mg|g|µg|mL|ml|%|錠|包|カプセル)\s*[\(（]\s*(\d+(?:\.\d+)?)\s*[\)）]/gi;
+ const result=[];let m;
+ while((m=rx.exec(raw))!==null){
+   const strength=m[1]+(m[2]==='ml'?'mL':m[2]);
+   if(!result.some(x=>x.strength===strength))result.push({strength,price:m[3]});
+ }
+ return result;
+}
 function rx02RowHtml(x,i){
  const options=(a,v)=>a.map(t=>'<option value="'+esc(t)+'" '+(t===v?'selected':'')+'>'+esc(t)+'</option>').join('');
  return '<div data-rx-row="'+i+'" class="panel"><div class="form-grid">'+
- '<label class="field span2">薬剤名・規格<input list="rx02DrugCandidates" autocomplete="off" data-rx-field="name" value="'+esc(x.name||'')+'"><small data-rx-legacy-info>'+esc(rx02LegacyInfo(x.name))+'</small></label>'+
+ '<label class="field span2">薬剤名・規格<input list="rx02DrugCandidates" autocomplete="off" data-rx-field="name" value="'+esc(x.name||'')+'"><small data-rx-legacy-info>'+esc(rx02LegacyInfo(x.name))+'</small><span class="rx-spec-options"></span></label>'+
  '<label class="field">1回量<input data-rx-field="qty" inputmode="decimal" type="number" min="0" step="any" value="'+esc(x.qty||'')+'"></label>'+
  '<label class="field">単位<select data-rx-field="unit">'+options(['錠','包','カプセル','mg','g','mL','その他'],x.unit||'錠')+'</select></label>'+
  '<label class="field">1日回数<input data-rx-field="freq" inputmode="decimal" type="number" min="0" step="any" value="'+esc(x.freq||'')+'"></label>'+
@@ -490,14 +502,39 @@ function rx02RowHtml(x,i){
  '<div class="field"><label>服用時点</label><div>'+['朝','昼','夕'].map(t=>'<label style="display:inline-block;margin-right:10px"><input type="checkbox" data-rx-slot="'+t+'" '+((x.slots||[]).includes(t)?'checked':'')+'>'+t+'</label>').join('')+'</div></div></div>'+
  '<button class="btn secondary" data-rx-delete="'+i+'">削除</button></div>'
 }
+function rx02DrawLegacySpecs(row){
+ if(!row)return;
+ const slot=row.querySelector('.rx-spec-options');
+ if(!slot)return;
+ const name=row.querySelector('[data-rx-field="name"]')?.value||'';
+ const options=rx02LegacySpecs(name);
+ slot.replaceChildren();
+ if(!options.length)return;
+ const note=document.createElement('small');note.textContent='旧データから抽出した規格・薬価候補（確認してから選択）';slot.append(note);
+ for(const opt of options){
+  const btn=document.createElement('button');btn.type='button';btn.className='btn secondary';
+  btn.style.margin='3px';btn.textContent=opt.strength+'（'+opt.price+'円）';
+  btn.onclick=()=>{
+   if(!confirm('電子カルテや薬価資料で「'+name+' '+opt.strength+'：'+opt.price+'円／単位」を確認しましたか？\n確認できた場合のみ入力欄に反映します。'))return;
+   const field=row.querySelector('[data-rx-field="name"]');
+   const price=row.querySelector('[data-rx-field="price"]');
+   field.value=name+' '+opt.strength;price.value=opt.price;
+   const status=$('#rxSaveStatus');if(status)status.textContent='旧データの候補を反映しました。規格・薬価単位を確認して保存してください';
+   $('#rxPrint').disabled=true;
+   rx02DrawLegacySpecs(row);
+  };
+  slot.append(btn);
+ }
+}
 function renderRX02Tab(rows){
  const root=$('#tabbody'),items=rows||rx02SafeRows();
  root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。旧薬価は記載内容の確認用であり、単位薬価には自動転記しません。</p>'+
  '<div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
  '<datalist id="rx02DrugCandidates">'+rx02LegacyCandidates().map(n=>'<option value="'+esc(n)+'"></option>').join('')+'</datalist><div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
+ root.querySelectorAll('[data-rx-row]').forEach(div=>rx02DrawLegacySpecs(div));
  $('#rxAdd').onclick=()=>renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}]);
  root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete))));
- root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true;if(el.dataset.rxField==='name'){const label=el.closest('[data-rx-row]')?.querySelector('[data-rx-legacy-info]');if(label)label.textContent=rx02LegacyInfo(el.value)}};el.addEventListener('input',dirty);el.addEventListener('change',dirty)});
+ root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true;if(el.dataset.rxField==='name'){const label=el.closest('[data-rx-row]')?.querySelector('[data-rx-legacy-info]');if(label)label.textContent=rx02LegacyInfo(el.value);rx02DrawLegacySpecs(el.closest('[data-rx-row]'))}};el.addEventListener('input',dirty);el.addEventListener('change',dirty)});
  $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました';$('#rxPrint').disabled=true}};
  $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み';$('#rxPrint').disabled=false}};
  $('#rxPrint').disabled=!selectedPatient?.rx02Prescription?.confirmed;
