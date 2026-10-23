@@ -404,7 +404,8 @@ async function finishPatientAndNavigate(next,{closing=false}={}){
   controls.forEach(b=>b.disabled=true);
   try{
     if(activeTab==='rx02'&&document.querySelector('#rxRows')){
-      if(!await rx02Store(false))return;
+      const stored=selectedPatient?.rx02Prescription?.items||[];
+      if(!rx02RowsEqual(rx02DraftRows(),stored) && !await rx02Store(false))return;
     }
     capturePatientForm();
     const draft=selectedPatient;
