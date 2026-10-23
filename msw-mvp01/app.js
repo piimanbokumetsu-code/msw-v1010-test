@@ -469,10 +469,19 @@ async function rx02Store(confirmPrescription){
  selectedPatient.rx02Prescription=after;
  try{await save();return true}catch(e){selectedPatient.rx02Prescription=before;alert('保存に失敗しました。処方内容は未確定です：'+e.message);return false}
 }
+function rx02LegacyCandidates(){
+ const names=(state.drugs||[]).map(d=>String(d['薬名']||'').trim()).filter(Boolean);
+ return [...new Set(names)].sort((a,b)=>a.localeCompare(b,'ja')).slice(0,2000);
+}
+function rx02LegacyInfo(name){
+ const d=(state.drugs||[]).find(d=>String(d['薬名']||'').trim()===String(name||'').trim());
+ if(!d)return '';
+ return '登録済み：'+[d['医薬品分類'],d['薬効'],d['薬価']?'旧薬価記載 '+d['薬価']:''].filter(Boolean).join(' ／ ');
+}
 function rx02RowHtml(x,i){
  const options=(a,v)=>a.map(t=>'<option value="'+esc(t)+'" '+(t===v?'selected':'')+'>'+esc(t)+'</option>').join('');
  return '<div data-rx-row="'+i+'" class="panel"><div class="form-grid">'+
- '<label class="field span2">薬剤名・規格<input data-rx-field="name" value="'+esc(x.name||'')+'"></label>'+
+ '<label class="field span2">薬剤名・規格<input list="rx02DrugCandidates" autocomplete="off" data-rx-field="name" value="'+esc(x.name||'')+'"><small data-rx-legacy-info>'+esc(rx02LegacyInfo(x.name))+'</small></label>'+
  '<label class="field">1回量<input data-rx-field="qty" inputmode="decimal" type="number" min="0" step="any" value="'+esc(x.qty||'')+'"></label>'+
  '<label class="field">単位<select data-rx-field="unit">'+options(['錠','包','カプセル','mg','g','mL','その他'],x.unit||'錠')+'</select></label>'+
  '<label class="field">1日回数<input data-rx-field="freq" inputmode="decimal" type="number" min="0" step="any" value="'+esc(x.freq||'')+'"></label>'+
@@ -483,12 +492,12 @@ function rx02RowHtml(x,i){
 }
 function renderRX02Tab(rows){
  const root=$('#tabbody'),items=rows||rx02SafeRows();
- root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。</p>'+
+ root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。旧薬価は記載内容の確認用であり、単位薬価には自動転記しません。</p>'+
  '<div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
- '<div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
+ '<datalist id="rx02DrugCandidates">'+rx02LegacyCandidates().map(n=>'<option value="'+esc(n)+'"></option>').join('')+'</datalist><div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
  $('#rxAdd').onclick=()=>renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}]);
  root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete))));
- root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true};el.addEventListener('input',dirty);el.addEventListener('change',dirty)});
+ root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true;if(el.dataset.rxField==='name'){const label=el.closest('[data-rx-row]')?.querySelector('[data-rx-legacy-info]');if(label)label.textContent=rx02LegacyInfo(el.value)}};el.addEventListener('input',dirty);el.addEventListener('change',dirty)});
  $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました';$('#rxPrint').disabled=true}};
  $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み';$('#rxPrint').disabled=false}};
  $('#rxPrint').disabled=!selectedPatient?.rx02Prescription?.confirmed;
