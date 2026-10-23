@@ -463,7 +463,7 @@ async function rx02Store(confirmPrescription){
  const rows=rx02DraftRows().filter(x=>String(x.name||'').trim() || String(x.qty||'').trim() || String(x.freq||'').trim() || String(x.price||'').trim() || (x.slots||[]).length);
  if(rows.some(x=>!String(x.name||'').trim())){alert('薬剤名が未入力の行があります');return false}
  if(confirmPrescription&&(!rows.length||rows.some(x=>!(Number(x.qty)>0)||!(Number(x.freq)>0)||!x.timing))){alert('薬剤名・1回量・回数・用法を確認してください');return false}
- if(selectedPatient._new&&!patientCanSave(selectedPatient)){alert('氏名または患者IDを登録してから処方を保存してください');return false}
+ if(selectedPatient._new){alert('先に基本タブで患者を保存してから処方薬を登録してください。新規患者のままでは処方の保存を確約できません。');return false}
  const before=selectedPatient.rx02Prescription;
  const after={items:rows,confirmed:!!confirmPrescription,date:new Date().toISOString().slice(0,10)};
  selectedPatient.rx02Prescription=after;
@@ -563,6 +563,7 @@ function rx02NormalizeRow(x){return {name:String(x.name||''),qty:String(x.qty||'
 function rx02PrintView(){
  const rec=selectedPatient?.rx02Prescription;
  if(!rec?.confirmed)return alert('保存済みの確定処方だけ印刷できます');
+ if(!rec.items?.length)return alert('確定処方が空欄です');
  if(!confirm('電子カルテの最新処方と照合しましたか？'))return;
  if(document.querySelector('#rxRows') && !rx02RowsEqual(rx02DraftRows(),rec.items)){alert('未保存の変更があります。もう一度処方確定してから印刷してください');return}
  const win=window.open('','_blank');
