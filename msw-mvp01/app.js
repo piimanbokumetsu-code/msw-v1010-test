@@ -436,7 +436,7 @@ function openPatient(p){
 }
 function renderPatientModal(){
   const p=selectedPatient;
-  document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeM">←</button><div class="patient-sheet-title"><h2>${esc(p.data['氏名']||'新規患者')}</h2><div class="notice">${esc(p.data['ベッド番号']||'病床未設定')}　${esc(p.data['病名']||'')}</div></div><div class="spacer"></div><span id="patientSaveStatus" role="status" aria-live="polite" class="patient-save-status">保存済み（自動保存）</span><button class="btn secondary" id="saveP">保存して閉じる</button></div><div class="tabs">${[['basic','基本'],['care','家族・介護'],['adl','ADL'],['support','退院支援'],['notes','経過記録'],['photos','写真・書類']].map(([k,n])=>`<button class="tab ${activeTab===k?'active':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="sheetbody" id="tabbody"></div></div></div>`);
+  document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div class="sheet"><div class="sheethead"><button class="btn secondary" id="closeM">←</button><div class="patient-sheet-title"><h2>${esc(p.data['氏名']||'新規患者')}</h2><div class="notice">${esc(p.data['ベッド番号']||'病床未設定')}　${esc(p.data['病名']||'')}</div></div><div class="spacer"></div><span id="patientSaveStatus" role="status" aria-live="polite" class="patient-save-status">保存済み（自動保存）</span><button class="btn secondary" id="saveP">保存して閉じる</button></div><div class="tabs">${[['basic','基本'],['care','家族・介護'],['adl','ADL'],['support','退院支援'],['notes','経過記録'],['photos','写真・書類'],['rx02','処方薬']].map(([k,n])=>`<button class="tab ${activeTab===k?'active':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="sheetbody" id="tabbody"></div></div></div>`);
   $('#closeM').onclick=()=>finishPatientAndNavigate(closePatient,{closing:true});
   $('#saveP').onclick=()=>finishPatientAndNavigate(closePatient,{closing:true});
   $$('.tab').forEach(t=>t.onclick=()=>finishPatientAndNavigate(()=>{
@@ -445,7 +445,61 @@ function renderPatientModal(){
   renderTab();bindPatientAutosave();
 }
 function closePatient(){clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();selectedPatient=null;$('#modal')?.remove();if(key&&state&&$('#main'))render()}
-function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='photos'){renderPhotosTab();return;}if(activeTab==='basic'){renderBasicDashboard();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><label class="mvp-task-label">対応内容<input id="newTask" maxlength="300" placeholder="例：家族に連絡、施設へ確認"></label><div class="mvp-task-options"><label>対応期限（任意）<input type="date" id="newTaskDue"></label><label class="mvp-urgent"><input type="checkbox" id="newTaskUrgent"> 優先対応</label><button class="btn" id="addTask">＋ タスク追加</button></div><p class="notice">期限を空欄にしたタスクも「要対応」一覧に残ります。</p></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院患者の情報は自動削除されず、退院患者記録に保持されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
+
+/* RX02_BRANCH_DEV_20261023 */
+function rx02SafeRows(){return Array.isArray(selectedPatient?.rx02Prescription?.items)?selectedPatient.rx02Prescription.items:[]}
+function rx02DraftRows(){return [...document.querySelectorAll('#rxRows [data-rx-row]')].map(div=>{
+ const x={slots:[]};
+ div.querySelectorAll('[data-rx-field]').forEach(n=>x[n.dataset.rxField]=n.value);
+ div.querySelectorAll('[data-rx-slot]:checked').forEach(n=>x.slots.push(n.dataset.rxSlot));
+ return x;
+})}
+async function rx02Store(confirmPrescription){
+ if(!selectedPatient)return false;
+ const rows=rx02DraftRows().filter(x=>Object.values(x).some(v=>Array.isArray(v)?v.length:String(v||'').trim()));
+ if(rows.some(x=>!String(x.name||'').trim())){alert('薬剤名が未入力の行があります');return false}
+ if(confirmPrescription&&(!rows.length||rows.some(x=>!(Number(x.qty)>0)||!(Number(x.freq)>0)||!x.timing))){alert('薬剤名・1回量・回数・用法を確認してください');return false}
+ const before=selectedPatient.rx02Prescription;
+ const after={items:rows,confirmed:!!confirmPrescription,date:new Date().toISOString().slice(0,10)};
+ selectedPatient.rx02Prescription=after;
+ try{await save();return true}catch(e){selectedPatient.rx02Prescription=before;alert('保存に失敗しました。処方内容は未確定です：'+e.message);return false}
+}
+function rx02RowHtml(x,i){
+ const options=(a,v)=>a.map(t=>'<option value="'+esc(t)+'" '+(t===v?'selected':'')+'>'+esc(t)+'</option>').join('');
+ return '<div data-rx-row="'+i+'" class="panel"><div class="form-grid">'+
+ '<label class="field span2">薬剤名・規格<input data-rx-field="name" value="'+esc(x.name||'')+'"></label>'+
+ '<label class="field">1回量<input data-rx-field="qty" inputmode="decimal" type="number" min="0" step="any" value="'+esc(x.qty||'')+'"></label>'+
+ '<label class="field">単位<select data-rx-field="unit">'+options(['錠','包','カプセル','mg','g','mL','その他'],x.unit||'錠')+'</select></label>'+
+ '<label class="field">1日回数<input data-rx-field="freq" inputmode="decimal" type="number" min="0" step="any" value="'+esc(x.freq||'')+'"></label>'+
+ '<label class="field">用法<select data-rx-field="timing">'+options(['食後','食前','食直前','食間','就寝前','頓服','その他'],x.timing||'食後')+'</select></label>'+
+ '<label class="field">単位薬価（院内用）<input data-rx-field="price" type="number" min="0" step="any" value="'+esc(x.price||'')+'"></label>'+
+ '<div class="field"><label>服用時点</label><div>'+['朝','昼','夕'].map(t=>'<label style="display:inline-block;margin-right:10px"><input type="checkbox" data-rx-slot="'+t+'" '+((x.slots||[]).includes(t)?'checked':'')+'>'+t+'</label>').join('')+'</div></div></div>'+
+ '<button class="btn secondary" data-rx-delete="'+i+'">削除</button></div>'
+}
+function renderRX02Tab(rows){
+ const root=$('#tabbody'),items=rows||rx02SafeRows();
+ root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。</p>'+
+ '<div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
+ '<div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
+ $('#rxAdd').onclick=()=>renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}]);
+ root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete))));
+ root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>el.onchange=()=>{$('#rxSaveStatus').textContent='未保存の変更があります'});
+ $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました'}};
+ $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み'}};
+ $('#rxPrint').onclick=()=>rx02PrintView();
+}
+function rx02PrintView(){
+ const rec=selectedPatient?.rx02Prescription;
+ if(!rec?.confirmed)return alert('保存済みの確定処方だけ印刷できます');
+ if(!confirm('電子カルテの最新処方と照合しましたか？'))return;
+ const win=window.open('','_blank');
+ if(!win)return alert('印刷画面を開けませんでした');
+ const rs=rec.items.map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+esc(r.qty)+' '+esc(r.unit)+'</td><td>'+esc(r.freq)+'回/日</td><td>'+esc((r.slots||[]).join('・')+' '+r.timing)+'</td></tr>').join('');
+ win.document.write('<!doctype html><html lang="ja"><meta charset="utf-8"><title>処方一覧</title><style>@page{size:A4;margin:15mm}body{font-family:sans-serif}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:7px}tr{break-inside:avoid}</style><h2>現在の内服処方一覧（情報提供用）</h2><p>確認日：'+esc(rec.date)+'</p><table><thead><tr><th>薬剤名</th><th>1回量</th><th>回数</th><th>服用時点</th></tr></thead><tbody>'+rs+'</tbody></table><p>電子カルテとの照合が必要な情報提供用資料です。正式な処方箋ではありません。</p></html>');
+ win.document.close();win.focus();win.print();
+}
+
+function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='rx02'){renderRX02Tab();return;}if(activeTab==='photos'){renderPhotosTab();return;}if(activeTab==='basic'){renderBasicDashboard();return;}if(groups[activeTab]){root.innerHTML=`<div class="panel"><div class="form-grid">${groups[activeTab].map(fieldHtml).join('')}</div></div>`;bindMasterSelects(root);return}if(activeTab==='support'){root.innerHTML=`<div class="panel"><h3>退院支援</h3><div class="form-grid"><div class="field"><label>進捗ステータス</label>${masterSelectHtml('進捗ステータス',getStatus(p),'id="status"')}</div><div class="field"><label>退院日</label><input type="date" id="dischargeDate" value="${esc(p.dischargeDate||'')}"></div><div class="field span2"><label>退院支援メモ</label><textarea data-field="退院支援">${esc(p.data['退院支援']||'')}</textarea></div></div></div><div class="panel"><h3>要対応タスク</h3><div id="taskList">${taskListHtml(p)}</div><label class="mvp-task-label">対応内容<input id="newTask" maxlength="300" placeholder="例：家族に連絡、施設へ確認"></label><div class="mvp-task-options"><label>対応期限（任意）<input type="date" id="newTaskDue"></label><label class="mvp-urgent"><input type="checkbox" id="newTaskUrgent"> 優先対応</label><button class="btn" id="addTask">＋ タスク追加</button></div><p class="notice">期限を空欄にしたタスクも「要対応」一覧に残ります。</p></div><div class="panel"><button class="btn danger" id="dischargeNow">退院として登録</button><p class="notice">退院患者の情報は自動削除されず、退院患者記録に保持されます。</p></div>`;$('#addTask').onclick=addTask;$('#dischargeNow').onclick=()=>{if(!$('#dischargeDate').value)$('#dischargeDate').value=new Date().toISOString().slice(0,10);$('#status').value='退院先決定';};bindTaskChecks();bindMasterSelects(root);return}if(activeTab==='notes'){root.innerHTML=`<div class="panel"><h3>経過記録を追加</h3><div class="form-grid"><div class="field"><label>種別</label>${masterSelectHtml('経過記録種別','面談','id="noteType"')}</div><div class="field"><label>日時</label><input id="noteAt" type="datetime-local" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}"></div><div class="field span2"><label>内容</label><textarea id="noteText" placeholder="対応内容・決定事項・次にやること"></textarea></div></div><button class="btn" id="addNote">記録追加</button></div><div class="panel"><h3>時系列</h3><div class="timeline">${notesHtml(p)}</div></div>`;$('#addNote').onclick=addNote;bindMasterSelects(root);return}}
 // Ver.1.0.19: compact basic information overview. Preserve each existing data key so
 // backups, morning print, and the family shorthand (家構: e.g. 2同別) continue working.
 const BASIC_FIELDS=[
