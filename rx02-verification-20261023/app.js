@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.26';
+const APP_VERSION='RX02-TEST-0.27';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -473,6 +473,7 @@ function rx02CostSummary(rows){
  let total=0,priced=0,missing=0,invalid=0;
  for(const r of rows){
   if(!String(r.name||'').trim())continue;
+  if(String(r.timing||'').trim()==='頓服')continue;
   if(String(r.price??'').trim()===''){missing++;continue}
   const qty=Number(r.qty),freq=Number(r.freq),price=Number(r.price);
   if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(freq)||freq<=0||!Number.isFinite(price)||price<0){invalid++;continue}
@@ -482,20 +483,27 @@ function rx02CostSummary(rows){
 }
 function rx02CostText(rows){
  const x=rx02CostSummary(rows),yen=n=>n.toLocaleString('ja-JP',{maximumFractionDigits:2});
+ const prn=rows.filter(r=>String(r.name||'').trim()&&String(r.timing||'').trim()==='頓服').length;
  return '院内用概算：1日 '+yen(x.total)+'円 ／ 30日 '+yen(x.total*30)+'円（算出 '+x.priced+'剤・未登録 '+x.missing+'剤・要確認 '+x.invalid+'剤）'+
- ((x.missing||x.invalid)?' ※表示額は全薬剤の合計ではありません。':'');
+ ((x.missing||x.invalid)?' ※表示額は全薬剤の合計ではありません。':'')+
+ (prn?' ※頓服'+prn+'剤は定期薬の概算から除外。':'');
 }
 function rx02LegacyCandidates(){
  const names=(state.drugs||[]).map(d=>String(d['薬名']||'').trim()).filter(Boolean);
  return [...new Set(names)].sort((a,b)=>a.localeCompare(b,'ja')).slice(0,2000);
 }
+function rx02MasterMatch(name){
+ const value=String(name||'').trim(), entries=(state.drugs||[]).filter(d=>String(d['薬名']||'').trim());
+ return entries.find(d=>String(d['薬名']).trim()===value)||
+ entries.filter(d=>value.startsWith(String(d['薬名']).trim()+' ')).sort((a,b)=>String(b['薬名']).length-String(a['薬名']).length)[0]||null;
+}
 function rx02LegacyInfo(name){
- const d=(state.drugs||[]).find(d=>String(d['薬名']||'').trim()===String(name||'').trim());
+ const d=rx02MasterMatch(name);
  if(!d)return '';
  return '登録済み：'+[d['医薬品分類'],d['薬効'],d['薬価']?'旧薬価記載 '+d['薬価']:''].filter(Boolean).join(' ／ ');
 }
 function rx02LegacySpecs(name){
- const d=(state.drugs||[]).find(d=>String(d['薬名']||'').trim()===String(name||'').trim());
+ const d=rx02MasterMatch(name);
  if(!d)return [];
  const raw=String(d['薬価']||'').normalize('NFKC').replace(/㎎/g,'mg').replace(/μg/g,'µg');
  const rx=/(\d+(?:\.\d+)?)\s*(mg|g|µg|mL|ml|%|錠|包|カプセル)\s*[\(（]\s*(\d+(?:\.\d+)?)\s*[\)）]/gi;
@@ -534,7 +542,7 @@ function rx02DrawLegacySpecs(row){
    if(!confirm('電子カルテや薬価資料で「'+name+' '+opt.strength+'：'+opt.price+'円／単位」を確認しましたか？\n確認できた場合のみ入力欄に反映します。'))return;
    const field=row.querySelector('[data-rx-field="name"]');
    const price=row.querySelector('[data-rx-field="price"]');
-   field.value=name+' '+opt.strength;price.value=opt.price;
+   field.value=String(rx02MasterMatch(name)?.['薬名']||name).trim()+' '+opt.strength;price.value=opt.price;
    const status=$('#rxSaveStatus');if(status)status.textContent='旧データの候補を反映しました。規格・薬価単位を確認して保存してください';
    $('#rxPrint').disabled=true;
    rx02DrawLegacySpecs(row);
@@ -545,7 +553,7 @@ function rx02DrawLegacySpecs(row){
 }
 function renderRX02Tab(rows){
  const root=$('#tabbody'),items=rows||rx02SafeRows();
- root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。旧薬価は確認用であり自動転記しません。画面上部の「院内用・薬価概算」で金額を確認できます。</p>'+
+ root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。旧薬価は確認用であり自動転記しません。頓服薬は定期薬の概算から除外します。画面上部の「院内用・薬価概算」で金額を確認できます。</p>'+
  '<div class="panel" style="border:2px solid #0f766e;padding:10px;margin:8px 0" role="status" aria-live="polite"><b>院内用・薬価概算</b><div id="rxCostSummary" style="font-size:16px;font-weight:700;line-height:1.7"></div><small>薬剤ごとの「単位薬価（院内用）」に金額を入力すると自動計算します。</small></div><div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
  '<datalist id="rx02DrugCandidates">'+rx02LegacyCandidates().map(n=>'<option value="'+esc(n)+'"></option>').join('')+'</datalist><div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
  root.querySelectorAll('[data-rx-row]').forEach(div=>rx02DrawLegacySpecs(div));
