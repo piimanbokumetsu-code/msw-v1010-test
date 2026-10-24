@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.28';
+const APP_VERSION='RX02-TEST-0.29';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -1115,7 +1115,20 @@ async function rx02EditRelation(name){
  try{await save();drawDrugs()}catch(e){state.rx02Relations=previous;alert('保存に失敗しました。もう一度お試しください')}
 }
 
-function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"></div><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;drawDrugs()}
+async function rx02AddSampleDrugs(){
+ const samples=[
+  {'薬名':'架空サンプル薬A','医薬品分類':'検証用分類A','薬効':'架空の説明（実薬ではありません）','薬価':'10mg（10）'},
+  {'薬名':'架空サンプル薬B','医薬品分類':'検証用分類B','薬効':'架空の説明（実薬ではありません）','薬価':'5mg（5）'}
+ ];
+ const existing=new Set((state.drugs||[]).map(d=>d['薬名']));
+ const added=samples.filter(d=>!existing.has(d['薬名']));
+ if(!added.length)return alert('架空のサンプル薬剤はすでに登録されています');
+ if(!confirm('架空の薬剤 '+added.length+'件を検証用マスターに追加します。既存の薬剤や患者データは削除しません。よろしいですか？'))return;
+ const before=state.drugs;
+ state.drugs=[...(state.drugs||[]),...added];
+ try{await save();drawDrugs()}catch(e){state.drugs=before;alert('サンプル薬剤の保存に失敗しました：'+e.message)}
+}
+function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"><button class="btn secondary" id="rxSampleDrugs">架空サンプル薬剤を追加</button></div><p class="notice">検証用サンプルは実在する薬剤ではありません。患者情報や既存薬剤は削除しません。</p><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;$('#rxSampleDrugs').onclick=rx02AddSampleDrugs;drawDrugs()}
 function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div><div class="small">${esc(rx02RelationInfo(d['薬名']))}</div><button type="button" class="btn secondary" data-rx-rel="${esc(d['薬名'])}">先発・後発の関連付け</button></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>';$('#drugList').querySelectorAll('[data-rx-rel]').forEach(b=>b.onclick=()=>rx02EditRelation(b.dataset.rxRel))}
 
 function renderMasters(){
