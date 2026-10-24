@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.27';
+const APP_VERSION='RX02-TEST-0.28';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -1093,8 +1093,30 @@ function renderTasks(){
     const p=state.patients.find(p=>p.id===x.dataset.id);if(p)openPatient(p);
   });
 }
+
+function rx02Relations(){return state.rx02Relations&&typeof state.rx02Relations==='object'?state.rx02Relations:{}}
+function rx02RelationInfo(name){
+ const d=rx02Relations()[String(name||'').trim()];
+ return d?('関連付け（手動登録・未検証）：'+[d.kind,d.reference,d.manufacturer].filter(Boolean).join(' ／ ')):'';
+}
+async function rx02EditRelation(name){
+ if(!name)return;
+ const old=rx02Relations()[name]||{};
+ const kind=prompt('製品区分：先発品 / 後発品 / 不明（空欄で登録中止）',old.kind||'不明');
+ if(kind===null||!kind.trim())return;
+ if(!['先発品','後発品','不明'].includes(kind.trim()))return alert('製品区分は「先発品」「後発品」「不明」から選んでください');
+ const reference=prompt('関連する製品名（不明な場合は空欄）',old.reference||'');
+ if(reference===null)return;
+ const manufacturer=prompt('製造販売元（不明な場合は空欄）',old.manufacturer||'');
+ if(manufacturer===null)return;
+ if(reference.trim()===name)return alert('同一の薬剤を関連製品に指定できません');
+ const previous=state.rx02Relations;
+ state.rx02Relations={...rx02Relations(),[name]:{kind:kind.trim(),reference:reference.trim(),manufacturer:manufacturer.trim(),verified:false}};
+ try{await save();drawDrugs()}catch(e){state.rx02Relations=previous;alert('保存に失敗しました。もう一度お試しください')}
+}
+
 function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"></div><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;drawDrugs()}
-function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>'}
+function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div><div class="small">${esc(rx02RelationInfo(d['薬名']))}</div><button type="button" class="btn secondary" data-rx-rel="${esc(d['薬名'])}">先発・後発の関連付け</button></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>';$('#drugList').querySelectorAll('[data-rx-rel]').forEach(b=>b.onclick=()=>rx02EditRelation(b.dataset.rxRel))}
 
 function renderMasters(){
   ensureStateSchema();
