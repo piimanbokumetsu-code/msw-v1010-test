@@ -481,3 +481,14 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .rx-ref-basis[data-status="draft"],.rx-ref-basis[data-status="modified"]{background:#fff8ed;border-color:#efd5a7;color:#855111}
 .rx-ref-basis[data-status="confirmed"]{background:#eff8f4;border-color:#b4d9cd;color:#1c5c4b}
 @media print{.rx-ref-basis{display:none!important}}
+
+/* RX02 v0.40: readonly fictional-data reference calculator self-test */
+.rx-test-area{margin:12px 0 15px;padding:10px 12px;border:1px dashed #9ebfb8;border-radius:10px;background:#f5faf9}
+.rx-test-area>.btn{max-width:100%;white-space:normal;line-height:1.45;min-height:44px}
+#rx02SelfTestResult{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.rx-test-pass{color:#205c4a;font-weight:750}
+.rx-test-fail{color:#9b3e22;font-weight:750}
+.rx-test-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 18px;margin:8px 0;padding-left:18px}
+.rx-test-results li{padding:2px 0}
+@media(max-width:540px){.rx-test-area>.btn{width:100%}.rx-test-results{display:block}}
+@media print{.rx-test-area{display:none!important}}
