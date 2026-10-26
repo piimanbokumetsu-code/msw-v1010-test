@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.31';
+const APP_VERSION='RX02-TEST-0.32';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -1128,7 +1128,7 @@ async function rx02AddSampleDrugs(){
  state.drugs=[...(state.drugs||[]),...added];
  try{await save();drawDrugs()}catch(e){state.drugs=before;alert('サンプル薬剤の保存に失敗しました：'+e.message)}
 }
-function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"><button class="btn secondary" id="rxSampleDrugs">架空サンプル薬剤を追加</button></div><p class="notice">検証用サンプルは実在する薬剤ではありません。患者情報や既存薬剤は削除しません。</p><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;$('#rxSampleDrugs').onclick=rx02AddSampleDrugs;drawDrugs()}
+function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p><p><b>薬剤登録：${ds.length}件</b>（FileMaker未取込なら「設定 → 薬剤CSVを読み込む」から登録）</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"><button class="btn secondary" id="rxSampleDrugs">架空サンプル薬剤を追加</button></div><p class="notice">検証用サンプルは実在する薬剤ではありません。患者情報や既存薬剤は削除しません。</p><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;$('#rxSampleDrugs').onclick=rx02AddSampleDrugs;drawDrugs()}
 function rx02GenericCandidates(d){
  const source=String(d?.['薬効']||'');
  const match=source.match(/後発品\s*[⇒=>：:]\s*([^\n\v\r]+)/);
@@ -1141,7 +1141,7 @@ function rx02ComparisonHtml(d){
  const registered=rx02Relations();
  const related=Object.entries(registered).filter(([n,x])=>x?.reference===d['薬名']&&n!==d['薬名']);
  const rows=specs.length?specs.map(x=>'<tr><td>'+esc(x.strength)+'</td><td>'+esc(x.price)+'円（旧記載）</td><td>未登録・未確認</td></tr>').join(''):'<tr><td colspan="3">規格別薬価を抽出できませんでした。元の薬価記載を確認してください。</td></tr>';
- return '<details class="rx-drug-compare"><summary>規格別薬価・後発品候補を確認</summary>'+
+ return '<details class="rx-drug-compare" open><summary>規格別薬価・後発品候補を確認（タップで開閉）</summary>'+
  '<p class="notice">旧CSVの記載から抽出した参考情報です。後発品の同等性・製品ごとの規格・現在の薬価は未照合です。</p>'+
  '<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>先発側の規格</th><th>元データの薬価</th><th>後発品の薬価</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
  '<div><b>旧データに記載の後発品候補：</b>'+esc(generics.length?generics.join('、'):'記載なし')+'</div>'+
