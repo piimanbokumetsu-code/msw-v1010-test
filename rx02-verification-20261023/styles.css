@@ -500,3 +500,12 @@ button.mvp-taskjump:hover{background:var(--bg)}
 /* RX02 v0.42: make unsaved reference selections and protected actions clear */
 .rx-ref-panel .rx-ref-pending[data-dirty="yes"]{border:1px solid #e5cb97;border-radius:6px;background:#fff7e8;padding:5px 9px;margin:8px 0 9px}
 #rxPrint:disabled{opacity:.55;cursor:not-allowed}
+
+/* RX02 v0.43: visible release confirmation for iPad mini update checks */
+.rx-release-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 12px;text-align:center;padding:7px 9px;background:#e8f6f3;color:#12584f;font:600 12px/1.5 system-ui,sans-serif}
+.rx-release-strip strong{font-size:12px}
+#rx02BuildStatus{background:#d3efe4;border-radius:5px;padding:2px 7px}
+#rx02BuildStatus[data-verified="no"],#rx02OfflineStatus[data-warning="yes"]{background:#fff1df;color:#8d3216;font-weight:700;border-radius:5px;padding:2px 7px}
+#rx02OfflineStatus{font-size:11px;color:#365f5b}
+@media(max-width:550px){.rx-release-strip{font-size:11px;gap:3px 6px;padding:5px}.rx-release-strip strong{flex-basis:100%;font-size:11px}#rx02OfflineStatus{font-size:10px}}
+@media print{.rx-release-strip{display:none!important}}
