@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.40';
+const APP_VERSION='RX02-TEST-0.41';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -592,7 +592,9 @@ async function rx02SaveLookupLink(rxName,masterName,selectedStrength=''){
  const source=String(rxName||'').trim(),chosen=String(masterName||'').trim();
  if(!source)return alert('処方薬の薬剤名が空欄です');
  if(chosen&&!(state.drugs||[]).some(d=>String(d['薬名']||'').trim()===chosen))return alert('薬情マスターに存在する薬剤を選択してください');
- const k=rx02ReferenceLinkKey(source),row=rx02DraftRows().find(x=>rx02ReferenceLinkKey(x.name)===k);
+ const k=rx02ReferenceLinkKey(source),draftRows=rx02DraftRows();
+ if((rx02DuplicateNameCounts(draftRows).get(k)||0)>1)return alert('同じ薬剤名の処方が複数行あります。誤照合を防ぐため、この名前への参考照合先の登録は停止しています。医師の処方名は変更しないでください。');
+ const row=draftRows.find(x=>rx02ReferenceLinkKey(x.name)===k);
  if(!row)return alert('対象の処方薬が見つかりません。処方名を確認してください。');
  const explicit=rx02ExtractStrength(source),strength=rx02ComparableText(selectedStrength).replace(/\s+/g,'');
  if(chosen&&!explicit){
@@ -600,6 +602,7 @@ async function rx02SaveLookupLink(rxName,masterName,selectedStrength=''){
   if(!rx02RegisteredStrengths(chosen,row.unit).includes(strength))return alert('選択した規格・単位の参考薬価が見つかりません。');
  }
  if(explicit&&strength&&explicit!==strength)return alert('処方名の規格と照合規格が異なるため保存できません。');
+ if(chosen&&rx02ComparableText(source)!==rx02ComparableText(chosen)&&!confirm('処方薬「'+source+'」に薬情マスター「'+chosen+'」を院内の参考照合先として指定します。\nこれは薬剤の同一性・代替可能性の確認ではありません。医師の処方を変更せず参考情報としてのみ照合します。続行しますか？'))return false;
  const previous=state.rx02ReferenceLinks,patientId=String(selectedPatient.id);
  const existing=rx02PatientLookupLinks(),updated={...existing};
  if(chosen)updated[k]={master:chosen,strength:explicit?'':strength};else delete updated[k];
@@ -667,11 +670,22 @@ function rx02ReferenceMatches(row,book,selectedMaster='',selectedStrength=''){
  const checked=rx02ReferenceConflictCheck(matched);
  return {matched:checked.matched,known,manual:!!manual,specifiedStrength,conflicts:checked.conflicts};
 }
+// RX02 v0.41: a name-keyed reference link cannot safely identify repeated Rx lines.
+function rx02DuplicateNameCounts(rows){
+ const counts=new Map();
+ for(const row of Array.isArray(rows)?rows:[]){
+  const k=rx02ReferenceLinkKey(row?.name);
+  if(k)counts.set(k,(counts.get(k)||0)+1);
+ }
+ return counts;
+}
 function rx02ReferenceAnalysis(rows,book,links={}){
+ const repeated=rx02DuplicateNameCounts(rows);
  return rows.filter(x=>String(x.name||'').trim()).map(row=>{
   const link=rx02ResolveLink(links[rx02ReferenceLinkKey(row.name)]);
   const chosen=link.master;
-  const reference=rx02ReferenceMatches(row,book,chosen,link.strength);
+  const duplicate=(repeated.get(rx02ReferenceLinkKey(row.name))||0)>1;
+  const reference=duplicate?{matched:[],known:false,duplicate:true,conflicts:[]}:rx02ReferenceMatches(row,book,chosen,link.strength);
   const prn=String(row.timing||'').trim()==='頓服';
   const qty=Number(row.qty),freq=Number(row.freq);
   const dailyCandidate=qty*freq;
@@ -680,7 +694,7 @@ function rx02ReferenceAnalysis(rows,book,links={}){
   const p=Number(unitPriceText);
   const currentPrice=unitPriceText!==''&&Number.isFinite(p)&&p>=0&&p<=10000000?p:null;
   const dailyUnits=schedOk?dailyCandidate:null;
-  return {row,reference,chosen,prn,schedOk,currentPrice,dailyUnits};
+  return {row,reference,chosen,duplicate,prn,schedOk,currentPrice,dailyUnits};
  });
 }
 // RX02 v0.38: searchable patient-side reference lookup (never edits the Rx).
@@ -722,7 +736,7 @@ function rx02ReferenceHtml(rows){
  const all=rx02ReferenceAnalysis(rows,rx02PriceBook(),links);
  if(!all.length)return '<p class="notice">患者の処方薬を入力すると、登録済みの参考薬価を確認できます。</p>';
  return all.map(a=>{
-  const {row,reference,chosen,prn,schedOk,currentPrice,dailyUnits}=a;
+  const {row,reference,chosen,duplicate,prn,schedOk,currentPrice,dailyUnits}=a;
   const currentLink=rx02ResolveLink(links[rx02ReferenceLinkKey(row.name)]);
   const name=esc(row.name),short=name+' ／ '+esc(row.qty||'未入力')+esc(row.unit||'')+' × '+esc(row.freq||'未入力')+'回/日';
   const explicit=rx02ExtractStrength(row.name);
@@ -732,9 +746,10 @@ function rx02ReferenceHtml(rows){
    '<span class="rx-ref-strength-label">処方名から読み取った規格：<b>'+esc(explicit)+'</b>（照合用）</span>':
    '<label>照合規格（薬情の参考価格から選択）<select data-rx-ref-strength>'+rx02StrengthChoiceHtml(chosen,row.unit,currentLink.strength)+'</select></label>';
   const selector='<div class="rx-ref-lookup"><label>薬情マスターの照合先（処方名は変更しません）'+masterSelect+'</label>'+strengthSelect+
-   '<button type="button" class="btn secondary" data-rx-ref-apply>照合先を保存</button></div>'+
+   '<button type="button" class="btn secondary" data-rx-ref-apply'+(duplicate?' disabled title="同名薬剤が複数行のため照合を停止"':'')+'>照合先を保存</button></div>'+
    '<small class="rx-ref-pending" data-rx-ref-pending>'+(chosen?'照合先は保存済み（対応関係は未照合）':'比較する薬剤を選択できます')+'</small>';
   const root='<div class="rx-ref-item" data-rx-ref-item="'+esc(row.name)+'" data-rx-ref-unit="'+esc(row.unit||'')+'"><b>'+short+'</b>'+selector;
+  if(duplicate)return root+'<p class="rx-ref-conflict">この患者の処方に同じ薬剤名が複数行あります。参考照合先が行ごとに区別できないため、この薬剤の参考薬価・差額は表示しません。処方内容は変更せず、詳細を確認してください。</p></div>';
   if(!reference.matched.length){
    const reason=reference.conflicts?.length?'同一製品・規格に異なる価格が重複登録されています。価格情報の確認が終わるまで比較額は表示しません。':
     reference.strengthConflict?'保存済み照合規格が処方名の規格と異なるため比較できません。':
@@ -826,6 +841,7 @@ function rx02RefreshReference(){
    dirty();
   });
   strength?.addEventListener('change',dirty);
+  if(button.disabled)return;
   button.onclick=async()=>{
    button.disabled=true;
    await rx02SaveLookupLink(item.dataset.rxRefItem,master?.value||'',strength?.value||'');
@@ -882,6 +898,16 @@ function rx02ReferenceSelfTest(){
   return !a.schedOk&&a.dailyUnits===null;
  });
  test('旧形式の照合先データを読み取る',()=>rx02ResolveLink(base).master===base);
+ test('同名処方2行は両方とも比較を停止',()=>{
+  const entries=rx02ReferenceAnalysis([rx,{...rx,qty:'2'}],book,{});
+  return entries.length===2&&entries.every(a=>a.duplicate===true&&a.reference.matched.length===0);
+ });
+ test('処方名が異なる2行は通常どおり照合',()=>{
+  const other={...rx,name:'別名の架空診断薬10mg'};
+  const links={[rx02ReferenceLinkKey(other.name)]:{master:base,strength:''}};
+  const entries=rx02ReferenceAnalysis([rx,other],book,links);
+  return entries.length===2&&entries.every(a=>a.duplicate===false&&a.reference.matched.length===1);
+ });
  test('架空の診断データを変更しない',()=>JSON.stringify(book)===originalBook&&JSON.stringify(rx)===originalRx);
  const passed=cases.filter(x=>x.ok).length;
  return {passed,total:cases.length,allPassed:passed===cases.length,cases};
