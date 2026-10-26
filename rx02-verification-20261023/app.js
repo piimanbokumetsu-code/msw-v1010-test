@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.42';
+const APP_VERSION='RX02-TEST-0.43';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -133,13 +133,36 @@ async function init(){
   // Never open the production site's database from a preview deployed under that host.
 if (
   location.hostname !== 'piimanbokumetsu-code.github.io' ||
- !location.pathname.startsWith('/msw-v1010-test')
+ !location.pathname.startsWith('/msw-v1010-test/rx02-verification-20261023/')
 ) {
   document.getElementById('app').textContent =
     'このテスト版は指定されたテスト用URLでのみ起動できます。';
   return;
 }
-  await openDB();meta=await idbGet('meta');if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update().catch(()=>{})).catch(()=>{});try{if(navigator.storage?.persist)await navigator.storage.persist()}catch(e){}renderLock()}
+  await openDB();meta=await idbGet('meta');rx02RegisterOfflineAssets();try{if(navigator.storage?.persist)await navigator.storage.persist()}catch(e){}renderLock()}
+// v0.43: only register the verification folder's dedicated static-asset worker.
+// Never unregister other PWA registrations or clear IndexedDB / sibling caches.
+function rx02OfflineMessage(message,isWarning=false){
+ const el=document.getElementById('rx02OfflineStatus');
+ if(el){el.textContent=message;el.dataset.warning=isWarning?'yes':'no';}
+}
+async function rx02RegisterOfflineAssets(){
+ if(!('serviceWorker' in navigator)){rx02OfflineMessage('オフライン機能：この環境では非対応',true);return;}
+ try{
+  const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
+  if(reg.active){
+   rx02OfflineMessage('RX02専用のオフライン部品：登録済み');
+  }else{
+   rx02OfflineMessage('RX02専用のオフライン部品：準備中');
+  }
+  reg.update().catch(()=>{});
+  navigator.serviceWorker.ready.then(active=>{
+   if(active?.scope===reg.scope)rx02OfflineMessage('RX02専用のオフライン部品：登録済み');
+  }).catch(()=>{});
+ }catch(err){
+  rx02OfflineMessage('オフライン機能の設定を確認してください（オンライン画面は引き続き使用できます）',true);
+ }
+}
 function renderLock(msg=''){document.getElementById('morningPrint')?.remove();const fresh=!meta;$('#app').innerHTML=`<div class="lockwrap"><div class="lockcard"><h1>MSW患者管理</h1><p style="font-weight:700">架空データ検証用 Ver.${APP_VERSION}</p><p>${fresh?'初回設定：この端末用の暗証を作成します。':'暗証を入力してロック解除してください。'}</p>${msg?`<div class="alert">${esc(msg)}</div>`:''}<input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="6文字以上" /><button class="btn" id="unlock" style="width:100%">${fresh?'暗証を設定':'ロック解除'}</button><p class="notice">患者情報はこの画面は既存版と別の検証用保存領域を使います。実際の患者情報は入力しないでください。端末内で暗号化して保存します。暗証を忘れると復旧できません。端末自体のパスコード・紛失対策も必ず有効にしてください。</p></div></div>`;$('#unlock').onclick=fresh?setup:unlock;$('#pin').onkeydown=e=>{if(e.key==='Enter')$('#unlock').click()};setTimeout(()=>$('#pin').focus(),80)}
 async function setup(){const pin=$('#pin').value;if(pin.length<6)return renderLock('暗証は6文字以上にしてください。');const salt=crypto.getRandomValues(new Uint8Array(16));key=await derive(pin,salt);const check=await encryptObj({ok:true});meta={version:1,salt:b64(salt),check,createdAt:nowISO()};await idbSet('meta',meta);state=blankState();ensureStateSchema();await save();render();}
 async function unlock(){try{const pin=$('#pin').value;key=await derive(pin,unb64(meta.salt));await decryptObj(meta.check);const blob=await idbGet('data');state=blob?await decryptObj(blob):blankState();ensureStateSchema();await save();render()}catch(e){key=null;renderLock('暗証が違います。')}}
