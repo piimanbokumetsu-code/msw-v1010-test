@@ -1,14 +1,14 @@
-/* RX02-TEST-0.44 - isolated, static-asset-only offline support.
+/* RX02-TEST-0.45 - isolated, static-asset-only offline support.
    Never touch IndexedDB, user data, or caches from sibling MSW apps. */
 'use strict';
 const RX_CACHE_PREFIX='msw-rx02-verification-static-';
-const RX_CACHE=RX_CACHE_PREFIX+'0.44';
+const RX_CACHE=RX_CACHE_PREFIX+'0.45';
 const RX_SCOPE=new URL('./',self.registration.scope);
 const RX_SHARED=new URL('../msw-basic-ui-d.js?v=20261022d',RX_SCOPE);
 const RX_FILES=[
  new URL('./index.html',RX_SCOPE),
- new URL('./app.js?v=rx02-044',RX_SCOPE),
- new URL('./styles.css?v=rx02-044',RX_SCOPE),
+ new URL('./app.js?v=rx02-045',RX_SCOPE),
+ new URL('./styles.css?v=rx02-045',RX_SCOPE),
  RX_SHARED
 ];
 const RX_URLS=new Set(RX_FILES.map(x=>x.href));
