@@ -514,3 +514,8 @@ button.mvp-taskjump:hover{background:var(--bg)}
 #rxPreview{min-height:44px;white-space:normal;line-height:1.4}
 #rxPreview:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:550px){#rxPreview{flex:1 1 46%;min-width:155px}}
+
+/* RX02 v0.45: backup read-only diagnosis status on iPad mini */
+#rxBackupCheckStatus:empty{display:none}
+#rxBackupCheckStatus{overflow-wrap:anywhere;line-height:1.6}
+#rxBackupCheck{min-height:44px;white-space:nowrap}
