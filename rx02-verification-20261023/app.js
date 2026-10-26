@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.44';
+const APP_VERSION='RX02-TEST-0.45';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -1749,7 +1749,7 @@ async function renderSettings(){
   <div class="panel"><h3>FileMaker最新データで入れ替え（試験用）</h3><div class="settings-row"><div><b>患者CSVで全件入れ替え</b><small>患者データのみを全件置換します。薬剤・マスター・設定は保持します。患者ID（番号）必須。実行前に件数を確認します。</small></div><button class="btn danger" id="replaceP">全件入れ替え</button></div></div>
   <div class="panel"><h3>退院患者の保存</h3><p class="notice">Ver.1.0.17から退院患者の自動削除を停止しました。退院確定後も記録を保存し、患者画面の「退院患者記録」から検索・閲覧・確定取消できます。</p><div class="settings-row"><b>保存中の退院患者</b><span>${state.patients.filter(p=>p.dischargeDate).length}名</span></div></div>
   <div class="panel"><h3>セキュリティ</h3><div class="settings-row"><div><b>自動ロック</b><small>無操作時に暗証画面へ戻ります。</small></div><select id="autolock"><option value="1">1分</option><option value="5">5分</option><option value="10">10分</option><option value="30">30分</option></select></div><div class="settings-row"><div><b>暗証を変更</b><small>現在の暗証を確認後、新しい暗証でDBを再暗号化します。</small></div><button class="btn secondary" id="changePin">変更</button></div></div>
-  <div class="panel"><h3>バックアップ</h3><div class="settings-row"><div><b>暗号化バックアップ</b><small>患者・薬剤・経過記録・マスターを暗号化したまま書き出します。<br>最終：${esc(last)}</small></div><button class="btn secondary" id="backup">書出</button></div><div class="settings-row"><div><b>バックアップ復元</b><small>.mswdb ファイルを読み込みます。</small></div><button class="btn secondary" id="restore">復元</button></div></div>
+  <div class="panel"><h3>バックアップ</h3><div class="settings-row"><div><b>暗号化バックアップ</b><small>患者・薬剤・経過記録・マスターを暗号化したまま書き出します。<br>最終：${esc(last)}</small></div><button class="btn secondary" id="backup">書出</button></div><div class="settings-row"><div><b>バックアップ復元</b><small>.mswdb ファイルを読み込みます。</small></div><button class="btn secondary" id="restore">復元</button></div><div class="settings-row"><div><b>バックアップファイルを診断（復元しない）</b><small>RX02の暗号化バックアップを読み取り、暗証・データ・添付写真を検証します。現在の患者・薬剤・設定は変更しません。</small></div><button class="btn secondary" id="rxBackupCheck">診断</button></div><p id="rxBackupCheckStatus" role="status" aria-live="polite" class="notice"></p></div>
   <div class="panel"><h3>端末保存</h3><div class="settings-row"><div><b>保存領域</b><small>${esc(persisted)} / 使用量 ${humanBytes(usage)}${quota?' / 上限目安 '+humanBytes(quota):''}</small></div><button class="btn secondary" id="persist">保持を要求</button></div><div class="storagebar"><div style="width:${pct}%"></div></div><p class="notice">iPadではホーム画面から起動してください。写真・PDFの元画像は暗号化して端末内に保存します。容量に注意し、写真を含むバックアップを定期的に作成してください。</p></div>
   <div class="panel"><h3>初期化</h3><div class="settings-row"><div><b>この端末のMSW-DBを全消去</b><small>患者・薬剤・マスター・暗証をすべて削除します。復元にはバックアップが必要です。</small></div><button class="btn danger" id="resetAll">全消去</button></div></div>
   <div class="panel"><div class="notice">MSW-DB 架空データ検証用 Ver.${APP_VERSION} / 在院 ${activePatients().length}人 / 薬剤 ${state.drugs.length}件</div></div>`;
@@ -1758,6 +1758,7 @@ async function renderSettings(){
   $('#replaceP').onclick=()=>pickFile('.csv',replacePatientsFromFileMaker);
   $('#impP').onclick=()=>pickFile('.csv',importPatients);$('#impD').onclick=()=>pickFile('.csv',importDrugs);
   $('#backup').onclick=backup;$('#restore').onclick=()=>pickFile('.mswdb,application/json',restore);
+  $('#rxBackupCheck').onclick=()=>pickFile('.mswdb,application/json',rx02CheckBackupReadOnly);
   $('#changePin').onclick=changePin;
   $('#persist').onclick=async()=>{try{const ok=navigator.storage?.persist?await navigator.storage.persist():false;alert(ok?'保存領域の保持を要求しました。':'このブラウザでは保持要求を利用できないか、許可されませんでした。');renderSettings()}catch(e){alert('保持要求を実行できませんでした。')}};
   $('#resetAll').onclick=resetAll;
@@ -1878,6 +1879,8 @@ async function backup(){
   if(backupBusy)return;
   backupBusy=true;
   try{
+    // Wait for queued encrypted patient-index writes before taking the backup snapshot.
+    await dataWriteTail;
     // Preflight every referenced photo before claiming the backup is complete.
     // Detect missing, duplicated, corrupted, or wrongly encrypted records.
     const photos={},seen=new Set();
@@ -1921,6 +1924,90 @@ async function backup(){
   }catch(e){alert('バックアップを作成できません：'+e.message)}
   finally{backupBusy=false}
 }
+// RX02 v0.45: never allow a production/unknown MSW backup into this public test app.
+// The filename is NOT proof of origin: inspect the authenticated archive marker.
+function rx02RequireTestBackup(pack){
+ if(!pack||pack.format!=='MSWDB-BACKUP'||typeof pack.appVersion!=='string'||!/^RX02-TEST-0\.\d+$/.test(pack.appVersion)){
+  throw new Error('RX02検証版で作成したバックアップだけ扱えます。通常版・出所不明のバックアップは使用しないでください');
+ }
+}
+// Offline/read-only verification of an exported RX02 backup. No IndexedDB writes,
+// no patient/state mutation, no downloads, and no restoring.
+let rx02BackupCheckBusy=false;
+async function rx02VerifyBackupPackReadOnly(pack,pin){
+ rx02RequireTestBackup(pack);
+ if(!pack.meta||!pack.data)throw new Error('必要な暗号化情報がありません');
+ const validCipher=v=>v&&typeof v.iv==='string'&&v.iv.length>0&&typeof v.ct==='string'&&v.ct.length>0;
+ if(!validCipher(pack.meta.check)||!validCipher(pack.data)||typeof pack.meta.salt!=='string'||!pack.meta.salt)throw new Error('暗号化情報が破損しています');
+ if(pack.photos!==undefined&&(typeof pack.photos!=='object'||!pack.photos||Array.isArray(pack.photos)))throw new Error('写真情報の形式が不正です');
+ const photos=pack.photos||{};
+ if(Object.keys(photos).length>2000)throw new Error('写真が2000枚を超えるバックアップは診断できません');
+ const testKey=await derive(pin,unb64(pack.meta.salt));
+ let checked;
+ try{checked=await decryptObj(pack.meta.check,testKey)}
+ catch(_){throw new Error('バックアップの暗証が違うか、確認情報が破損しています')}
+ if(checked!==true&&checked?.ok!==true)throw new Error('暗証確認情報が不正です');
+ let recovered;
+ try{recovered=await decryptObj(pack.data,testKey)}
+ catch(_){throw new Error('患者・薬剤データの復号に失敗しました')}
+ if(!recovered||!Array.isArray(recovered.patients)||!Array.isArray(recovered.drugs))throw new Error('患者・薬剤データの形式が不正です');
+ const referenced=new Set();
+ for(const p of recovered.patients){
+  if(!p||typeof p!=='object'||!Array.isArray(p.attachments||[]))throw new Error('患者の写真一覧が不正です');
+  let genograms=0;
+  const orders=new Set();
+  for(const a of p.attachments||[]){
+   const id=a?.id;
+   if(typeof id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||referenced.has(id))throw new Error('写真IDが不正、または重複しています');
+   if(a.type!=='genogram'&&a.type!=='admission')throw new Error('写真の種類が不正です');
+   if(!Number.isSafeInteger(a.order)||a.order<0||a.order>100000)throw new Error('写真のページ順が不正です');
+   if(a.type==='genogram'&&++genograms>1)throw new Error('ジェノグラムが複数あります');
+   if(a.type==='admission'){if(orders.has(a.order))throw new Error('入院時写真のページ順が重複しています');orders.add(a.order)}
+   referenced.add(id);
+   if(!Object.prototype.hasOwnProperty.call(photos,id))throw new Error('必要な写真データがありません');
+  }
+ }
+ if(referenced.size!==Object.keys(photos).length)throw new Error('患者に紐づかない写真データがあります');
+ for(const [id,record] of Object.entries(photos)){
+  if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||!validCipher(record))throw new Error('写真の暗号化情報が不正です');
+  try{validateStoredPhoto(await decryptObj(record,testKey))}
+  catch(_){throw new Error('写真を検証できませんでした（破損または内容不正）')}
+ }
+ const links=recovered.rx02ReferenceLinks;
+ if(links!==undefined&&(links===null||typeof links!=='object'||Array.isArray(links)))throw new Error('参考薬価の照合先情報が不正です');
+ return {patients:recovered.patients.length,drugs:recovered.drugs.length,photos:referenced.size,
+  links:Object.keys(links||{}).length,exportedAt:typeof pack.exportedAt==='string'?pack.exportedAt:'記録なし'};
+}
+async function rx02CheckBackupReadOnly(file){
+ if(rx02BackupCheckBusy)return;
+ rx02BackupCheckBusy=true;
+ const output=document.getElementById('rxBackupCheckStatus');
+ const button=document.getElementById('rxBackupCheck');
+ if(button)button.disabled=true;
+ if(output)output.textContent='バックアップを読み取り検証しています。現在のデータは変更しません。';
+ try{
+  if(!file||!Number.isFinite(file.size)||file.size>120*1024*1024||file.size===0)throw new Error('120MB以下のバックアップファイルを選んでください');
+  const pack=JSON.parse(await file.text());
+  rx02RequireTestBackup(pack);
+  const pin=prompt('RX02バックアップ作成時の暗証を入力してください（診断のみ・復元なし）');
+  if(pin===null){if(output)output.textContent='診断をキャンセルしました。データは変更していません。';return}
+  const result=await rx02VerifyBackupPackReadOnly(pack,pin);
+  // Informational only. Counts can differ from current records if data changed since export.
+  const countMatches=!!state&&result.patients===state.patients.length&&result.drugs===state.drugs.length;
+  const message='診断合格：暗証・患者/薬剤データ・添付写真の整合性を確認しました。'
+   +' バックアップ内：患者 '+result.patients+'人／薬剤 '+result.drugs+'件／写真 '+result.photos
+   +'枚／参考照合先 '+result.links+'件。'
+   +(countMatches?' 現在の患者・薬剤件数と一致します。':' 現在の患者・薬剤件数との差を確認してください（バックアップ時点の違いもあります）。')
+   +' 復元処理は行っていません。';
+  if(output)output.textContent=message;
+ }catch(e){
+  if(output)output.textContent='診断できませんでした：'+(e?.message||'ファイルを確認してください')+'。現在のデータは変更していません。';
+ }finally{
+  rx02BackupCheckBusy=false;
+  if(button&&button.isConnected)button.disabled=false;
+ }
+}
+
 let restoreBusy=false;
 async function restore(file){
   if(restoreBusy)return;
@@ -1931,6 +2018,7 @@ async function restore(file){
     if(!file||!Number.isFinite(file.size)||file.size>120*1024*1024)throw new Error('バックアップは120MB以下にしてください（メモリ保護のため）');
     const pack=JSON.parse(await file.text());
     if(pack.format!=='MSWDB-BACKUP'||!pack.meta||!pack.data)throw new Error('形式が違います');
+    rx02RequireTestBackup(pack);
     const validCipher=x=>x&&typeof x.iv==='string'&&typeof x.ct==='string'&&x.iv.length>0&&x.ct.length>0;
     if(!validCipher(pack.data)||!validCipher(pack.meta.check)||typeof pack.meta.salt!=='string'||!pack.meta.salt)throw new Error('暗号化データが不正です');
     if(pack.photos!==undefined&&(typeof pack.photos!=='object'||pack.photos===null||Array.isArray(pack.photos)))throw new Error('写真情報が不正です');
