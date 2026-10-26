@@ -420,3 +420,22 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .mvp-due.future{background:#e0f2fe;color:#075985}
 .mvp-priority{background:#fce7f3;color:#9d174d;font-weight:700}
 @media(max-width:700px){.mvp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* RX02 v0.33: isolated, scrollable drug reference-price editor */
+.rx-price-section{margin:13px 0 5px;padding-top:11px;border-top:1px solid var(--line);font-size:13px}
+.rx-price-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px}
+.rx-price-table{width:100%;border-collapse:collapse;min-width:590px;font-size:12px;line-height:1.6}
+.rx-price-table th,.rx-price-table td{padding:8px 7px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.rx-price-table th{background:#edf5f4}
+.rx-price-table small{display:block;color:var(--muted);font-size:11px;white-space:normal}
+.rx-price-table .btn{padding:7px 9px;margin:2px}
+.rx-price-overlay{position:fixed;inset:0;z-index:100000;background:rgba(14,33,38,.62);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+.rx-price-dialog{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;width:min(760px,100%);max-height:calc(100dvh - 24px);overflow:auto;-webkit-overflow-scrolling:touch;padding:18px;box-shadow:0 12px 42px rgba(0,0,0,.25);box-sizing:border-box}
+.rx-price-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rx-price-head h2{font-size:19px;margin:0}
+.rx-price-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+.rx-price-fields label{font-size:13px;font-weight:700;display:flex;flex-direction:column;gap:5px;min-width:0}
+.rx-price-fields input,.rx-price-fields select{width:100%;min-height:43px;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#182c31;font-size:16px}
+.rx-price-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.rx-price-error{min-height:1.3em;color:#aa1825;font-size:13px;font-weight:700}
+@media(max-width:620px){.rx-price-fields{grid-template-columns:1fr}.rx-price-dialog{padding:12px}}
