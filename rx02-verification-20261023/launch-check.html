@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RX02 起動確認（診断専用）</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",system-ui,sans-serif;color:#183c38;background:#f3f8f6}
+body{margin:0;padding:18px max(12px,env(safe-area-inset-right)) 36px max(12px,env(safe-area-inset-left));line-height:1.65}
+main{margin:0 auto;max-width:680px;background:#fff;border-radius:16px;padding:20px 18px;border:1px solid #bad8cd}
+h1{font-size:22px;margin:0 0 12px}.ready{padding:13px;border-radius:10px;background:#e4f4e9;font-weight:700}
+a{display:block;text-align:center;font-size:17px;font-weight:700;padding:14px 12px;color:white;text-decoration:none;background:#176f66;border-radius:10px;margin:22px 0}
+small{color:#556e68}#details{overflow-wrap:anywhere;font-size:13px}
+</style></head>
+<body><main>
+<h1>RX02 起動確認ページ</h1>
+<p class="ready">この画面を表示できました。</p>
+<p>これは患者管理アプリ本体ではなく、Safariで検証ページを開けるか確認するための簡易画面です。端末内の患者情報や薬情データは変更しません。</p>
+<a href="./index.html?v=043-launch-check">RX02 Ver.0.43 本体を開く</a>
+<p>上のボタンでアプリ本体が開かなかった場合は、この画面かSafariのエラーメッセージをチャッピーに教えてください。</p>
+<details><summary>診断用の表示（必要な場合のみ）</summary><div id="details">ブラウザの情報を確認中…</div></details>
+<small>検証版・架空患者データのみ。Webサイトデータの消去・アプリの削除は不要です。</small>
+</main>
+<script>
+(function(){
+ var node=document.getElementById('details');
+ var lines=['起動確認ページ: RX02-LAUNCH-CHECK-01'];
+ lines.push('Web接続状態: '+(navigator.onLine?'通信ありの可能性':'オフラインの可能性'));
+ lines.push('Safariの画面幅: '+document.documentElement.clientWidth+'px');
+ if(navigator.serviceWorker)lines.push('オフライン制御: '+(navigator.serviceWorker.controller?'適用中':'未適用'));
+ node.textContent=lines.join(' / ');
+})();
+</script>
+</body></html>
