@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.43';
+const APP_VERSION='RX02-TEST-0.44';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -1001,20 +1001,48 @@ function rx02ShowReferenceSelfTest(){
 function renderRX02Tab(rows){
  const root=$('#tabbody'),items=rows||rx02SafeRows();
  root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。旧薬価は確認用であり自動転記しません。頓服薬は定期薬の概算から除外します。画面上部の「院内用・薬価概算」で金額を確認できます。</p>'+
- '<div class="panel" style="border:2px solid #0f766e;padding:10px;margin:8px 0" role="status" aria-live="polite"><b>院内用・薬価概算</b><div id="rxCostSummary" style="font-size:16px;font-weight:700;line-height:1.7"></div><small>薬剤ごとの「単位薬価（院内用）」に金額を入力すると自動計算します。</small></div><details id="rx02ReferencePanel" class="rx-ref-panel"'+(rx02ReferenceExpanded?' open':'')+'><summary>院内用：後発品などの参考薬価比較（未照合）</summary><p class="notice">処方薬名はそのまま保持します。検索・選択するだけでは参考照合先は保存されません。各薬剤の「照合先を保存」で確定してください。未保存の選択を残したまま画面を移動するときは確認が出ます。処方・施設提出用印刷には反映しません。</p><p id="rx02CompareBasis" class="rx-ref-basis" role="status" aria-live="polite"></p><div id="rx02ReferenceBody"></div><p id="rx02LookupSaveMessage" role="status" class="notice"></p></details><div class="rx-test-area"><button type="button" class="btn secondary" id="rx02SelfTest">架空データで参考比較を診断</button><div id="rx02SelfTestResult" role="status" aria-live="polite"></div></div><div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
+ '<div class="panel" style="border:2px solid #0f766e;padding:10px;margin:8px 0" role="status" aria-live="polite"><b>院内用・薬価概算</b><div id="rxCostSummary" style="font-size:16px;font-weight:700;line-height:1.7"></div><small>薬剤ごとの「単位薬価（院内用）」に金額を入力すると自動計算します。</small></div><details id="rx02ReferencePanel" class="rx-ref-panel"'+(rx02ReferenceExpanded?' open':'')+'><summary>院内用：後発品などの参考薬価比較（未照合）</summary><p class="notice">処方薬名はそのまま保持します。検索・選択するだけでは参考照合先は保存されません。各薬剤の「照合先を保存」で確定してください。未保存の選択を残したまま画面を移動するときは確認が出ます。処方・施設提出用印刷には反映しません。</p><p id="rx02CompareBasis" class="rx-ref-basis" role="status" aria-live="polite"></p><div id="rx02ReferenceBody"></div><p id="rx02LookupSaveMessage" role="status" class="notice"></p></details><div class="rx-test-area"><button type="button" class="btn secondary" id="rx02SelfTest">架空データで参考比較を診断</button><div id="rx02SelfTestResult" role="status" aria-live="polite"></div></div><div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPreview">A4プレビュー（印刷なし）</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
  '<datalist id="rx02DrugCandidates">'+rx02LegacyCandidates().map(n=>'<option value="'+esc(n)+'"></option>').join('')+'</datalist><div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
  root.querySelectorAll('[data-rx-row]').forEach(div=>rx02DrawLegacySpecs(div));
  const refreshCost=()=>{const node=$('#rxCostSummary');if(node)node.textContent=rx02CostText(rx02DraftRows());rx02RefreshReference()};refreshCost();$('#rx02SelfTest').onclick=rx02ShowReferenceSelfTest;$('#rx02ReferencePanel')?.addEventListener('toggle',e=>{rx02ReferenceExpanded=!!e.currentTarget.open;rx02RefreshReference()});
  $('#rxAdd').onclick=()=>{if(!rx02ConfirmDiscardReferenceChoices())return;renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}])};
  root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>{if(!rx02ConfirmDiscardReferenceChoices())return;renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete)))});
- root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true;if(el.dataset.rxField==='name'){const label=el.closest('[data-rx-row]')?.querySelector('[data-rx-legacy-info]');if(label)label.textContent=rx02LegacyInfo(el.value);rx02DrawLegacySpecs(el.closest('[data-rx-row]'))}};el.addEventListener('input',()=>{dirty();refreshCost()});el.addEventListener('change',()=>{dirty();refreshCost()})});
- $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました';$('#rxPrint').disabled=true;rx02RefreshReference()}};
- $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み';$('#rxPrint').disabled=false;rx02RefreshReference()}};
- $('#rxPrint').disabled=!selectedPatient?.rx02Prescription?.confirmed||!rx02RowsEqual(items,selectedPatient?.rx02Prescription?.items||[]);
+ root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true;$('#rxPreview').disabled=true;if(el.dataset.rxField==='name'){const label=el.closest('[data-rx-row]')?.querySelector('[data-rx-legacy-info]');if(label)label.textContent=rx02LegacyInfo(el.value);rx02DrawLegacySpecs(el.closest('[data-rx-row]'))}};el.addEventListener('input',()=>{dirty();refreshCost()});el.addEventListener('change',()=>{dirty();refreshCost()})});
+ $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました';$('#rxPrint').disabled=true;$('#rxPreview').disabled=true;rx02RefreshReference()}};
+ $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み';$('#rxPrint').disabled=false;$('#rxPreview').disabled=false;rx02RefreshReference()}};
+ const printable=!!selectedPatient?.rx02Prescription?.confirmed&&rx02RowsEqual(items,selectedPatient?.rx02Prescription?.items||[]);
+ $('#rxPrint').disabled=!printable;
+ $('#rxPreview').disabled=!printable;
  $('#rxPrint').onclick=()=>rx02PrintView();
+ $('#rxPreview').onclick=()=>rx02PreviewView();
 }
 function rx02RowsEqual(a,b){return JSON.stringify(a.map(rx02NormalizeRow))===JSON.stringify((b||[]).map(rx02NormalizeRow))}
 function rx02NormalizeRow(x){return {name:String(x.name||''),qty:String(x.qty||''),unit:String(x.unit||''),freq:String(x.freq||''),timing:String(x.timing||''),price:String(x.price||''),slots:Array.isArray(x.slots)?x.slots:[]}}
+// RX02 v0.44: fictional-data-only preview. No printer call, no save, no reference-price data.
+function rx02PreviewHtml(rec){
+ const rs=(rec.items||[]).map(r=>'<tr><td>'+esc(r.name)+'</td><td>'+esc(r.qty)+' '+esc(r.unit)+'</td><td>'+esc(r.freq)+'回/日</td><td>'+esc((r.slots||[]).join('・')+' '+r.timing)+'</td></tr>').join('');
+ return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RX02架空処方 A4プレビュー</title><style>'+
+ '@page{size:A4;margin:15mm}*{box-sizing:border-box}body{margin:0;padding:18px;background:#eef3f1;color:#132e2a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;font-size:14px;line-height:1.5}.page{width:100%;max-width:180mm;min-height:240mm;margin:0 auto;background:#fff;padding:17mm 12mm;box-shadow:0 2px 18px #b8cac5}.notice{background:#fff1dc;color:#7c4212;padding:10px;border:1px solid #f0c98d;font-weight:bold}.caption{color:#465c56;font-size:12px}h1{font-size:21px;line-height:1.4}table{border-collapse:collapse;width:100%;table-layout:fixed}td,th{border:1px solid #bbb;padding:7px 5px;overflow-wrap:anywhere;text-align:left}th{background:#f3f6f5}tr{break-inside:avoid}@media(max-width:600px){body{padding:5px}.page{min-height:0;padding:18px 11px;box-shadow:none;font-size:12px}h1{font-size:18px}td,th{padding:6px 3px}}@media print{body{padding:0;background:#fff}.page{width:auto;max-width:none;min-height:0;padding:0;box-shadow:none}.notice{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+ '</style></head><body><main class="page"><p class="notice">【架空患者・検証用】A4印刷レイアウトの確認専用です。実在患者の記録や正式な処方箋ではありません。</p>'+
+ '<h1>現在の内服処方一覧（架空データ・プレビュー）</h1><p>登録日：'+esc(rec.date||'未設定')+'</p>'+
+ '<table><thead><tr><th style="width:40%">薬剤名</th><th style="width:18%">1回量</th><th style="width:15%">回数</th><th>服用時点</th></tr></thead><tbody>'+rs+'</tbody></table>'+
+ '<p class="caption">薬価・参考照合先・後発品の比較情報は施設提出用の処方一覧には含まれません。電子カルテの照合を行ったことにはなりません。</p>'+
+ '<p class="caption">画面表示だけを行います。プリンターへの出力は自動で開始しません。</p></main></body></html>';
+}
+function rx02PreviewView(){
+ const rec=selectedPatient?.rx02Prescription;
+ if(!rec?.confirmed||!rec.items?.length){alert('架空患者の確定・保存済み処方が必要です');return false}
+ if(document.querySelector('#rxRows')&&!rx02RowsEqual(rx02DraftRows(),rec.items)){
+  alert('未保存の処方変更があります。保存・確定してからプレビューしてください');return false;
+ }
+ const preview=window.open('','_blank');
+ if(!preview){alert('プレビューを開けませんでした。Safariのポップアップ設定を確認してください');return false}
+ preview.document.open();
+ preview.document.write(rx02PreviewHtml(rec));
+ preview.document.close();
+ preview.focus();
+ return true;
+}
 function rx02PrintView(){
  const rec=selectedPatient?.rx02Prescription;
  if(!rec?.confirmed)return alert('保存済みの確定処方だけ印刷できます');
