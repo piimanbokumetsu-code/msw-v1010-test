@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.32';
+const APP_VERSION='RX02-TEST-0.33';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -156,7 +156,7 @@ async function lock(automatic=false){
       }
     }
   }
-  clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);renderLock(unsaved?'自動ロックしました。ただし直前の編集は保存できていない可能性があります。保存容量を確認してください。':'');
+  clearPatientAutoTimer();clearBasicPhotoPreview();dismissPhotoViewer();rx02ClosePriceEditor();key=null;state=null;selectedPatient=null;clearTimeout(lockTimer);renderLock(unsaved?'自動ロックしました。ただし直前の編集は保存できていない可能性があります。保存容量を確認してください。':'');
 }
 function resetAutoLock(){clearTimeout(lockTimer);if(!state)return;lockTimer=setTimeout(()=>lock(true),(state.settings.autoLockMin||5)*60000)}
 ['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(key)resetAutoLock()},{passive:true}));
@@ -1129,6 +1129,104 @@ async function rx02AddSampleDrugs(){
  try{await save();drawDrugs()}catch(e){state.drugs=before;alert('サンプル薬剤の保存に失敗しました：'+e.message)}
 }
 function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者処方そのものは保存しません。</p><p><b>薬剤登録：${ds.length}件</b>（FileMaker未取込なら「設定 → 薬剤CSVを読み込む」から登録）</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"><button class="btn secondary" id="rxSampleDrugs">架空サンプル薬剤を追加</button></div><p class="notice">検証用サンプルは実在する薬剤ではありません。患者情報や既存薬剤は削除しません。</p><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;$('#rxSampleDrugs').onclick=rx02AddSampleDrugs;drawDrugs()}
+// RX02 v0.33: product/strength-specific reference prices are stored separately
+// from imported FileMaker data and patient prescriptions. Every record is unverified.
+function rx02PriceBook(){
+ return state?.rx02PriceBook&&typeof state.rx02PriceBook==='object'&&!Array.isArray(state.rx02PriceBook)?state.rx02PriceBook:{};
+}
+function rx02PriceRecords(name){
+ const rows=rx02PriceBook()[String(name||'').trim()];
+ return Array.isArray(rows)?rows.filter(x=>x&&typeof x==='object'):[];
+}
+function rx02ValidatePriceEntry(input){
+ const text=k=>String(input[k]??'').trim();
+ const record={
+  id:text('id'),kind:text('kind'),product:text('product'),manufacturer:text('manufacturer'),
+  strength:text('strength'),unit:text('unit'),priceYen:null,source:text('source'),
+  asOf:text('asOf'),verified:false
+ };
+ if(!['先発品','後発品','不明'].includes(record.kind))throw Error('製品区分を選んでください');
+ if(!record.product||record.product.length>150)throw Error('製品名を150文字以内で入力してください');
+ if(!record.strength||record.strength.length>80)throw Error('規格を80文字以内で入力してください（例：60mg）');
+ if(!['錠','カプセル','包','g','mL','瓶','その他'].includes(record.unit))throw Error('薬価の単位を選んでください');
+ const raw=text('priceYen');
+ if(!raw||!/^([0-9]+)(?:\.([0-9]{1,2}))?$/.test(raw))throw Error('単位薬価は0以上の金額（小数点以下2桁まで）を入力してください');
+ record.priceYen=Number(raw);
+ if(!Number.isFinite(record.priceYen)||record.priceYen>10000000)throw Error('薬価の金額が大きすぎます');
+ if(!record.source||record.source.length>200)throw Error('参照した資料名を200文字以内で入力してください');
+ if(record.manufacturer.length>150)throw Error('製造販売元は150文字以内で入力してください');
+ if(record.asOf&&!/^\d{4}-\d{2}-\d{2}$/.test(record.asOf))throw Error('資料参照日が正しくありません');
+ return record;
+}
+function rx02PriceTableHtml(name){
+ const rows=rx02PriceRecords(name);
+ if(!rows.length)return '<p class="notice">製品ごとの参考薬価はまだ登録されていません。登録しても処方薬・施設提出用印刷は変わりません。</p>';
+ return '<div class="rx-price-scroll"><table class="rx-price-table"><thead><tr><th>製品・メーカー</th><th>規格</th><th>参考単位薬価</th><th>出典・資料参照日</th><th>編集</th></tr></thead><tbody>'+
+ rows.map(x=>'<tr><td><b>'+esc(x.product)+'</b><small>'+esc(x.kind||'不明')+' ／ '+esc(x.manufacturer||'メーカー未登録')+'</small></td>'+
+ '<td>'+esc(x.strength)+'</td><td>'+esc(Number(x.priceYen).toLocaleString('ja-JP',{maximumFractionDigits:2}))+'円／'+esc(x.unit)+'</td>'+
+ '<td>'+esc(x.source||'出典未登録')+'<small>'+esc(x.asOf||'日付不明')+' ／ 手入力・未照合</small></td>'+
+ '<td><button type="button" class="btn secondary" data-rx-price-edit="'+esc(x.id)+'" data-rx-price-parent="'+esc(name)+'">編集</button> <button type="button" class="btn secondary" data-rx-price-del="'+esc(x.id)+'" data-rx-price-parent="'+esc(name)+'">削除</button></td></tr>').join('')+
+ '</tbody></table></div>';
+}
+function rx02ClosePriceEditor(){document.getElementById('rxPriceEditorModal')?.remove()}
+function rx02OpenPriceEditor(name,id=''){
+ if(!state||!key)return;
+ const entry=rx02PriceRecords(name).find(x=>x.id===id)||null;
+ if(id&&!entry)return alert('編集する価格情報が見つかりません');
+ const d=(state.drugs||[]).find(x=>String(x['薬名']||'').trim()===name);
+ if(!d)return alert('薬情マスターに該当する薬剤がありません');
+ rx02ClosePriceEditor();
+ const generics=rx02GenericCandidates(d);
+ const candidates=generics.map(x=>'<option value="'+esc(x)+'"></option>').join('');
+ const data=entry||{kind:'後発品',product:'',manufacturer:'',strength:'',unit:'錠',priceYen:'',source:'',asOf:''};
+ const options=(values,selected)=>values.map(v=>'<option value="'+esc(v)+'"'+(v===selected?' selected':'')+'>'+esc(v)+'</option>').join('');
+ const container=document.createElement('div');container.id='rxPriceEditorModal';container.className='rx-price-overlay';
+ container.setAttribute('role','dialog');container.setAttribute('aria-modal','true');container.setAttribute('aria-label','規格別参考薬価の登録');
+ container.innerHTML='<div class="rx-price-dialog"><div class="rx-price-head"><h2>規格別の参考薬価 '+(entry?'編集':'登録')+'</h2><button type="button" class="btn secondary" id="rxPriceClose">閉じる</button></div>'+
+ '<p><b>元の薬剤：</b>'+esc(name)+'</p><p class="notice">検証用です。製品名・規格・薬価・出典を資料で確認して登録してください。すべて「手入力・未照合」として保存されます。自動で処方を書き換えたり印刷には載せません。</p>'+
+ '<form id="rxPriceForm"><div class="rx-price-fields">'+
+ '<label>製品区分<select name="kind">'+options(['後発品','先発品','不明'],data.kind||'不明')+'</select></label>'+
+ '<label>製品名（必須）<input name="product" required maxlength="150" list="rxPriceCandidates" value="'+esc(data.product||'')+'" placeholder="例：後発品の製品名"></label>'+
+ '<label>製造販売元<input name="manufacturer" maxlength="150" value="'+esc(data.manufacturer||'')+'" placeholder="分かる場合に入力"></label>'+
+ '<label>規格（必須）<input name="strength" required maxlength="80" value="'+esc(data.strength||'')+'" placeholder="例：60mg"></label>'+
+ '<label>単位薬価（円・必須）<input name="priceYen" type="number" min="0" max="10000000" step="0.01" inputmode="decimal" required value="'+esc(data.priceYen??'')+'"></label>'+
+ '<label>薬価の単位<select name="unit">'+options(['錠','カプセル','包','g','mL','瓶','その他'],data.unit||'錠')+'</select></label>'+
+ '<label>参照資料名（必須）<input name="source" required maxlength="200" value="'+esc(data.source||'')+'" placeholder="例：確認用資料名"></label>'+
+ '<label>資料参照日<input name="asOf" type="date" value="'+esc(data.asOf||'')+'"></label>'+
+ '</div><datalist id="rxPriceCandidates">'+candidates+'</datalist>'+
+ '<p id="rxPriceError" role="alert" class="rx-price-error"></p>'+
+ '<div class="rx-price-actions"><button type="submit" class="btn" id="rxPriceSave">参考薬価を保存</button><button type="button" class="btn secondary" id="rxPriceCancel">キャンセル</button></div></form>'+
+ '<p class="notice">※旧FileMakerの薬価と、ここで登録する参考薬価は別管理です。処方判断・変更を支援するものではありません。</p></div>';
+ document.body.append(container);
+ container.querySelector('#rxPriceClose').onclick=rx02ClosePriceEditor;
+ container.querySelector('#rxPriceCancel').onclick=rx02ClosePriceEditor;
+ container.onkeydown=e=>{if(e.key==='Escape')rx02ClosePriceEditor()};
+ container.querySelector('#rxPriceForm').onsubmit=async e=>{
+  e.preventDefault();
+  const form=e.currentTarget,button=container.querySelector('#rxPriceSave'),message=container.querySelector('#rxPriceError');
+  if(button.disabled)return;
+  const val=k=>form.elements.namedItem(k)?.value??'';
+  let updated;
+  try{
+   updated=rx02ValidatePriceEntry({id:entry?.id||uid(),kind:val('kind'),product:val('product'),
+    manufacturer:val('manufacturer'),strength:val('strength'),unit:val('unit'),priceYen:val('priceYen'),
+    source:val('source'),asOf:val('asOf')});
+  }catch(err){message.textContent=err.message;return}
+  button.disabled=true;button.textContent='保存中…';message.textContent='';
+  const prev=state.rx02PriceBook,rows=rx02PriceRecords(name);
+  state.rx02PriceBook={...rx02PriceBook(),[name]:entry?rows.map(x=>x.id===entry.id?updated:x):[...rows,updated]};
+  try{await save();rx02ClosePriceEditor();drawDrugs()}
+  catch(err){state.rx02PriceBook=prev;message.textContent='保存できませんでした：'+err.message;button.disabled=false;button.textContent='参考薬価を保存'}
+ };
+ container.querySelector('[name="product"]').focus();
+}
+async function rx02DeletePrice(name,id){
+ const rows=rx02PriceRecords(name),entry=rows.find(x=>x.id===id);if(!entry)return;
+ if(!confirm('「'+entry.product+' '+entry.strength+'」の参考薬価だけを削除しますか？\n元の薬剤マスター・患者処方は変更しません。'))return;
+ const prev=state.rx02PriceBook;
+ state.rx02PriceBook={...rx02PriceBook(),[name]:rows.filter(x=>x.id!==id)};
+ try{await save();drawDrugs()}catch(err){state.rx02PriceBook=prev;alert('削除を保存できませんでした：'+err.message)}
+}
 function rx02GenericCandidates(d){
  const source=String(d?.['薬効']||'');
  const match=source.match(/後発品\s*[⇒=>：:]\s*([^\n\v\r]+)/);
@@ -1145,9 +1243,9 @@ function rx02ComparisonHtml(d){
  '<p class="notice">旧CSVの記載から抽出した参考情報です。後発品の同等性・製品ごとの規格・現在の薬価は未照合です。</p>'+
  '<div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>先発側の規格</th><th>元データの薬価</th><th>後発品の薬価</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
  '<div><b>旧データに記載の後発品候補：</b>'+esc(generics.length?generics.join('、'):'記載なし')+'</div>'+
- '<div><b>手動登録された関連製品：</b>'+esc(related.length?related.map(([n,x])=>n+'（'+(x.manufacturer||'製造販売元未登録')+'・未検証）').join('、'):'登録なし')+'</div></details>';
+ '<div><b>手動登録された関連製品：</b>'+esc(related.length?related.map(([n,x])=>n+'（'+(x.manufacturer||'製造販売元未登録')+'・未検証）').join('、'):'登録なし')+'</div>'+ '<div class="rx-price-section"><b>製品・規格別の手入力参考薬価（未照合）</b>'+rx02PriceTableHtml(String(d['薬名']||''))+'</div></details>';
 }
-function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div><div class="small">${esc(rx02RelationInfo(d['薬名']))}</div>${rx02ComparisonHtml(d)}<button type="button" class="btn secondary" data-rx-rel="${esc(d['薬名'])}">先発・後発の関連付け</button></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>';$('#drugList').querySelectorAll('[data-rx-rel]').forEach(b=>b.onclick=()=>rx02EditRelation(b.dataset.rxRel))}
+function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div><div class="small">${esc(rx02RelationInfo(d['薬名']))}</div>${rx02ComparisonHtml(d)}<button type="button" class="btn" data-rx-price-add="${esc(d['薬名'])}">製品別の参考薬価を登録</button> <button type="button" class="btn secondary" data-rx-rel="${esc(d['薬名'])}">先発・後発の関連付け</button></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>';$('#drugList').querySelectorAll('[data-rx-rel]').forEach(b=>b.onclick=()=>rx02EditRelation(b.dataset.rxRel));$('#drugList').querySelectorAll('[data-rx-price-add]').forEach(b=>b.onclick=()=>rx02OpenPriceEditor(b.dataset.rxPriceAdd));$('#drugList').querySelectorAll('[data-rx-price-edit]').forEach(b=>b.onclick=()=>rx02OpenPriceEditor(b.dataset.rxPriceParent,b.dataset.rxPriceEdit));$('#drugList').querySelectorAll('[data-rx-price-del]').forEach(b=>b.onclick=()=>rx02DeletePrice(b.dataset.rxPriceParent,b.dataset.rxPriceDel))}
 
 function renderMasters(){
   ensureStateSchema();
