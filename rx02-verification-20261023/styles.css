@@ -465,3 +465,6 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .rx-ref-pending{display:block;margin:5px 0 9px;color:#506866;font-size:12px}
 .rx-ref-pending[data-dirty="yes"]{color:#a35408;font-weight:700}
 .rx-ref-lookup optgroup{font-weight:700}
+
+/* RX02 v0.37: clearly distinguish conflicting reference drug prices */
+.rx-ref-conflict{background:#fff2ed;border-left:4px solid #bc541c;border-radius:6px;padding:10px 12px;margin:10px 0;color:#854016;font-weight:700;font-size:12px;line-height:1.7}
