@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.41';
+const APP_VERSION='RX02-TEST-0.42';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -404,6 +404,7 @@ async function finishPatientAndNavigate(next,{closing=false}={}){
   controls.forEach(b=>b.disabled=true);
   try{
     if(activeTab==='rx02'&&document.querySelector('#rxRows')){
+      if(!rx02ConfirmDiscardReferenceChoices())return;
       const stored=selectedPatient?.rx02Prescription?.items||[];
       if(!rx02RowsEqual(rx02DraftRows(),stored) && !await rx02Store(false))return;
     }
@@ -794,6 +795,34 @@ function rx02RefreshComparisonBasis(rows){
  basis.textContent=result.label;
 }
 let rx02ReferenceExpanded=false;
+// RX02 v0.42: distinguish unsaved reference choices from prescription draft saves.
+// These helpers never write persistent data.
+function rx02ReferenceChoicePending(name,master,strength,saved){
+ const current=rx02ResolveLink(saved);
+ const intendedMaster=String(master||'').trim();
+ const intendedStrength=rx02ComparableText(strength).replace(/\s+/g,'');
+ if(intendedMaster!==current.master)return true;
+ if(!intendedMaster)return false;
+ return !rx02ExtractStrength(name)&&intendedStrength!==current.strength;
+}
+function rx02PendingReferenceCount(){
+ const body=document.getElementById('rx02ReferenceBody');
+ if(!body)return 0;
+ const links=rx02PatientLookupLinks();
+ let count=0;
+ for(const item of body.querySelectorAll('[data-rx-ref-item]')){
+  if(item.querySelector('[data-rx-ref-pending]')?.dataset.dirty!=='yes')continue;
+  const name=String(item.dataset.rxRefItem||'');
+  const choice=item.querySelector('[data-rx-ref-choice]')?.value||'';
+  const strength=item.querySelector('[data-rx-ref-strength]')?.value||'';
+  if(rx02ReferenceChoicePending(name,choice,strength,links[rx02ReferenceLinkKey(name)]))count++;
+ }
+ return count;
+}
+function rx02ConfirmDiscardReferenceChoices(){
+ const pending=rx02PendingReferenceCount();
+ return !pending||confirm('院内用の参考照合先に未保存の選択が'+pending+'件あります。\\nこの操作で選択内容は消えますが、医師の処方内容は変更されません。\\n照合先の変更を破棄して続行しますか？');
+}
 function rx02RefreshReference(){
  const node=document.getElementById('rx02ReferenceBody'),panel=document.getElementById('rx02ReferencePanel');
  if(!node||!panel)return;
@@ -908,6 +937,14 @@ function rx02ReferenceSelfTest(){
   const entries=rx02ReferenceAnalysis([rx,other],book,links);
   return entries.length===2&&entries.every(a=>a.duplicate===false&&a.reference.matched.length===1);
  });
+ test('保存した照合先への再選択を未保存と誤判定しない',()=>
+  !rx02ReferenceChoicePending('架空診断薬A10mg',base,'',{master:base,strength:''}));
+ test('別の照合先は未保存として検出',()=>
+  rx02ReferenceChoicePending('架空診断薬A10mg','別の架空診断薬','',{master:base,strength:''}));
+ test('規格なし処方の照合規格変更を検出',()=>
+  rx02ReferenceChoicePending('架空診断薬A',base,'5mg',{master:base,strength:'10mg'}));
+ test('照合先解除と未指定が一致すれば未保存ではない',()=>
+  !rx02ReferenceChoicePending('架空診断薬A10mg','','',{master:'',strength:''}));
  test('架空の診断データを変更しない',()=>JSON.stringify(book)===originalBook&&JSON.stringify(rx)===originalRx);
  const passed=cases.filter(x=>x.ok).length;
  return {passed,total:cases.length,allPassed:passed===cases.length,cases};
@@ -945,12 +982,12 @@ function renderRX02Tab(rows){
  '<datalist id="rx02DrugCandidates">'+rx02LegacyCandidates().map(n=>'<option value="'+esc(n)+'"></option>').join('')+'</datalist><div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
  root.querySelectorAll('[data-rx-row]').forEach(div=>rx02DrawLegacySpecs(div));
  const refreshCost=()=>{const node=$('#rxCostSummary');if(node)node.textContent=rx02CostText(rx02DraftRows());rx02RefreshReference()};refreshCost();$('#rx02SelfTest').onclick=rx02ShowReferenceSelfTest;$('#rx02ReferencePanel')?.addEventListener('toggle',e=>{rx02ReferenceExpanded=!!e.currentTarget.open;rx02RefreshReference()});
- $('#rxAdd').onclick=()=>renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}]);
- root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete))));
+ $('#rxAdd').onclick=()=>{if(!rx02ConfirmDiscardReferenceChoices())return;renderRX02Tab([...rx02DraftRows(),{name:'',qty:'',unit:'錠',freq:'',timing:'食後',slots:[],price:''}])};
+ root.querySelectorAll('[data-rx-delete]').forEach(b=>b.onclick=()=>{if(!rx02ConfirmDiscardReferenceChoices())return;renderRX02Tab(rx02DraftRows().filter((x,i)=>i!==Number(b.dataset.rxDelete)))});
  root.querySelectorAll('[data-rx-field], [data-rx-slot]').forEach(el=>{const dirty=()=>{$('#rxSaveStatus').textContent='未保存の変更があります';$('#rxPrint').disabled=true;if(el.dataset.rxField==='name'){const label=el.closest('[data-rx-row]')?.querySelector('[data-rx-legacy-info]');if(label)label.textContent=rx02LegacyInfo(el.value);rx02DrawLegacySpecs(el.closest('[data-rx-row]'))}};el.addEventListener('input',()=>{dirty();refreshCost()});el.addEventListener('change',()=>{dirty();refreshCost()})});
  $('#rxDraft').onclick=async()=>{if(await rx02Store(false)){$('#rxSaveStatus').textContent='下書きを保存しました';$('#rxPrint').disabled=true;rx02RefreshReference()}};
  $('#rxConfirm').onclick=async()=>{if(await rx02Store(true)){$('#rxSaveStatus').textContent='処方確定・保存済み';$('#rxPrint').disabled=false;rx02RefreshReference()}};
- $('#rxPrint').disabled=!selectedPatient?.rx02Prescription?.confirmed;
+ $('#rxPrint').disabled=!selectedPatient?.rx02Prescription?.confirmed||!rx02RowsEqual(items,selectedPatient?.rx02Prescription?.items||[]);
  $('#rxPrint').onclick=()=>rx02PrintView();
 }
 function rx02RowsEqual(a,b){return JSON.stringify(a.map(rx02NormalizeRow))===JSON.stringify((b||[]).map(rx02NormalizeRow))}
