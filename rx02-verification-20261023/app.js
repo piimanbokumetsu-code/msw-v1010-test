@@ -722,6 +722,8 @@ function rx02RefreshReference(){
  for(const item of node.querySelectorAll('[data-rx-ref-item]')){
   const draft=pending.get(item.dataset.rxRefItem);
   if(!draft?.dirty)continue;
+  const saved=rx02ResolveLink(rx02PatientLookupLinks()[rx02ReferenceLinkKey(item.dataset.rxRefItem)]);
+  if(draft.master===saved.master&&(rx02ExtractStrength(item.dataset.rxRefItem)||draft.strength===saved.strength))continue;
   const master=item.querySelector('[data-rx-ref-choice]'),strength=item.querySelector('[data-rx-ref-strength]');
   if(master)master.value=draft.master;
   if(strength){strength.innerHTML=rx02StrengthChoiceHtml(draft.master,item.dataset.rxRefUnit,draft.strength);strength.value=draft.strength}
