@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.37';
+const APP_VERSION='RX02-TEST-0.38';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -680,14 +680,33 @@ function rx02ReferenceAnalysis(rows,book,links={}){
   return {row,reference,chosen,prn,schedOk,currentPrice,dailyUnits};
  });
 }
-function rx02LookupMasterOptions(){
- const all=rx02LegacyCandidates(),book=rx02PriceBook();
- const hasPrice=name=>Array.isArray(book[name])&&book[name].length>0;
- const preferred=all.filter(hasPrice),others=all.filter(n=>!hasPrice(n));
- const list=items=>items.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join('');
- return '<option value="">照合先なし（自動一致のみ）</option>'+
-  (preferred.length?'<optgroup label="参考価格が登録されている薬剤">'+list(preferred)+'</optgroup>':'')+
-  (others.length?'<optgroup label="その他の薬情マスター">'+list(others)+'</optgroup>':'');
+// RX02 v0.38: searchable patient-side reference lookup (never edits the Rx).
+function rx02LookupCandidates(query='',chosen=''){
+ const normalized=rx02ComparableText(query).replace(/\s+/g,'');
+ const catalog=rx02LegacyCandidates();
+ const byName=new Map((state.drugs||[]).map(d=>[String(d['薬名']||'').trim(),d]));
+ const book=rx02PriceBook();
+ const priced=n=>Array.isArray(book[n])&&book[n].length>0;
+ const matched=catalog.filter(n=>!normalized||
+  rx02ComparableText(n).replace(/\s+/g,'').includes(normalized)||
+  rx02ComparableText(byName.get(n)?.['医薬品分類']||'').replace(/\s+/g,'').includes(normalized));
+ const preferred=matched.filter(priced),other=matched.filter(n=>!priced(n));
+ const ordered=[...preferred,...other];
+ const limit=normalized?60:40; // Limit initial scrolling on iPad mini.
+ let visible=ordered.slice(0,limit);
+ if(chosen&&catalog.includes(chosen)&&!visible.includes(chosen))visible=[chosen,...visible].slice(0,limit+1);
+ const marked=visible.filter(priced),unmarked=visible.filter(n=>!priced(n));
+ const list=names=>names.map(n=>'<option value="'+esc(n)+'"'+(n===chosen?' selected':'')+'>'+esc(n)+'</option>').join('');
+ const html='<option value=""'+(!chosen?' selected':'')+'>照合先なし（自動一致のみ）</option>'+
+  (marked.length?'<optgroup label="参考価格が登録されている薬剤">'+list(marked)+'</optgroup>':'')+
+  (unmarked.length?'<optgroup label="その他の薬情マスター">'+list(unmarked)+'</optgroup>':'');
+ return {html,count:matched.length,shown:visible.length,total:catalog.length};
+}
+function rx02LookupMasterOptions(query='',chosen=''){return rx02LookupCandidates(query,chosen).html}
+function rx02SearchCountText(query,selection){
+ const c=rx02LookupCandidates(query,selection);
+ return '候補 '+c.count+'件'+(c.shown<c.count?'（表示は先頭'+c.shown+'件。検索語で絞り込めます）':'')+
+  ' ／ 全'+c.total+'件。選択して「照合先を保存」を押してください。';
 }
 function rx02StrengthChoiceHtml(master,unit,selected=''){
  const strengths=rx02RegisteredStrengths(master,unit);
@@ -699,13 +718,13 @@ function rx02ReferenceHtml(rows){
  const links=rx02PatientLookupLinks();
  const all=rx02ReferenceAnalysis(rows,rx02PriceBook(),links);
  if(!all.length)return '<p class="notice">患者の処方薬を入力すると、登録済みの参考薬価を確認できます。</p>';
- const choices=rx02LookupMasterOptions();
  return all.map(a=>{
   const {row,reference,chosen,prn,schedOk,currentPrice,dailyUnits}=a;
   const currentLink=rx02ResolveLink(links[rx02ReferenceLinkKey(row.name)]);
   const name=esc(row.name),short=name+' ／ '+esc(row.qty||'未入力')+esc(row.unit||'')+' × '+esc(row.freq||'未入力')+'回/日';
   const explicit=rx02ExtractStrength(row.name);
-  const masterSelect='<select data-rx-ref-choice>'+choices.replace('value="'+esc(chosen)+'"','value="'+esc(chosen)+'" selected')+'</select>';
+  const search='<input type="search" data-rx-ref-search placeholder="薬剤名・分類で検索（例：架空）" autocomplete="off" aria-label="薬情マスターの照合先を検索">';
+  const masterSelect=search+'<select data-rx-ref-choice>'+rx02LookupMasterOptions('',chosen)+'</select><small data-rx-ref-count>'+esc(rx02SearchCountText('',chosen))+'</small>';
   const strengthSelect=explicit?
    '<span class="rx-ref-strength-label">処方名から読み取った規格：<b>'+esc(explicit)+'</b>（照合用）</span>':
    '<label>照合規格（薬情の参考価格から選択）<select data-rx-ref-strength>'+rx02StrengthChoiceHtml(chosen,row.unit,currentLink.strength)+'</select></label>';
@@ -744,11 +763,18 @@ function rx02RefreshReference(){
  const pending=new Map([...node.querySelectorAll('[data-rx-ref-item]')].map(el=>[el.dataset.rxRefItem,{
   master:el.querySelector('[data-rx-ref-choice]')?.value||'',
   strength:el.querySelector('[data-rx-ref-strength]')?.value||'',
+  search:el.querySelector('[data-rx-ref-search]')?.value||'',
   dirty:el.querySelector('[data-rx-ref-pending]')?.dataset.dirty==='yes'
  }]));
  node.innerHTML=rx02ReferenceHtml(rx02DraftRows());
  for(const item of node.querySelectorAll('[data-rx-ref-item]')){
   const draft=pending.get(item.dataset.rxRefItem);
+  const search=item.querySelector('[data-rx-ref-search]'),preMaster=item.querySelector('[data-rx-ref-choice]'),count=item.querySelector('[data-rx-ref-count]');
+  if(draft?.search){
+   if(search)search.value=draft.search;
+   if(preMaster)preMaster.innerHTML=rx02LookupMasterOptions(draft.search,draft.dirty?draft.master:preMaster.value);
+   if(count)count.textContent=rx02SearchCountText(draft.search,draft.dirty?draft.master:preMaster?.value||'');
+  }
   if(!draft?.dirty)continue;
   const saved=rx02ResolveLink(rx02PatientLookupLinks()[rx02ReferenceLinkKey(item.dataset.rxRefItem)]);
   if(draft.master===saved.master&&(rx02ExtractStrength(item.dataset.rxRefItem)||draft.strength===saved.strength))continue;
@@ -759,8 +785,16 @@ function rx02RefreshReference(){
   if(marker){marker.dataset.dirty='yes';marker.textContent='照合先の変更は未保存です'}
  }
  node.querySelectorAll('[data-rx-ref-item]').forEach(item=>{
-  const master=item.querySelector('[data-rx-ref-choice]'),strength=item.querySelector('[data-rx-ref-strength]'),button=item.querySelector('[data-rx-ref-apply]');
+  const master=item.querySelector('[data-rx-ref-choice]'),strength=item.querySelector('[data-rx-ref-strength]'),button=item.querySelector('[data-rx-ref-apply]'),search=item.querySelector('[data-rx-ref-search]'),count=item.querySelector('[data-rx-ref-count]');
   const dirty=()=>{const marker=item.querySelector('[data-rx-ref-pending]');if(marker){marker.dataset.dirty='yes';marker.textContent='照合先の変更は未保存です'}};
+  search?.addEventListener('input',()=>{
+   if(!master)return;
+   const keep=master.value;
+   master.innerHTML=rx02LookupMasterOptions(search.value,keep);
+   master.value=keep;
+   if(count)count.textContent=rx02SearchCountText(search.value,keep);
+   // Search is only a filter, never automatically selects or saves a medicine.
+  });
   master?.addEventListener('change',()=>{
    if(strength){strength.innerHTML=rx02StrengthChoiceHtml(master.value,item.dataset.rxRefUnit);strength.value=''}
    dirty();
