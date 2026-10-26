@@ -509,3 +509,8 @@ button.mvp-taskjump:hover{background:var(--bg)}
 #rx02OfflineStatus{font-size:11px;color:#365f5b}
 @media(max-width:550px){.rx-release-strip{font-size:11px;gap:3px 6px;padding:5px}.rx-release-strip strong{flex-basis:100%;font-size:11px}#rx02OfflineStatus{font-size:10px}}
 @media print{.rx-release-strip{display:none!important}}
+
+/* RX02 v0.44: read-only A4 preview touch target */
+#rxPreview{min-height:44px;white-space:normal;line-height:1.4}
+#rxPreview:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:550px){#rxPreview{flex:1 1 46%;min-width:155px}}
