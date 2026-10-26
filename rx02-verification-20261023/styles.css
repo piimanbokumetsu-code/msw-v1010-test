@@ -451,3 +451,10 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .rx-ref-table{min-width:590px}
 .rx-ref-source{font-size:11px!important;color:#556670;background:#f6f9fa}
 @media print{.rx-ref-panel{display:none!important}}
+
+/* RX02 v0.35: separate lookup from actual prescription, optimized for iPad mini */
+.rx-ref-lookup{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin:10px 0}
+.rx-ref-lookup label{display:flex;flex-direction:column;gap:5px;flex:1;min-width:min(100%,250px);font-size:12px;font-weight:700}
+.rx-ref-lookup select{width:100%;box-sizing:border-box;border:1px solid #9acdc3;border-radius:9px;background:#fff;color:#183335;font:inherit;font-size:15px;min-height:45px;padding:6px 10px}
+.rx-ref-lookup .btn{min-height:45px;white-space:nowrap}
+@media(max-width:500px){.rx-ref-lookup{display:block}.rx-ref-lookup .btn{margin-top:8px;width:100%}}
