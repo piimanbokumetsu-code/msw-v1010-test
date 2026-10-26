@@ -439,3 +439,15 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .rx-price-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .rx-price-error{min-height:1.3em;color:#aa1825;font-size:13px;font-weight:700}
 @media(max-width:620px){.rx-price-fields{grid-template-columns:1fr}.rx-price-dialog{padding:12px}}
+
+/* RX02 v0.34: patient-side, read-only reference comparison */
+.rx-ref-panel{margin:10px 0 14px;padding:11px 12px;border:1px solid #9acdc3;border-radius:11px;background:#f2faf8}
+.rx-ref-panel>summary{cursor:pointer;font-size:14px;font-weight:750;color:#11574f;line-height:1.5;padding:4px 2px}
+.rx-ref-panel[open]>summary{border-bottom:1px solid #c0e3db;padding-bottom:10px;margin-bottom:12px}
+.rx-ref-item{padding:10px 0 13px;border-bottom:1px solid #c8dedb;overflow-wrap:anywhere}
+.rx-ref-item:last-of-type{border-bottom:0}
+.rx-ref-item>b{font-size:14px}
+.rx-ref-current{font-size:12px;font-weight:700;margin:6px 0 10px}
+.rx-ref-table{min-width:590px}
+.rx-ref-source{font-size:11px!important;color:#556670;background:#f6f9fa}
+@media print{.rx-ref-panel{display:none!important}}
