@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.34';
+const APP_VERSION='RX02-TEST-0.35';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -557,21 +557,62 @@ function rx02DrawLegacySpecs(row){
 function rx02ComparableText(v){
  return String(v??'').normalize('NFKC').replace(/μ/g,'µ').replace(/\s+/g,' ').trim().toLowerCase();
 }
-function rx02ReferenceMatches(row,book){
+// v0.35: Lookup links are patient-scoped and separate from prescriptions.
+// A changed prescription name never inherits a different name's lookup link.
+function rx02ReferenceLinkKey(name){return rx02ComparableText(name)}
+function rx02PatientLookupLinks(){
+ const pid=String(selectedPatient?.id||'');
+ const raw=state?.rx02ReferenceLinks;
+ if(!pid||!raw||typeof raw!=='object'||Array.isArray(raw))return {};
+ const links=raw[pid];
+ return links&&typeof links==='object'&&!Array.isArray(links)?links:{};
+}
+function rx02ChosenMaster(name){
+ const linked=String(rx02PatientLookupLinks()[rx02ReferenceLinkKey(name)]||'');
+ return (state.drugs||[]).some(d=>String(d['薬名']||'').trim()===linked)?linked:'';
+}
+function rx02ExtractStrength(name){
+ const m=rx02ComparableText(name).match(/(?:^|[^0-9])(\d+(?:\.\d+)?\s*(?:mg|µg|g|ml|%|単位))$/i);
+ return m?m[1].replace(/\s+/g,''):'';
+}
+async function rx02SaveLookupLink(rxName,masterName){
+ if(!selectedPatient||selectedPatient._new)return alert('参考照合先を保存する前に、架空患者を先に保存してください。');
+ const source=String(rxName||'').trim(),chosen=String(masterName||'').trim();
+ if(!source)return alert('処方薬の薬剤名が空欄です');
+ // A lookup may be removed by selecting the blank option.
+ if(chosen&&!(state.drugs||[]).some(d=>String(d['薬名']||'').trim()===chosen))return alert('薬情マスターに存在する薬剤を選択してください');
+ const previous=state.rx02ReferenceLinks,patientId=String(selectedPatient.id);
+ const existing=rx02PatientLookupLinks(),updated={...existing},k=rx02ReferenceLinkKey(source);
+ if(chosen)updated[k]=chosen;else delete updated[k];
+ state.rx02ReferenceLinks={...(state.rx02ReferenceLinks||{}),[patientId]:updated};
+ try{
+  await save();
+  rx02RefreshReference();
+  const indicator=document.getElementById('rx02LookupSaveMessage');
+  if(indicator)indicator.textContent=chosen?'参考照合先を保存しました（処方内容は変更していません）':'参考照合先の指定を解除しました';
+ }catch(e){
+  state.rx02ReferenceLinks=previous;
+  alert('参考照合先の保存に失敗しました：'+e.message);
+ }
+}
+function rx02ReferenceMatches(row,book,selectedMaster=''){
  const name=rx02ComparableText(row.name),unit=String(row.unit||'').trim();
  if(!name||!book||typeof book!=='object'||Array.isArray(book))return {matched:[],known:false};
- let known=false,matched=[];
+ const manual=String(selectedMaster||'').trim(),specifiedStrength=manual?rx02ExtractStrength(name):'';
+ let known=!!manual,matched=[];
  for(const [base,entries] of Object.entries(book)){
   if(!Array.isArray(entries)||!entries.length)continue;
+  if(manual&&base!==manual)continue;
   const b=rx02ComparableText(base);
   if(!b)continue;
   if(name===b||name.startsWith(b+' '))known=true;
   for(const item of entries){
    if(!item||typeof item!=='object')continue;
-   const strength=rx02ComparableText(item.strength);
+   const strength=rx02ComparableText(item.strength).replace(/\s+/g,'');
    if(!strength)continue;
-   // Accepted input: "product 10mg" or "product10mg" only.
-   if(name!==b+' '+strength&&name!==b+strength)continue;
+   // For manual lookup, require a readable explicit strength in the unchanged Rx name.
+   // For automatic lookup, require the whole source to match "master-name strength".
+   if(manual?strength!==specifiedStrength:(name!==b+' '+strength&&name!==b+strength))continue;
    known=true;
    if(unit!==String(item.unit||'').trim())continue;
    const price=Number(item.priceYen);
@@ -579,11 +620,12 @@ function rx02ReferenceMatches(row,book){
    matched.push({...item,masterName:base,priceYen:price});
   }
  }
- return {matched,known};
+ return {matched,known,manual:!!manual,specifiedStrength};
 }
-function rx02ReferenceAnalysis(rows,book){
+function rx02ReferenceAnalysis(rows,book,links={}){
  return rows.filter(x=>String(x.name||'').trim()).map(row=>{
-  const reference=rx02ReferenceMatches(row,book);
+  const chosen=String(links[rx02ReferenceLinkKey(row.name)]||'');
+  const reference=rx02ReferenceMatches(row,book,chosen);
   const prn=String(row.timing||'').trim()==='頓服';
   const qty=Number(row.qty),freq=Number(row.freq);
   const schedOk=!prn&&String(row.qty??'').trim()!==''&&String(row.freq??'').trim()!==''&&Number.isFinite(qty)&&qty>0&&Number.isFinite(freq)&&freq>0;
@@ -591,18 +633,30 @@ function rx02ReferenceAnalysis(rows,book){
   const p=Number(unitPriceText);
   const currentPrice=unitPriceText!==''&&Number.isFinite(p)&&p>=0?p:null;
   const dailyUnits=schedOk?qty*freq:null;
-  return {row,reference,prn,schedOk,currentPrice,dailyUnits};
+  return {row,reference,chosen,prn,schedOk,currentPrice,dailyUnits};
  });
 }
 function rx02ReferenceHtml(rows){
  const yen=n=>Number(n).toLocaleString('ja-JP',{maximumFractionDigits:2});
- const all=rx02ReferenceAnalysis(rows,rx02PriceBook());
- const available=all.filter(x=>x.reference.matched.length);
+ const links=rx02PatientLookupLinks();
+ const all=rx02ReferenceAnalysis(rows,rx02PriceBook(),links);
  if(!all.length)return '<p class="notice">患者の処方薬を入力すると、登録済みの参考薬価を確認できます。</p>';
+ const masterNames=rx02LegacyCandidates();
+ const choices='<option value="">照合先なし（自動一致のみ）</option>'+masterNames.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join('');
  return all.map(a=>{
-  const {row,reference,prn,schedOk,currentPrice,dailyUnits}=a;
+  const {row,reference,chosen,prn,schedOk,currentPrice,dailyUnits}=a;
   const name=esc(row.name),short=name+' ／ '+esc(row.qty||'未入力')+esc(row.unit||'')+' × '+esc(row.freq||'未入力')+'回/日';
-  if(!reference.matched.length)return '<div class="rx-ref-item"><b>'+short+'</b><p class="notice">'+(reference.known?'製品は見つかりましたが、処方名の規格と価格単位が一致する参考薬価がありません。':'対応する参考価格の登録がありません。薬情で製品・規格別の価格を登録してください。')+'</p></div>';
+  const selector='<div class="rx-ref-lookup"><label>薬情マスターの照合先（処方名は変更しません）<select data-rx-ref-choice>'+
+    choices.replace('value="'+esc(chosen)+'"','value="'+esc(chosen)+'" selected')+
+    '</select></label><button type="button" class="btn secondary" data-rx-ref-apply>照合先を保存</button></div>'+
+    (chosen?'<p class="notice">手動照合先：'+esc(chosen)+'（対応関係は未照合）</p>':'');
+  const root='<div class="rx-ref-item" data-rx-ref-item="'+esc(row.name)+'"><b>'+short+'</b>'+selector;
+  if(!reference.matched.length){
+   const reason=chosen&&!reference.specifiedStrength?
+    '処方薬名の末尾に規格（例：10mg）が見つからないため、比較額は計算しません。':
+    reference.known?'照合先はありますが、処方名の規格・単位と一致する参考薬価がありません。':'対応する参考価格の登録がありません。薬情で製品・規格別の価格を登録してください。';
+   return root+'<p class="notice">'+esc(reason)+'</p></div>';
+  }
   const current=(currentPrice!==null&&schedOk)?'現在の処方の入力薬価：1日 '+yen(currentPrice*dailyUnits)+'円 ／ 30日 '+yen(currentPrice*dailyUnits*30)+'円':'現在の処方薬価が未入力・要確認のため差額は計算しません。';
   const warning=prn?'頓服のため1日・30日換算は行いません。':!schedOk?'1回量と1日回数の正しい入力が必要です。':'';
   const table='<div class="rx-price-scroll"><table class="rx-price-table rx-ref-table"><thead><tr><th>参考製品</th><th>単位薬価</th><th>同数量での1日・30日試算</th><th>現在の入力薬価との差</th></tr></thead><tbody>'+
@@ -613,19 +667,30 @@ function rx02ReferenceHtml(rows){
     '<td>'+yen(x.priceYen)+'円／'+esc(x.unit)+'</td><td>'+computed+'</td><td>'+gap+'<small>処方中の入力価格 − 参考価格</small></td></tr>'+
     '<tr><td colspan="4" class="rx-ref-source">参照元：'+esc(x.source||'不明')+' ／ 資料参照日：'+esc(x.asOf||'未登録')+' ／ 手入力・未照合</td></tr>';
    }).join('')+'</tbody></table></div>';
-  return '<div class="rx-ref-item"><b>'+short+'</b><div class="rx-ref-current">'+esc(current)+'</div>'+
+  return root+'<div class="rx-ref-current">'+esc(current)+'</div>'+
   (warning?'<p class="notice">'+esc(warning)+'</p>':'')+table+'</div>';
  }).join('')+
- '<p class="notice">※表示は同じ錠数・回数などを仮定した薬価だけの試算であり、後発品の同等性・切替可否や患者負担額を示すものではありません。実際の処方は一切変更しません。</p>';
+ '<p class="notice">※照合先は参考表示にのみ利用し、医師の処方名・用量や施設提出用印刷は変更しません。同じ数量・回数を仮定した薬価の試算で、後発品への切替可否や患者負担額を示すものではありません。</p>';
 }
 function rx02RefreshReference(){
  const node=document.getElementById('rx02ReferenceBody');
- if(node)node.innerHTML=rx02ReferenceHtml(rx02DraftRows());
+ if(!node)return;
+ node.innerHTML=rx02ReferenceHtml(rx02DraftRows());
+ node.querySelectorAll('[data-rx-ref-apply]').forEach(button=>{
+  button.onclick=async()=>{
+   const container=button.closest('[data-rx-ref-item]');
+   if(!container)return;
+   const choice=container.querySelector('[data-rx-ref-choice]');
+   button.disabled=true;
+   await rx02SaveLookupLink(container.dataset.rxRefItem,choice?.value||'');
+   if(button.isConnected)button.disabled=false;
+  };
+ });
 }
 function renderRX02Tab(rows){
  const root=$('#tabbody'),items=rows||rx02SafeRows();
  root.innerHTML='<div class="panel"><h3>現在の内服処方（RX02開発版）</h3><p class="notice">検証用の機能です。実患者情報は入力しないでください。旧薬価は確認用であり自動転記しません。頓服薬は定期薬の概算から除外します。画面上部の「院内用・薬価概算」で金額を確認できます。</p>'+
- '<div class="panel" style="border:2px solid #0f766e;padding:10px;margin:8px 0" role="status" aria-live="polite"><b>院内用・薬価概算</b><div id="rxCostSummary" style="font-size:16px;font-weight:700;line-height:1.7"></div><small>薬剤ごとの「単位薬価（院内用）」に金額を入力すると自動計算します。</small></div><details id="rx02ReferencePanel" class="rx-ref-panel"><summary>院内用：後発品などの参考薬価比較（未照合）</summary><div id="rx02ReferenceBody"></div></details><div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
+ '<div class="panel" style="border:2px solid #0f766e;padding:10px;margin:8px 0" role="status" aria-live="polite"><b>院内用・薬価概算</b><div id="rxCostSummary" style="font-size:16px;font-weight:700;line-height:1.7"></div><small>薬剤ごとの「単位薬価（院内用）」に金額を入力すると自動計算します。</small></div><details id="rx02ReferencePanel" class="rx-ref-panel"><summary>院内用：後発品などの参考薬価比較（未照合）</summary><p class="notice">処方薬名はそのまま保持し、薬情マスターの照合先だけを別に選べます。変更しても処方・印刷には反映しません。</p><div id="rx02ReferenceBody"></div><p id="rx02LookupSaveMessage" role="status" class="notice"></p></details><div class="toolbar"><button class="btn" id="rxAdd">＋薬剤</button><button class="btn secondary" id="rxDraft">下書き保存</button><button class="btn" id="rxConfirm">処方確定</button><button class="btn secondary" id="rxPrint">A4印刷</button></div>'+
  '<datalist id="rx02DrugCandidates">'+rx02LegacyCandidates().map(n=>'<option value="'+esc(n)+'"></option>').join('')+'</datalist><div id="rxRows">'+items.map(rx02RowHtml).join('')+'</div><p id="rxSaveStatus"></p></div>';
  root.querySelectorAll('[data-rx-row]').forEach(div=>rx02DrawLegacySpecs(div));
  const refreshCost=()=>{const node=$('#rxCostSummary');if(node)node.textContent=rx02CostText(rx02DraftRows());rx02RefreshReference()};refreshCost();
