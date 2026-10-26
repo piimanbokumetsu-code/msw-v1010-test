@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='mswdb_rx02_trial_isolated_20261023', STORE='kv'; // Test-only DB. Never touch v1.0.20 data.
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='RX02-TEST-0.29';
+const APP_VERSION='RX02-TEST-0.30';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -1270,7 +1270,18 @@ async function replacePatientsFromFileMaker(file){
     render();
   }catch(e){alert(`患者CSVの入れ替えを中止しました。\n${e.message||'ファイルの読み込みに失敗しました。'}`)}
 }
-async function importDrugs(file){const objs=rowsToObjects(parseCSV(await file.text()));state.drugs=objs.filter(x=>x['薬名']);await save();alert(`薬剤 ${state.drugs.length}件を読み込みました。`);render()}
+async function importDrugs(file){
+ const objs=rowsToObjects(parseCSV(await file.text())).filter(x=>String(x['薬名']||'').trim());
+ if(!objs.length)return alert('薬名のある行が見つかりません。薬剤CSVの列を確認してください。');
+ const current=state.drugs||[],keys=new Set(current.map(x=>String(x['薬名']||'').trim()));
+ const fresh=objs.filter(x=>!keys.has(String(x['薬名']||'').trim()));
+ const overlap=objs.length-fresh.length;
+ if(!confirm('薬剤CSV '+objs.length+'件を確認しました。\n新規 '+fresh.length+'件、同名で既存のため保留 '+overlap+'件。\n患者・既存の薬剤情報・関連付けは変更しません。新規薬剤だけ追加しますか？'))return;
+ if(!fresh.length)return alert('追加する新規薬剤はありませんでした。');
+ const before=state.drugs;state.drugs=[...current,...fresh];
+ try{await save();alert('新規薬剤 '+fresh.length+'件を追加しました。同名 '+overlap+'件は未変更です。薬価は過去の記録であり、最新の正式薬価ではありません。');render()}
+ catch(e){state.drugs=before;alert('薬剤CSVの保存に失敗しました。'+e.message)}
+}
 let backupBusy=false;
 async function backup(){
   if(backupBusy)return;
