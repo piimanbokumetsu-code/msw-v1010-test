@@ -1274,7 +1274,7 @@ async function importDrugs(file){
  const objs=rowsToObjects(parseCSV(await file.text())).filter(x=>String(x['薬名']||'').trim());
  if(!objs.length)return alert('薬名のある行が見つかりません。薬剤CSVの列を確認してください。');
  const current=state.drugs||[],keys=new Set(current.map(x=>String(x['薬名']||'').trim()));
- const fresh=objs.filter(x=>!keys.has(String(x['薬名']||'').trim()));
+ const seen=new Set(keys);const fresh=objs.filter(x=>{const name=String(x['薬名']||'').trim();if(seen.has(name))return false;seen.add(name);return true});
  const overlap=objs.length-fresh.length;
  if(!confirm('薬剤CSV '+objs.length+'件を確認しました。\n新規 '+fresh.length+'件、同名で既存のため保留 '+overlap+'件。\n患者・既存の薬剤情報・関連付けは変更しません。新規薬剤だけ追加しますか？'))return;
  if(!fresh.length)return alert('追加する新規薬剤はありませんでした。');
