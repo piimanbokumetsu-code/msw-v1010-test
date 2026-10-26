@@ -475,3 +475,9 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .rx-ref-lookup [data-rx-ref-count]{font-size:11px;font-weight:500;line-height:1.5;color:#506866;margin-top:3px}
 .rx-ref-lookup [data-rx-ref-search]:focus-visible,.rx-ref-lookup [data-rx-ref-choice]:focus-visible{outline:3px solid #63b9ad;outline-offset:1px}
 @media(max-width:500px){.rx-ref-lookup label [data-rx-ref-search]{font-size:16px}}
+
+/* RX02 v0.39: clearly separate confirmed prescriptions from draft calculations */
+.rx-ref-basis{font-size:12px;line-height:1.65;border-radius:9px;padding:10px 12px;margin:8px 0 12px;border:1px solid #b2ccc8;background:#eef8f4;color:#205a50;font-weight:700}
+.rx-ref-basis[data-status="draft"],.rx-ref-basis[data-status="modified"]{background:#fff8ed;border-color:#efd5a7;color:#855111}
+.rx-ref-basis[data-status="confirmed"]{background:#eff8f4;border-color:#b4d9cd;color:#1c5c4b}
+@media print{.rx-ref-basis{display:none!important}}
