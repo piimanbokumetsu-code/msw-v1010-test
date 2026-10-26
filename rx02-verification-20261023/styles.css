@@ -468,3 +468,10 @@ button.mvp-taskjump:hover{background:var(--bg)}
 
 /* RX02 v0.37: clearly distinguish conflicting reference drug prices */
 .rx-ref-conflict{background:#fff2ed;border-left:4px solid #bc541c;border-radius:6px;padding:10px 12px;margin:10px 0;color:#854016;font-weight:700;font-size:12px;line-height:1.7}
+
+/* RX02 v0.38: searchable iPad mini reference-drug selector */
+.rx-ref-lookup label [data-rx-ref-search]{width:100%;box-sizing:border-box;border:1px solid #9acdc3;border-radius:9px;background:#fff;color:#183335;min-height:46px;padding:7px 11px;font-size:16px;line-height:1.5}
+.rx-ref-lookup label [data-rx-ref-choice]{margin-top:6px}
+.rx-ref-lookup [data-rx-ref-count]{font-size:11px;font-weight:500;line-height:1.5;color:#506866;margin-top:3px}
+.rx-ref-lookup [data-rx-ref-search]:focus-visible,.rx-ref-lookup [data-rx-ref-choice]:focus-visible{outline:3px solid #63b9ad;outline-offset:1px}
+@media(max-width:500px){.rx-ref-lookup label [data-rx-ref-search]{font-size:16px}}
