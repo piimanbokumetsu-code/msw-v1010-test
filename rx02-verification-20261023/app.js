@@ -718,7 +718,7 @@ function rx02ReferenceHtml(rows){
     reference.strengthConflict?'保存済み照合規格が処方名の規格と異なるため比較できません。':
     chosen&&!reference.specifiedStrength?'比較に使用する規格が指定されていません。':
     reference.known?'照合先はありますが、処方名の規格・単位と一致する参考薬価がありません。':'対応する参考価格の登録がありません。薬情で製品・規格別の価格を登録してください。';
-   return root+'<p class="notice">'+esc(reason)+'</p></div>';
+   return root+'<p class="notice">'+esc(reason)+'</p>'+(prn?'<p class="notice">頓服は1日・30日の参考計算から除外します。</p>':'')+'</div>';
   }
   const conflictNote=reference.conflicts?.length?'<p class="rx-ref-conflict">同一製品・規格の参考薬価に矛盾する金額が見つかりました。該当製品は比較対象から除外しています。</p>':'';
   const current=(currentPrice!==null&&schedOk)?'現在の処方の入力薬価：1日 '+yen(currentPrice*dailyUnits)+'円 ／ 30日 '+yen(currentPrice*dailyUnits*30)+'円':'現在の処方薬価が未入力・要確認のため差額は計算しません。';
