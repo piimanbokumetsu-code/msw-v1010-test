@@ -492,3 +492,7 @@ button.mvp-taskjump:hover{background:var(--bg)}
 .rx-test-results li{padding:2px 0}
 @media(max-width:540px){.rx-test-area>.btn{width:100%}.rx-test-results{display:block}}
 @media print{.rx-test-area{display:none!important}}
+
+/* RX02 v0.41: prevent ambiguous medicine-link actions */
+.rx-ref-item .rx-ref-lookup [data-rx-ref-apply]:disabled{opacity:.55;cursor:not-allowed;background:#e0e9e7;color:#50615e;border-color:#c2ceca}
+.rx-ref-item .rx-ref-conflict{margin:8px 0;font-size:12px;line-height:1.7}
