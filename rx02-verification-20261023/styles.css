@@ -496,3 +496,7 @@ button.mvp-taskjump:hover{background:var(--bg)}
 /* RX02 v0.41: prevent ambiguous medicine-link actions */
 .rx-ref-item .rx-ref-lookup [data-rx-ref-apply]:disabled{opacity:.55;cursor:not-allowed;background:#e0e9e7;color:#50615e;border-color:#c2ceca}
 .rx-ref-item .rx-ref-conflict{margin:8px 0;font-size:12px;line-height:1.7}
+
+/* RX02 v0.42: make unsaved reference selections and protected actions clear */
+.rx-ref-panel .rx-ref-pending[data-dirty="yes"]{border:1px solid #e5cb97;border-radius:6px;background:#fff7e8;padding:5px 9px;margin:8px 0 9px}
+#rxPrint:disabled{opacity:.55;cursor:not-allowed}
