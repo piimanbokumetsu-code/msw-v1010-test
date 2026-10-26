@@ -1925,7 +1925,7 @@ async function backup(){
   finally{backupBusy=false}
 }
 // RX02 v0.45: never allow a production/unknown MSW backup into this public test app.
-// The filename is NOT proof of origin: inspect the authenticated archive marker.
+// The filename and outer archive marker are not proof of origin; also inspect the decrypted state version.
 function rx02RequireTestBackup(pack){
  if(!pack||pack.format!=='MSWDB-BACKUP'||typeof pack.appVersion!=='string'||!/^RX02-TEST-0\.\d+$/.test(pack.appVersion)){
   throw new Error('RX02検証版で作成したバックアップだけ扱えます。通常版・出所不明のバックアップは使用しないでください');
@@ -1951,6 +1951,7 @@ async function rx02VerifyBackupPackReadOnly(pack,pin){
  try{recovered=await decryptObj(pack.data,testKey)}
  catch(_){throw new Error('患者・薬剤データの復号に失敗しました')}
  if(!recovered||!Array.isArray(recovered.patients)||!Array.isArray(recovered.drugs))throw new Error('患者・薬剤データの形式が不正です');
+ if(typeof recovered.version!=='string'||!/^RX02-TEST-0\.\d+$/.test(recovered.version))throw new Error('RX02検証版の患者データではありません');
  const referenced=new Set();
  for(const p of recovered.patients){
   if(!p||typeof p!=='object'||!Array.isArray(p.attachments||[]))throw new Error('患者の写真一覧が不正です');
@@ -2035,6 +2036,7 @@ async function restore(file){
     let backupState;
     try{backupState=await decryptObj(pack.data,backupKey)}catch(e){throw new Error('患者情報を復号できません。バックアップが破損している可能性があります')}
     if(!backupState||!Array.isArray(backupState.patients))throw new Error('患者情報の形式が不正です');
+    if(typeof backupState.version!=='string'||!/^RX02-TEST-0\.\d+$/.test(backupState.version))throw new Error('RX02検証版の患者データではありません。復元は行いません');
     const referenced=new Set(),incomingPhotos=pack.photos||{};
     for(const patient of backupState.patients){
       if(!Array.isArray(patient.attachments||[]))throw new Error('患者の写真一覧が不正です');
