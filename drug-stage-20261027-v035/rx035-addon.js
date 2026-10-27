@@ -5,6 +5,11 @@
 (function(){
   if(typeof renderPatientMedications!=='function'||typeof medSnapshot!=='function')return;
   const priorRender=renderPatientMedications;
+  const previousDraw=drawPatientMedicationList;
+  drawPatientMedicationList=function(){
+    previousDraw();
+    if(document.querySelector('#rx035Panel'))renderRefPanel();
+  };
   renderPatientMedications=function(){
     priorRender();
     const page=document.querySelector('#tabbody .patient-med-page');
