@@ -14,13 +14,13 @@
 </div>
 <div id="app"></div>
 <input id="fileInput" type="file" hidden>
-<script src="./app.js?v=jp-003"></script>
+<script src="./app.js?v=jp-004"></script>
 <script>
 (function(){
  const el=document.getElementById('sandboxVersion');
  let ver='';
  try{ver=typeof APP_VERSION==='string'?APP_VERSION:''}catch(e){}
- if(ver==='JP-FICTION-0.03'){el.textContent='Ver.JP-0.03 読込確認済み';}
+ if(ver==='JP-FICTION-0.04'){el.textContent='Ver.JP-0.04 読込確認済み';}
  else{document.getElementById('sandboxInfo').dataset.version='bad';el.textContent='プログラムの読み込みが一致しません。オンラインで再読込してください。'}
 })();
 </script>
