@@ -131,7 +131,8 @@ function blankState(){
  const examples=[
   ['架空入院テストA','', 'DEMO-001','水戸市','',true],
   ['架空検討会テストB','201-1','DEMO-002','茨城町','サン・テレーズ検討会',false],
-  ['架空在院テストC','202-1','DEMO-003','ひたちなか市','',false]
+  ['架空在院テストC','202-1','DEMO-003','ひたちなか市','',false],
+  ['架空未配置テストD','','DEMO-004','かすみがうら市','',false]
  ];
  const patients=examples.map(([name,bed,id,address,meeting,pending])=>{
   const p=newPatient(bed);delete p._new;
