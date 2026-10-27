@@ -412,3 +412,32 @@ border-color:var(--brand);
   .morning-table tbody tr:not(.room-gap) td:last-child{border-right:.9pt solid #333!important}
   .morning-table tbody tr td.saint-id {color:#b91c1c!important;font-weight:900!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* 2026-10-27: Save width in family and admission-days columns for disease text.
+   Percentages keep the same total weight as the original colgroup. */
+@media print {
+  .morning-table .c-family {width:4.0%!important}
+  .morning-table .c-days {width:4.0%!important}
+  .morning-table .c-disease {width:14.9%!important}
+  .morning-table tbody td.disease-cell {
+    white-space:normal!important;
+    overflow:hidden!important;
+    padding:0 .25mm!important;
+    text-align:left!important;
+    vertical-align:middle!important;
+  }
+  .morning-table .disease-text {
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+    max-height:6.5mm;
+    line-height:1.09;
+    font-size:5.4pt;
+    overflow:hidden;
+    overflow-wrap:anywhere;
+    word-break:normal;
+    white-space:normal;
+    text-align:left;
+  }
+  .morning-table td:nth-last-child(2),.morning-table td:last-child {padding:0!important}
+}
