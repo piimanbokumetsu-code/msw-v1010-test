@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MSW 日誌連動・患者一覧印刷 検証版 2026.10.27</title>
+<link rel="stylesheet" href="./styles.css?v=jp-001">
+<style>.sandbox-info{padding:10px 14px;text-align:center;background:#fdf1d7;color:#73431b;font:700 12px/1.6 -apple-system,Meiryo,sans-serif}.sandbox-info a{color:#145b54}.sandbox-info small{display:block;font-weight:400}.sandbox-info[data-version="bad"]{background:#fce2df;color:#a61e18}</style>
+</head><body>
+<div class="sandbox-info" id="sandboxInfo" role="status">
+  日誌・朝一印刷の独立検証版｜架空患者のみ
+  <small id="sandboxVersion">プログラムを確認中…</small>
+  <small>初回は検証版専用の暗証番号を作成。普段のMSW患者管理アプリとは別の保存領域です。</small>
+  <small>印刷見本は「患者一覧」→「朝一患者一覧を印刷」で確認（用紙には出さずプレビューだけでOK）。</small>
+</div>
+<div id="app"></div>
+<input id="fileInput" type="file" hidden>
+<script src="./app.js?v=jp-001"></script>
+<script>
+(function(){
+ const el=document.getElementById('sandboxVersion');
+ let ver='';
+ try{ver=typeof APP_VERSION==='string'?APP_VERSION:''}catch(e){}
+ if(ver==='JP-FICTION-0.01'){el.textContent='Ver.JP-0.01 読込確認済み';}
+ else{document.getElementById('sandboxInfo').dataset.version='bad';el.textContent='プログラムの読み込みが一致しません。オンラインで再読込してください。'}
+})();
+</script>
+</body></html>
