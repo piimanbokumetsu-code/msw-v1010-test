@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const enc=new TextEncoder(), dec=new TextDecoder();
 const DB_NAME='msw_journal_print_fiction_20261027_v1', STORE='kv';
 let db=null,key=null,state=null,meta=null,screen='patients',selectedPatient=null,activeTab='basic',lockTimer=null;
-const APP_VERSION='JP-FICTION-0.02';
+const APP_VERSION='JP-FICTION-0.03';
 
 const masterFields=['ベッド番号','主治医','病名','保険','本人職業','術式','入院元','かかりつけ','家構','KP職業','介護度','入院時介護度','介護連携','ケアマネ・施設','検討会','退院支援','食事','食事：介助量','水分：トロミ','排泄','排泄：介助量','排泄：尿便意','排泄：利用','移乗','移動器具','睡眠','睡眠：薬剤','高次脳','問題行動','スケール','リハ状況','DM注','コール'];
 const defaultMasters={
@@ -200,7 +200,7 @@ function printRowHtml(bed,patients,rowClass=''){
  const p=printPatientForBed(bed,patients);
  if(!p)return '<tr'+attr+'><td>'+esc(bed)+'</td>'+'<td></td>'.repeat(11)+'</tr>';
  const d=p.data||{},days=daysSince(d['入院日'])||d['入院日数']||'';
- return '<tr'+attr+'><td>'+esc(bed)+'</td><td class="'+(isSaintThereseMeeting(p)?'saint-id':'')+'">'+printText(d['ＩＤ'])+'</td><td>'+printText(d['氏名'])+'</td><td>'+esc(shortAdmissionDate(d['入院日']))+'</td><td>'+printText(d['主治医'],3)+'</td><td>'+printText(d['住所'],3)+'</td><td class="disease-cell"><span class="disease-text">'+printText(d['病名'])+'</span></td><td>'+esc(shortCareLevel(d['介護度']))+'</td><td class="clip">'+printText(d['ケアマネ・施設'],12)+'</td><td class="memo"></td><td>'+printText(d['家構'])+'</td><td>'+esc(days)+'</td></tr>';
+ return '<tr'+attr+'><td>'+esc(bed)+'</td><td class="'+(isSaintThereseMeeting(p)?'saint-id':'')+'">'+printText(d['ＩＤ'])+'</td><td>'+printText(d['氏名'])+'</td><td>'+esc(shortAdmissionDate(d['入院日']))+'</td><td>'+printText(d['主治医'],3)+'</td><td>'+printText(d['住所'],3)+'</td><td class="disease-cell"><span class="disease-text">'+printText(d['病名'])+'</span></td><td>'+esc(shortCareLevel(d['介護度']))+'</td><td class="facility-cell"><span class="facility-text">'+printText(d['ケアマネ・施設'])+'</span></td><td class="memo"></td><td>'+printText(d['家構'])+'</td><td>'+esc(days)+'</td></tr>';
 }
 function printTableHtml(beds,patients){
  const rows=beds.map((bed,i)=>{
@@ -215,8 +215,8 @@ function printExtraTableHtml(patients){
   const headers=['部屋','ID','氏名','入院日','主治医','住所','病名','介護度','ケアマネ・施設','メモ','家族','日数'];
   const rows=patients.map(p=>{
     const d=p.data||{},days=daysSince(d['入院日'])||d['入院日数']||'';
-    const cells=[d['ベッド番号']||'未配置',d['ＩＤ'],d['氏名'],shortAdmissionDate(d['入院日']),String(d['主治医']||'').slice(0,3),String(d['住所']||'').slice(0,3),d['病名'],shortCareLevel(d['介護度']),String(d['ケアマネ・施設']||'').slice(0,12),'',d['家構'],days];
-    return `<tr>${cells.map((x,i)=>i===6?`<td class="disease-cell"><span class="disease-text">${printText(x)}</span></td>`:`<td${i===1&&isSaintThereseMeeting(p)?' class="saint-id"':''}>${printText(x)}</td>`).join('')}</tr>`;
+    const cells=[d['ベッド番号']||'未配置',d['ＩＤ'],d['氏名'],shortAdmissionDate(d['入院日']),String(d['主治医']||'').slice(0,3),String(d['住所']||'').slice(0,3),d['病名'],shortCareLevel(d['介護度']),d['ケアマネ・施設'],'',d['家構'],days];
+    return `<tr>${cells.map((x,i)=>i===6?`<td class="disease-cell"><span class="disease-text">${printText(x)}</span></td>`:i===8?`<td class="facility-cell"><span class="facility-text">${printText(x)}</span></td>`:`<td${i===1&&isSaintThereseMeeting(p)?' class="saint-id"':''}>${printText(x)}</td>`).join('')}</tr>`;
   }).join('');
   return `<table class="morning-table"><colgroup><col class="c-bed"><col class="c-id"><col class="c-name"><col class="c-admit"><col class="c-doc"><col class="c-address"><col class="c-disease"><col class="c-care"><col class="c-facility"><col class="c-memo"><col class="c-family"><col class="c-days"></colgroup><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
 }
