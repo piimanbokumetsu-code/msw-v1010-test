@@ -441,3 +441,28 @@ border-color:var(--brand);
   }
   .morning-table td:nth-last-child(2),.morning-table td:last-child {padding:0!important}
 }
+
+/* JP-FICTION-0.03: care-manager / facility text uses the same bounded,
+   three-line print treatment as the disease column; no row-height expansion. */
+@media print {
+  .morning-table tbody td.facility-cell {
+    white-space:normal!important;
+    overflow:hidden!important;
+    padding:0 .25mm!important;
+    text-align:left!important;
+    vertical-align:middle!important;
+  }
+  .morning-table .facility-text {
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:3;
+    max-height:6.5mm;
+    line-height:1.09;
+    font-size:5.4pt;
+    overflow:hidden;
+    overflow-wrap:anywhere;
+    word-break:normal;
+    white-space:normal;
+    text-align:left;
+  }
+}
