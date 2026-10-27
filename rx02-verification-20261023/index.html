@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>MSW患者管理 本体統合・RX02検証 Ver.0.45</title>
-<link rel="stylesheet" href="./styles.css?v=rx02-045">
+<title>MSW患者管理 本体統合・RX02検証 Ver.0.46</title>
+<link rel="stylesheet" href="./styles.css?v=rx02-046">
 </head>
 <body>
 <div class="rx-release-strip">
  <strong>MSW患者管理・RX02検証専用（架空データのみ）</strong>
- <span id="rx02BuildStatus" role="status">プログラム Ver.0.45 を確認中…</span>
+ <span id="rx02BuildStatus" role="status">プログラム Ver.0.46 を確認中…</span>
  <span id="rx02OfflineStatus">RX02専用の更新機能：確認中</span>
 </div>
 <div id="app"></div>
 <input id="fileInput" type="file" hidden>
-<script src="./app.js?v=rx02-045"></script>
+<script src="./app.js?v=rx02-046"></script>
 <script src="../msw-basic-ui-d.js?v=20261022d"></script>
 <script>
 (function(){
  var el=document.getElementById('rx02BuildStatus');
  var actual='';
  try{actual=typeof APP_VERSION==='string'?APP_VERSION:'';}catch(e){}
- if(actual==='RX02-TEST-0.45'){
-  el.textContent='プログラム Ver.0.45 読込確認済み';
+ if(actual==='RX02-TEST-0.46'){
+  el.textContent='プログラム Ver.0.46 読込確認済み';
   el.dataset.verified='yes';
  }else{
   el.textContent='プログラムの版が一致しません。オンラインで再読み込みしてください。';
