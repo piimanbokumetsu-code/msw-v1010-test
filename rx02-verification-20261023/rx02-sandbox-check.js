@@ -36,7 +36,7 @@ window.rx02SandboxCheck=async function(){
   await write(db,[['data',fresh],['meta',{id:'new'}],['photo:new',{id:'new'}]],['photo:old']);
   if((await read(db,'data')).patients[0].id!=='架空新'||await read(db,'photo:old')!==undefined||!(await read(db,'photo:new')))throw Error('一括保存が失敗しました');
   passed++;
-  if((await read(db,'data')).rx.name==='架空試験薬A'||(await read(db,'data')).links['架空新']!=='架空試験薬A')throw Error('処方・照合先の形式が不正です');
+  if((await read(db,'data')).patients[0].rx.name!=='架空試験薬A'||(await read(db,'data')).links['架空新']!=='架空試験薬A')throw Error('処方・照合先の形式が不正です');
   passed++;
   let rejected=false;
   try{await write(db,[['data',{patients:[]}],['photo:partial',{id:'partial'}]],['meta'],true)}catch(_){rejected=true}
