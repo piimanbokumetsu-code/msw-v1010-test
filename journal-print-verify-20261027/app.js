@@ -137,7 +137,7 @@ function blankState(){
  const patients=examples.map(([name,bed,id,address,meeting,pending])=>{
   const p=newPatient(bed);delete p._new;
   Object.assign(p.data,{'氏名':name,'ＩＤ':id,'住所':address,'検討会':meeting,'入院日':'2026-10-27'});
-  p.journalAdmissionPending=pending;return p;
+  p.journalAdmissionPending=pending;p.committee=!!meeting;return p;
  });
  return {version:APP_VERSION,patients,drugs:[],masters:{},settings:{retentionDays:null,autoLockMin:5,lastBackupAt:null},createdAt:nowISO(),updatedAt:nowISO()};
 }
@@ -188,7 +188,7 @@ function shortCareLevel(v){const s=String(v||'').trim();return s.replace('要介
 function printPatientForBed(bed,patients){return patientsForBed(bed,patients)[0]||null}
 
 function isSaintThereseMeeting(p){
- return /サン[・･\s　-]?テレーズ/.test(String(p?.data?.['検討会']??''));
+ return p?.committee===true||/サン[・･\s　-]?テレーズ/.test(String(p?.data?.['検討会']??''));
 }
 function printRoomName(bed){
  const t=String(bed||'').trim().toUpperCase();
