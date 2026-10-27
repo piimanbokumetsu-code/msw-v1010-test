@@ -539,7 +539,7 @@ function printMorningList(){
   // A second patient on the same official bed must never disappear from print.
   const duplicates=officialBeds().flatMap(b=>patientsForBed(b,patients).slice(1));
   const extra=[...unplaced,...duplicates];
-  // Keep the verified four-page A4 layout even without unplaced patients.
+  // Keep four A4 pages even when there are no unplaced or duplicate patients.
   pages.push({ward:'その他・未配置／重複',extra});
   const d=new Date(),date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   $('#morningPrint')?.remove();
