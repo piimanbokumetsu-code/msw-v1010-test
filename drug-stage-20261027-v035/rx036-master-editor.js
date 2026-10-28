@@ -33,6 +33,8 @@
     const cards=Array.from(list.querySelectorAll('.drug-list article.drug'));
     if(displayed.length!==cards.length)return;
     cards.forEach((card,i)=>{
+      // Original render already calls the wrapped drawDrugs(). Avoid double buttons.
+      if(card.querySelector('.rx036Edit'))return;
       const btn=document.createElement('button');
       btn.type='button';btn.className='btn secondary rx036Edit';
       btn.textContent='この薬剤を編集';
