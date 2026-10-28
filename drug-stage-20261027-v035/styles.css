@@ -741,3 +741,7 @@ body.msw-private { visibility: hidden !important; }
 #rx036CategoryMatches .rx036CategoryOption{display:block;width:100%;font-size:15px;font-weight:600;min-height:44px;line-height:1.5;text-align:left;background:transparent;color:inherit;border:1px solid rgba(125,155,150,.28);border-radius:7px;padding:9px 12px;overflow-wrap:anywhere}
 #rx036CategoryMatches .rx036CategoryOption:focus,#rx036CategoryMatches .rx036CategoryOption:active{outline:2px solid #247971;background:#e0f5f1;color:#154b46}
 #rx036CategoryMatches .rx036CategoryEmpty{font-size:13px;padding:8px}
+
+/* RX036 fix4: destructive action is available only on existing master entries. */
+#rx036Delete[hidden]{display:none!important}
+#rx036Delete{margin-left:auto}

@@ -71,6 +71,7 @@
         '<div class="rx036Controls">'+
           '<button class="btn" id="rx036Save" type="submit">保存する</button>'+
           '<button class="btn secondary" id="rx036Cancel" type="button">キャンセル</button>'+
+          '<button class="btn danger" id="rx036Delete" type="button" hidden>この薬剤を削除</button>'+
         '</div><p id="rx036FormStatus" role="status" aria-live="polite"></p>'+
       '</form>';
     actions.insertAdjacentElement('afterend',form);
@@ -106,6 +107,7 @@
       if(!busy){form.hidden=true;editorIndex=null;editorOld=null;}
     };
     form.querySelector('#rx036Form').onsubmit=e=>{e.preventDefault();void commitEdit();};
+    form.querySelector('#rx036Delete').onclick=()=>{void deleteMasterDrug();};
     const drugList=main.querySelector('#drugList');
     if(drugList)drugList.insertAdjacentHTML('afterend',
       '<p class="notice rx036Foot">薬剤CSVを再取り込みすると、この画面からの追加・編集内容も薬剤マスター全件とともに置き換わります。必要時は事前に暗号化バックアップを保存してください。</p>');
@@ -173,6 +175,7 @@
     }
     draftMode=mode;editorIndex=mode==='edit'?index:null;editorOld=mode==='edit'?current[index]:null;
     form.querySelector('#rx036Heading').textContent=mode==='edit'?'薬情マスターを編集':'薬情マスターへ新規登録';
+    form.querySelector('#rx036Delete').hidden=mode!=='edit';
     const inputs=form.querySelector('#rx036Form').elements;
     inputs.namedItem('name').value=String(editorOld?.['薬名']??'');
     inputs.namedItem('category').value=String(editorOld?.['医薬品分類']??'');
@@ -254,6 +257,54 @@
       }
     }catch(e){
       if(status&&status.isConnected)status.textContent='保存できませんでした：'+String(e?.message||e).slice(0,160);
+    }finally{
+      if(acquired)endMaintenance(actionName);
+      setWorking(false);
+    }
+  }
+  async function deleteMasterDrug(){
+    if(busy||drugCsvBusy)return;
+    const form=document.querySelector('#rx036Editor');
+    if(!form||form.hidden||!key||!state||screen!=='drugs'||draftMode!=='edit')return;
+    const status=form.querySelector('#rx036FormStatus');
+    const current=state;
+    const rows=Array.isArray(current.drugs)?current.drugs:[];
+    const index=editorIndex, old=editorOld;
+    if(!Number.isInteger(index)||index<0||index>=rows.length||rows[index]!==old){
+      status.textContent='薬剤マスターの内容が変わりました。薬情一覧から開き直してください。';
+      return;
+    }
+    const originalName=String(old?.['薬名']??'');
+    if(!confirm('薬情マスターから「'+originalName+'」を1件削除します。'+
+      '\n\nこの操作は元に戻せません。'+
+      '\n患者ごとに登録済みの処方薬・参考薬情・過去の記録は削除・変更しません。'+
+      '\n\n削除してよろしいですか？'))return;
+    const actionName='薬情マスターの個別削除';
+    let acquired=false;
+    setWorking(true);
+    status.textContent='薬情マスターから削除して暗号化保存しています…';
+    try{
+      await beginMaintenance(actionName);acquired=true;
+      if(!key||screen!=='drugs'||state!==current||
+         !Array.isArray(state.drugs)||state.drugs[index]!==old||
+         draftMode!=='edit'||editorIndex!==index||editorOld!==old)
+        throw new Error('削除対象が変わったため中止しました。');
+      const nextDrugs=rows.slice();
+      nextDrugs.splice(index,1);
+      const next={...current,drugs:nextDrugs,version:APP_VERSION,updatedAt:nowISO()};
+      const activeKey=key;
+      await orderedDataWrite(async()=>idbSet('data',await encryptPatientIndex(next,activeKey)));
+      if(key!==activeKey)throw new Error('ロック状態が変わりました。');
+      state=next;
+      ensureStateSchema();
+      editorIndex=null;editorOld=null;
+      if(screen==='drugs'){
+        renderDrugs();
+        message('「'+originalName+'」を薬情マスターから1件削除しました。患者の処方薬・過去の参考情報は変更していません。');
+      }
+    }catch(e){
+      if(status&&status.isConnected)
+        status.textContent='削除できませんでした：'+String(e?.message||e).slice(0,160);
     }finally{
       if(acquired)endMaintenance(actionName);
       setWorking(false);
