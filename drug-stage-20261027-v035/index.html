@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#155e59">
   <title>MSW薬情マスター編集検証 V0.36・架空患者のみ（2026.10.28）</title>
-  <link rel="stylesheet" href="./styles.css?v=rx-20261028-v036">
+  <link rel="stylesheet" href="./styles.css?v=rx-20261028-v036fix3">
   <style>
     #clinicalFakeNotice{display:block;position:relative;z-index:2;width:100%;padding:9px 15px;background:#fff1d5;color:#733c0a;text-align:center;font-weight:700;font-size:13px;line-height:1.5}
     #clinicalFakeNotice small{display:block;font-weight:400;font-size:11px}
@@ -16,13 +16,13 @@
   <div id="clinicalFakeNotice" role="status">
     処方薬と薬情マスターの別照合｜架空データ専用
     <small>実際の患者情報は入力しないでください。普段のMSWアプリとは別URL・別保存領域です。</small>
-    <small>【V0.36 修正2：医薬品分類の候補選択と規格別薬価プレビューに対応】前回V0.35と同じ架空データ用保存領域を使います。新しい暗証は作り直さず、前回の暗証で解除してください。</small>
+    <small>【V0.36 修正3：医薬品分類を直接入力しながら候補検索に対応】前回V0.35と同じ架空データ用保存領域を使います。新しい暗証は作り直さず、前回の暗証で解除してください。</small>
   </div>
   <div id="app"></div>
   <input id="fileInput" type="file" hidden>
   <script src="./app.js?v=rx-20261028-v036"></script>
   <script src="./rx035-addon.js?v=rx-20261028-v036"></script>
-  <script src="./rx036-master-editor.js?v=rx-20261028-v036fix2"></script>
+  <script src="./rx036-master-editor.js?v=rx-20261028-v036fix3"></script>
   <script>
    (function(){
      var note=document.getElementById('clinicalFakeNotice');

@@ -14,6 +14,8 @@
   let editorIndex=null;
   let editorOld=null;
   let draftMode='new';
+  let categoryOptions=[];
+  let categoryMatches=[];
 
   function escText(v){return esc(String(v??''));}
   function message(text){
@@ -59,9 +61,9 @@
       '<p class="notice">薬情マスターの1件のみを登録・編集します。登録済み患者の処方薬や参考薬情は自動変更しません。</p>'+
       '<form id="rx036Form" autocomplete="off" novalidate>'+
         '<label>薬名（必須）<input type="text" name="name" maxlength="160" required placeholder="例：架空薬剤テスト"></label>'+
-        '<label>医薬品分類<input type="text" name="category" maxlength="150" placeholder="候補から選択、または自由入力"></label>'+
-        '<label>登録済みの分類から選ぶ（任意）<select id="rx036CategoryPick"><option value="">分類の候補を表示</option></select></label>'+
-        '<p class="notice">候補を選ぶと上の医薬品分類欄に反映します。候補にない分類は自由入力できます。</p>'+
+        '<label>医薬品分類<input type="text" name="category" maxlength="150" autocomplete="off" aria-controls="rx036CategoryMatches" aria-autocomplete="list" placeholder="例：架空 と入力して候補を表示"></label>'+
+        '<div id="rx036CategoryMatches" class="rx036CategoryMatches" role="group" aria-label="医薬品分類の入力候補" hidden></div>'+
+        '<p class="notice">入力中に既存の分類を絞り込みます。候補をタップするか、そのまま自由入力できます。</p>'+
         '<label>薬価の元データ<textarea name="price" rows="3" maxlength="1600" placeholder="例：5mg(12.30)10mg(24.50)"></textarea></label>'+
         '<div id="rx036PricePreview" class="notice" role="status" aria-live="polite">薬価を入力すると規格別の読み取り候補が表示されます。</div>'+
         '<label>薬効・後発品などの参考情報<textarea name="effect" rows="5" maxlength="6500" placeholder="薬効の説明や後発品情報を入力"></textarea></label>'+
@@ -74,12 +76,30 @@
     actions.insertAdjacentElement('afterend',form);
     actions.querySelector('#rx036Add').onclick=()=>openEditor('new');
     const catInput=form.querySelector('input[name="category"]');
-    const catSelect=form.querySelector('#rx036CategoryPick');
-    catSelect.onchange=()=>{
-      if(catSelect.value){catInput.value=catSelect.value;}
-    };
-    catInput.addEventListener('input',()=>{
-      if(catSelect.value!==catInput.value)catSelect.value='';
+    const matches=form.querySelector('#rx036CategoryMatches');
+    catInput.addEventListener('focus',renderCategoryMatches);
+    catInput.addEventListener('input',renderCategoryMatches);
+    catInput.addEventListener('keydown',event=>{
+      if(event.key==='Escape')matches.hidden=true;
+    });
+    // Keep the iPad soft keyboard from dismissing the tapped option first.
+    matches.addEventListener('pointerdown',event=>{
+      if(event.target.closest('button[data-category-index]'))event.preventDefault();
+    });
+    matches.addEventListener('click',event=>{
+      const btn=event.target.closest('button[data-category-index]');
+      if(!btn||!matches.contains(btn))return;
+      const index=Number(btn.dataset.categoryIndex);
+      if(!Number.isInteger(index)||!categoryMatches[index])return;
+      catInput.value=categoryMatches[index];
+      matches.hidden=true;
+      matches.innerHTML='';
+      catInput.blur();
+    });
+    catInput.addEventListener('blur',()=>{
+      setTimeout(()=>{
+        if(matches.isConnected&&document.activeElement!==catInput)matches.hidden=true;
+      },170);
     });
     form.querySelector('textarea[name="price"]').addEventListener('input',updatePricePreview);
     form.querySelector('#rx036Cancel').onclick=()=>{
@@ -92,21 +112,39 @@
     decorateList();
   }
   function populateCategoryChoices(form){
-    const select=form.querySelector('#rx036CategoryPick');
-    if(!select)return;
-    // Uniqueness is by normalized spelling, while retaining the stored label.
-    const seen=new Set(),choices=[];
+    const seen=new Set();
+    categoryOptions=[];
     for(const drug of state?.drugs||[]){
-      const category=String(drug?.['医薬品分類']??'').trim();
-      const id=category.normalize('NFKC');
-      if(!category||seen.has(id))continue;
-      seen.add(id);choices.push(category);
+      const value=String(drug?.['医薬品分類']??'').trim();
+      const key=value.normalize('NFKC').toLocaleLowerCase('ja');
+      if(!value||seen.has(key))continue;
+      seen.add(key);categoryOptions.push(value);
     }
-    choices.sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
-    select.innerHTML='<option value="">既存の分類から選択（任意）</option>'+
-      choices.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join('');
-    const current=form.querySelector('input[name="category"]').value;
-    select.value=choices.includes(current)?current:'';
+    categoryOptions.sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
+    categoryMatches=[];
+    const matches=form.querySelector('#rx036CategoryMatches');
+    if(matches){matches.hidden=true;matches.innerHTML='';}
+  }
+  function filteredCategoryChoices(input){
+    const q=String(input??'').normalize('NFKC').toLocaleLowerCase('ja').trim();
+    return (q
+      ? categoryOptions.filter(x=>x.normalize('NFKC').toLocaleLowerCase('ja').includes(q))
+      : categoryOptions).slice(0,12);
+  }
+  function renderCategoryMatches(){
+    const form=document.querySelector('#rx036Editor');
+    if(!form||form.hidden||busy)return;
+    const input=form.querySelector('input[name="category"]');
+    const matches=form.querySelector('#rx036CategoryMatches');
+    if(!input||!matches)return;
+    categoryMatches=filteredCategoryChoices(input.value);
+    matches.innerHTML=categoryMatches.length
+      ? '<span class="rx036CategoryCount">登録済みの分類候補（最大12件）</span>'+
+        categoryMatches.map((value,i)=>
+          '<button type="button" class="rx036CategoryOption" data-category-index="'+i+'">'+esc(value)+'</button>'
+        ).join('')
+      : '<span class="rx036CategoryEmpty">一致する分類はありません。そのまま自由入力できます。</span>';
+    matches.hidden=false;
   }
   function updatePricePreview(){
     const form=document.querySelector('#rx036Editor');

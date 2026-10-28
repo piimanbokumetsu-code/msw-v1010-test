@@ -733,3 +733,11 @@ body.msw-private { visibility: hidden !important; }
 #main #rx036Editor #rx036FormStatus{font-weight:700;overflow-wrap:anywhere;min-height:1.2em}
 #main .drug .rx036Edit{margin-top:9px;min-height:38px}
 #main .rx036Foot{margin:12px 0;font-size:12px}
+
+/* RX036 fix3: accessible tap-size live suggestions. */
+#rx036CategoryMatches[hidden]{display:none!important}
+#rx036CategoryMatches{border:1px solid #8aaca9;border-radius:10px;padding:6px;background:var(--panel,#fff);display:grid;gap:4px;max-height:230px;overflow-y:auto;overscroll-behavior:contain}
+#rx036CategoryMatches .rx036CategoryCount{font-size:12px;opacity:.78;padding:3px 8px}
+#rx036CategoryMatches .rx036CategoryOption{display:block;width:100%;font-size:15px;font-weight:600;min-height:44px;line-height:1.5;text-align:left;background:transparent;color:inherit;border:1px solid rgba(125,155,150,.28);border-radius:7px;padding:9px 12px;overflow-wrap:anywhere}
+#rx036CategoryMatches .rx036CategoryOption:focus,#rx036CategoryMatches .rx036CategoryOption:active{outline:2px solid #247971;background:#e0f5f1;color:#154b46}
+#rx036CategoryMatches .rx036CategoryEmpty{font-size:13px;padding:8px}
