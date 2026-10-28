@@ -73,7 +73,7 @@
     const fifth=document.createElement('div');
     fifth.className='rx042Line rx042CategoryEffect';
     const category=document.createElement('span');category.className='rx042Category';
-    category.textContent='医薬品分類：'+(data.category||'未登録');
+    category.textContent='医薬品分類：'+(data.category||'未登録')+'／';
     const effect=document.createElement('span');effect.className='rx042Effect';
     effect.textContent='薬効：'+(data.effect||'未登録');
     effect.title=effect.textContent;
