@@ -834,3 +834,32 @@ body.msw-private { visibility: hidden !important; }
 }
 #main .rx040TapHint{font-size:12px;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){#main .drug-list article.drug.rx040TapCard{transition:none}}
+
+
+/* RX041: native optional disclosure for ingredient (data preserved). */
+#main #rx036Editor .rx039Fields{grid-template-columns:minmax(0,1fr)}
+#main #rx036Editor .rx039Fields>label:first-child{grid-column:auto}
+#main #rx036Editor #rx041IngredientDetails{
+ display:block;margin:12px 0 0;border:1px solid var(--line);
+ border-radius:10px;background:#fafcfc;min-width:0;overflow:hidden;
+}
+#main #rx036Editor #rx041IngredientDetails>summary{
+ padding:12px;font-size:14px;font-weight:700;line-height:1.5;
+ cursor:pointer;min-height:44px;list-style:disclosure-closed;
+ -webkit-tap-highlight-color:rgba(15,118,110,.15);
+}
+#main #rx036Editor #rx041IngredientDetails[open]>summary{
+ list-style:disclosure-open;border-bottom:1px solid var(--line);
+}
+#main #rx036Editor #rx041IngredientDetails>summary:focus-visible{
+ outline:2px solid var(--brand);outline-offset:-3px;border-radius:8px;
+}
+#main #rx036Editor #rx041IngredientState{
+ margin-left:8px;color:var(--brand);font-weight:700;font-size:12px;
+}
+#main #rx036Editor .rx041IngredientContent{padding:10px 12px 12px}
+#main #rx036Editor .rx041IngredientHelp{
+ font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 8px;
+}
+#main #rx036Editor #rx041IngredientDetails label{margin:0}
+#main #rx036Editor #rx041IngredientDetails input{min-height:44px}

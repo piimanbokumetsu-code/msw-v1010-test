@@ -29,11 +29,36 @@
    const summary=document.createElement('div');summary.id='rx039Summary';summary.className='rx039Summary';
    summary.setAttribute('role','status');summary.setAttribute('aria-live','off');
    form.insertBefore(summary,form.firstChild);
-   const basics=group('rx039Basics','① 薬剤・有効成分','薬剤名・成分名・分類をまとめて入力します。');
+   const basics=group('rx039Basics','① 薬剤の基本情報','薬剤名・医薬品分類を入力します。有効成分は必要な場合だけ追加できます。');
    const fields=document.createElement('div');fields.className='rx039Fields';basics.appendChild(fields);
-   fields.appendChild(name);fields.appendChild(ingredient);fields.appendChild(category);
+   fields.appendChild(name);fields.appendChild(category);
+   // The original RX038 ingredient input remains the SAME DOM element.
+   // Hide it in a native disclosure without changing any encrypted drug data.
+   const detail=document.createElement('details');
+   detail.id='rx041IngredientDetails';
+   detail.className='rx041IngredientDetails';
+   const trigger=document.createElement('summary');
+   const triggerLabel=document.createElement('span');
+   triggerLabel.textContent='有効成分を入力・確認する（任意）';
+   const storedBadge=document.createElement('span');
+   storedBadge.id='rx041IngredientState';
+   storedBadge.className='rx041IngredientState';
+   trigger.appendChild(triggerLabel);
+   trigger.appendChild(storedBadge);
+   detail.appendChild(trigger);
+   const optional=document.createElement('div');
+   optional.className='rx041IngredientContent';
+   const help=document.createElement('p');
+   help.className='rx041IngredientHelp';
+   help.textContent='分かる場合だけ入力してください。未入力でも保存できます。';
+   optional.appendChild(help);
+   optional.appendChild(ingredient);
+   detail.appendChild(optional);
+   basics.appendChild(detail);
    if(suggestions)basics.appendChild(suggestions);
    if(categoryHelp?.classList.contains('notice'))basics.appendChild(categoryHelp);
+   // Keep disclosure below the normal fields and their category suggestions.
+   basics.appendChild(detail);
    form.insertBefore(basics,summary.nextSibling);
    originals.classList.add('rx039Group','rx039Originals');
    const originalHeader=originals.querySelector(':scope > h4');
@@ -88,6 +113,9 @@
  function refresh(editor){
    const label=editor.querySelector('#rx039Summary');
    if(!label)return;
+   const value=String(editor.querySelector('#rx038Ingredient')?.value??'').trim();
+   const stateLabel=editor.querySelector('#rx041IngredientState');
+   if(stateLabel)stateLabel.textContent=value?'登録済み':'';
    const main=String(editor.querySelector('input[name="name"]')?.value??'').trim();
    const other=Array.from(editor.querySelectorAll('#rx038Brands [data-rx038-name]')).filter(x=>String(x.value??'').trim()).length;
    const generics=Array.from(editor.querySelectorAll('#rx037GenericList [data-rx037-generic-name]')).filter(x=>String(x.value??'').trim()).length;
@@ -108,6 +136,12 @@
    const genericTitle=editor.querySelector('#rx037GenericSection h4');
    if(genericTitle)genericTitle.textContent='③ 後発品の登録'+(generics?'（'+generics+'銘柄）':'');
  }
- function open(editor){if(editor?.querySelector('#rx039Basics'))refresh(editor);}
+ function open(editor){
+   if(!editor?.querySelector('#rx039Basics'))return;
+   // Always start collapsed, including when a value was previously saved.
+   const detail=editor.querySelector('#rx041IngredientDetails');
+   if(detail)detail.open=false;
+   refresh(editor);
+ }
  window.RX039={install,open};
 })();
