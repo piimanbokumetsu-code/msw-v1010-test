@@ -114,12 +114,15 @@
     return rows;
   }
   function gatherGenerics(){
-    const result=[];
+    const result=[],seen=new Set();
     for(const el of form.querySelectorAll('#rx037GenericList > [data-rx037-generic]')){
       const name=String(el.querySelector('[data-rx037-generic-name]')?.value??'').trim();
       const prices=normalizedRows(el.querySelector('[data-rx037-price-list]'),'後発品 '+(name||'名称未入力'));
       if(!name&&!prices.length)continue;
       if(!name||name.length>maxText)throw Error('後発品候補の薬名を入力してください（160字以内）。');
+      const signature=name.normalize('NFKC').toLocaleLowerCase('ja');
+      if(seen.has(signature))throw Error('同じ後発品名が重複しています。量・単位が異なる規格は同じ後発品の下に追加してください。');
+      seen.add(signature);
       result.push({name,priceRows:prices});
     }
     if(result.length>maxCandidates)throw Error('後発品候補は20件以内にしてください。');

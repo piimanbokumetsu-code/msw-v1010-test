@@ -194,7 +194,7 @@
     busy=value;
     const form=document.querySelector('#rx036Editor');
     if(!form)return;
-    form.querySelectorAll('input,textarea,button').forEach(el=>el.disabled=value);
+    form.querySelectorAll('input,textarea,select,button').forEach(el=>el.disabled=value);
     const add=document.querySelector('#rx036Add');
     if(add)add.disabled=value;
     document.querySelectorAll('.rx036Edit, .bottomnav .navbtn').forEach(el=>el.disabled=value);
