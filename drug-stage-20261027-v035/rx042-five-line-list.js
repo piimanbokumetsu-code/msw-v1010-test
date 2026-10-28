@@ -18,7 +18,7 @@
     if(which==='original'){
       const structured=drug?.rx037?.priceRows;
       if(Array.isArray(structured)){
-        const rows=structured.map(rowText).filter(Boolean);
+        const rows=(window.RX046?.sortedRows?.(structured)??structured).map(rowText).filter(Boolean);
         return rows.length?rows.join(' ／ '):'規格・薬価未登録';
       }
       // Legacy master text is not standardized; use the existing conservative
@@ -32,7 +32,7 @@
     const gen=Array.isArray(drug?.rx037?.generics)?drug.rx037.generics:[];
     const first=gen[0];
     if(!first)return '規格・薬価未登録';
-    const rows=Array.isArray(first.priceRows)?first.priceRows.map(rowText).filter(Boolean):[];
+    const rows=Array.isArray(first.priceRows)?(window.RX046?.sortedRows?.(first.priceRows)??first.priceRows).map(rowText).filter(Boolean):[];
     return rows.length?rows.join(' ／ '):'規格・薬価未登録';
   }
   function nameParts(drug){

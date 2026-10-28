@@ -75,7 +75,7 @@
   function pricesFor(drug,kind,brandIndex){
     const brand=brandOf(drug,kind,brandIndex);
     if(!brand)return null;
-    const rows=priceRowsText(brand.rows);
+    const rows=priceRowsText(window.RX046?.sortedRows?.(brand.rows)??brand.rows);
     if(rows!==null){
       // Values not entered remain unknown. Never borrow prices from another
       // original/generic. Only confirmed positive values form suggestions.

@@ -146,6 +146,7 @@
     window.RX039?.install(form);
     window.RX042?.install(form);
     window.RX043?.install(form);
+    window.RX046?.install(form);
     form.querySelector('#rx036Delete').onclick=()=>{void deleteMasterDrug();};
     const drugList=main.querySelector('#drugList');
     if(drugList)drugList.insertAdjacentHTML('afterend',
@@ -227,6 +228,7 @@
     window.RX039?.open(form,editorOld);
     window.RX042?.open(form,editorOld);
     window.RX043?.open(form,editorOld);
+    window.RX046?.open(form,editorOld);
     form.querySelector('#rx036FormStatus').textContent='';
     form.hidden=false;
     form.scrollIntoView({behavior:'auto',block:'start'});
@@ -258,6 +260,9 @@
     const data=readDraft();
     let rx037=null;
     try{
+      // Sort the unchanged input DOM rows before the existing validators
+      // and encryption commit read them. No saved array is changed here.
+      window.RX046?.beforeSave(form);
       rx037=window.RX037?.read(form,editorOld,data)||null;
     }catch(e){
       status.textContent=String(e?.message||e);

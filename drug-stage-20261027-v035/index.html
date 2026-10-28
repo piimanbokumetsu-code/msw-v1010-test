@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#155e59">
-  <title>MSW薬情マスター・患者処方薬連携検証 V0.45・架空患者のみ（2026.10.28）</title>
-  <link rel="stylesheet" href="./styles.css?v=rx-20261028-v045">
+  <title>MSW薬情マスター・規格自動整列検証 V0.46・架空患者のみ（2026.10.28）</title>
+  <link rel="stylesheet" href="./styles.css?v=rx-20261028-v046">
   <style>
     #clinicalFakeNotice{display:block;position:relative;z-index:2;width:100%;padding:9px 15px;background:#fff1d5;color:#733c0a;text-align:center;font-weight:700;font-size:13px;line-height:1.5}
     #clinicalFakeNotice small{display:block;font-weight:400;font-size:11px}
@@ -16,24 +16,25 @@
   <div id="clinicalFakeNotice" role="status">
     処方薬と薬情マスターの別照合｜架空データ専用
     <small>実際の患者情報は入力しないでください。普段のMSWアプリとは別URL・別保存領域です。</small>
-    <small>【V0.45：患者の処方薬検索で先発品②・後発品も個別に選択可能。薬情V0.44のレイアウトは維持】前回V0.35と同じ架空データ用保存領域を使います。新しい暗証は作り直さず、前回の暗証で解除してください。</small>
+    <small>【V0.46：先発品・後発品の規格を量の小さい順に自動整列（同じ単位ごと）。従来データは保持】前回V0.35と同じ架空データ用保存領域を使います。新しい暗証は作り直さず、前回の暗証で解除してください。</small>
   </div>
   <div id="app"></div>
   <input id="fileInput" type="file" hidden>
-  <script src="./app.js?v=rx-20261028-v045fix3"></script>
-  <script src="./rx035-addon.js?v=rx-20261028-v045"></script>
-  <script src="./rx036-master-editor.js?v=rx-20261028-v045fix3"></script>
-  <script src="./rx037-structured-editor.js?v=rx-20261028-v045fix3"></script>
-  <script src="./rx038-multiple-originals.js?v=rx-20261028-v045fix2"></script>
-  <script src="./rx039-layout.js?v=rx-20261028-v045fix1"></script>
-  <script src="./rx042-five-line-list.js?v=rx-20261028-v045fix1"></script>
-  <script src="./rx043-compact-editor.js?v=rx-20261028-v045fix1"></script>
-  <script src="./rx045-patient-brand-search.js?v=rx-20261028-v045fix2"></script>
+  <script src="./app.js?v=rx-20261028-v046fix3"></script>
+  <script src="./rx035-addon.js?v=rx-20261028-v046"></script>
+  <script src="./rx036-master-editor.js?v=rx-20261028-v046fix3"></script>
+  <script src="./rx037-structured-editor.js?v=rx-20261028-v046fix3"></script>
+  <script src="./rx038-multiple-originals.js?v=rx-20261028-v046fix2"></script>
+  <script src="./rx039-layout.js?v=rx-20261028-v046fix1"></script>
+  <script src="./rx042-five-line-list.js?v=rx-20261028-v046fix1"></script>
+  <script src="./rx043-compact-editor.js?v=rx-20261028-v046fix1"></script>
+  <script src="./rx045-patient-brand-search.js?v=rx-20261028-v046fix2"></script>
+  <script src="./rx046-strength-sort.js?v=rx-20261028-v046fix1"></script>
   <script>
    (function(){
      var note=document.getElementById('clinicalFakeNotice');
      try{
-       if(typeof APP_VERSION==='string'&&APP_VERSION==='RX-FAKE-20261028-V045'){
+       if(typeof APP_VERSION==='string'&&APP_VERSION==='RX-FAKE-20261028-V046'){
          note.appendChild(document.createTextNode('　｜コード読み込み確認済み'));
        }else{
          note.appendChild(document.createTextNode('　｜読み込みに問題があります'));
