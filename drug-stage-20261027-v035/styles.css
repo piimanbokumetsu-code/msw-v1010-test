@@ -718,3 +718,18 @@ body.msw-private { visibility: hidden !important; }
 #modal #rx035Panel input,#modal #rx035Panel select{width:100%;min-width:0}
 #modal #rx035Summary{overflow-wrap:anywhere;white-space:normal}
 #modal #rx035Results{max-height:270px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 8px}
+
+
+/* RX036: per-drug master entry/editor, iPad mini tap-friendly. */
+#main .rx036Actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0;padding:4px 0}
+#main .rx036Actions #rx036Notice{max-width:100%;overflow-wrap:anywhere}
+#main #rx036Editor[hidden]{display:none!important}
+#main #rx036Editor{margin:12px 0;padding:14px}
+#main #rx036Editor form{display:grid;gap:12px}
+#main #rx036Editor label{display:grid;gap:6px;font-weight:700;font-size:14px}
+#main #rx036Editor input,#main #rx036Editor textarea{width:100%;min-width:0;font-size:16px}
+#main #rx036Editor textarea{resize:vertical;white-space:pre-wrap}
+#main #rx036Editor .rx036Controls{display:flex;flex-wrap:wrap;gap:8px}
+#main #rx036Editor #rx036FormStatus{font-weight:700;overflow-wrap:anywhere;min-height:1.2em}
+#main .drug .rx036Edit{margin-top:9px;min-height:38px}
+#main .rx036Foot{margin:12px 0;font-size:12px}
