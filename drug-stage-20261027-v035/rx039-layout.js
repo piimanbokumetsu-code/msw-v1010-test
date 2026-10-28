@@ -137,7 +137,9 @@
    if(genericTitle)genericTitle.textContent='③ 後発品の登録'+(generics?'（'+generics+'銘柄）':'');
  }
  function open(editor){
-   if(!editor?.querySelector('#rx039Basics'))return;
+   // The RX043 layout intentionally removes #rx039Basics after relocating its
+   // existing controls. Update counts and ingredient disclosure regardless.
+   if(!editor?.querySelector('#rx039Summary'))return;
    // Always start collapsed, including when a value was previously saved.
    const detail=editor.querySelector('#rx041IngredientDetails');
    if(detail)detail.open=false;

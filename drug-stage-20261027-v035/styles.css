@@ -898,3 +898,41 @@ body.msw-private { visibility: hidden !important; }
  #main #drugList .rx042Effect{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
  -webkit-line-clamp:2;line-clamp:2}
 }
+
+
+/* RX043: remove redundant basic section; move original #1 name into
+   originator panel and classification into notes. All controls preserved. */
+#main #rx036Editor #rx039Basics{display:none!important}
+#main #rx036Editor .rx043PrimaryBrand{
+ display:grid;gap:8px;align-items:start;background:#edf5f3;
+ border-radius:10px 10px 0 0;font-size:15px;font-weight:800;
+}
+#main #rx036Editor .rx043PrimaryBrand strong#rx038MainName{
+ display:none;
+}
+#main #rx036Editor .rx043PrimaryBrand small{
+ margin:0;font-size:12px;line-height:1.5;color:var(--muted);
+}
+#main #rx036Editor .rx043PrimaryBrand label.rx043PrimaryName{
+ font-size:14px;font-weight:700;min-width:0;
+}
+#main #rx036Editor .rx043PrimaryBrand label.rx043PrimaryName input{
+ width:100%;min-width:0;font-size:16px;min-height:44px;
+ background:#fff;border:1px solid #c4d8d4;border-radius:9px;
+ padding:9px 11px;
+}
+#main #rx036Editor .rx043Notes>label{
+ margin:9px 0 0;
+}
+#main #rx036Editor .rx043Notes>#rx036CategoryMatches{
+ margin-top:7px;
+}
+#main #rx036Editor .rx043Notes>p.notice{
+ margin:6px 0 5px;font-size:12px;
+}
+#main #rx036Editor .rx043Notes>#rx041IngredientDetails{
+ margin:11px 0 13px;
+}
+#main #rx036Editor .rx039Originals>#rx042Help{
+ margin:0 0 12px;
+}
