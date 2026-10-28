@@ -863,3 +863,38 @@ body.msw-private { visibility: hidden !important; }
 }
 #main #rx036Editor #rx041IngredientDetails label{margin:0}
 #main #rx036Editor #rx041IngredientDetails input{min-height:44px}
+
+
+/* RX042: 5 logical-row summary, finger-friendly on iPad mini. */
+#main #drugList .rx042FiveLines{display:grid;grid-template-columns:minmax(0,1fr);gap:0;min-width:0}
+#main #drugList .rx042Line{padding:5px 0;display:flex;align-items:baseline;gap:5px;min-width:0;
+ border-bottom:1px solid rgba(100,130,130,.13);line-height:1.5}
+#main #drugList .rx042Line:last-child{border-bottom:0}
+#main #drugList .rx042Label{font-size:12px;flex:0 0 auto;color:#48696b;font-weight:700}
+#main #drugList .rx042Value{min-width:0;overflow-wrap:anywhere;white-space:normal;font-size:13px}
+#main #drugList .rx042Names .rx042Value{font-size:16px;font-weight:800;color:var(--ink)}
+#main #drugList .rx042Generics .rx042Value{font-weight:700;color:var(--ink)}
+#main #drugList .rx042OriginPrice .rx042Value,
+#main #drugList .rx042GenericPrice .rx042Value{font-size:12px;line-height:1.6}
+#main #drugList .rx042CategoryEffect{display:flex;gap:5px;min-width:0;align-items:baseline}
+#main #drugList .rx042Category{flex:0 1 auto;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+#main #drugList .rx042Effect{flex:1 1 auto;min-width:0;font-size:12px;color:var(--muted);
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+#main #rx036Editor .rx042Help{font-size:12px;line-height:1.65;color:#355c59;
+ border:1px solid #c9dfdc;background:#eff8f5;border-radius:10px;padding:9px 12px;margin:0}
+#main #rx036Editor details.rx042BrandDetails{margin-top:10px;border:1px solid #d2e1df;
+ border-radius:9px;background:#fbfdfd;padding:0;overflow:hidden}
+#main #rx036Editor details.rx042BrandDetails>summary{
+ font-size:13px;font-weight:700;color:#28645c;padding:11px;
+ min-height:44px;cursor:pointer;line-height:1.5}
+#main #rx036Editor details.rx042BrandDetails[open]>summary{border-bottom:1px solid #d2e1df}
+#main #rx036Editor details.rx042BrandDetails>summary:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+#main #rx036Editor details.rx042BrandDetails>[data-rx038-prices],
+#main #rx036Editor details.rx042BrandDetails>[data-rx037-price-list]{padding:7px 10px 0}
+#main #rx036Editor details.rx042BrandDetails>button{margin:7px 10px 10px}
+@media(max-width:600px){
+ #main #drugList .rx042Line{flex-wrap:wrap;gap:0 5px}
+ #main #drugList .rx042Line.rx042CategoryEffect{flex-wrap:wrap}
+ #main #drugList .rx042Effect{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;
+ -webkit-line-clamp:2;line-clamp:2}
+}

@@ -144,6 +144,7 @@
     window.RX037?.install(form);
     window.RX038?.install(form);
     window.RX039?.install(form);
+    window.RX042?.install(form);
     form.querySelector('#rx036Delete').onclick=()=>{void deleteMasterDrug();};
     const drugList=main.querySelector('#drugList');
     if(drugList)drugList.insertAdjacentHTML('afterend',
@@ -223,6 +224,7 @@
     window.RX037?.open(form,editorOld);
     window.RX038?.open(form,editorOld);
     window.RX039?.open(form,editorOld);
+    window.RX042?.open(form,editorOld);
     form.querySelector('#rx036FormStatus').textContent='';
     form.hidden=false;
     form.scrollIntoView({behavior:'auto',block:'start'});
