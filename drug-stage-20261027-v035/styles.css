@@ -936,3 +936,23 @@ body.msw-private { visibility: hidden !important; }
 #main #rx036Editor .rx039Originals>#rx042Help{
  margin:0 0 12px;
 }
+
+
+/* RX045 fictional-patient medicine name lookup. Does not alter RX044 master. */
+#modal #patientDrugResults .rx045Safety{
+ margin:7px 0;padding:9px 10px;border:1px solid #b5d1cb;
+ border-radius:8px;background:#f2f9f7;font-size:12px;line-height:1.55;
+}
+#modal #patientDrugResults .rx045Candidate{gap:10px;min-width:0}
+#modal #patientDrugResults .rx045Candidate>div{min-width:0;flex:1 1 auto}
+#modal #patientDrugResults .rx045Candidate strong{font-size:15px;overflow-wrap:anywhere}
+#modal #patientDrugResults .rx045Badge{font-size:12px;color:#256a64;font-weight:700;padding-top:3px}
+#modal #patientDrugResults .rx045Preview{font-size:12px;line-height:1.6;
+ color:#344f50;overflow-wrap:anywhere;margin:4px 0}
+#modal #patientDrugResults .rx045Choose{min-height:44px;white-space:nowrap}
+#modal .rx045SelectedNote{font-size:12px;line-height:1.55;color:#286a64;
+ font-weight:600;margin-top:3px;overflow-wrap:anywhere}
+@media(max-width:600px){
+ #modal #patientDrugResults .rx045Candidate{align-items:stretch;flex-direction:column}
+ #modal #patientDrugResults .rx045Choose{width:100%;white-space:normal}
+}
