@@ -25,7 +25,7 @@
   function findDisplayed(){
     const q=(document.querySelector('#dq')?.value||'').toLowerCase().trim();
     return (state.drugs||[]).map((drug,index)=>({drug,index}))
-      .filter(({drug})=>!q||[drug['薬名'],drug['医薬品分類'],drug['薬効']].join(' ').toLowerCase().includes(q))
+      .filter(({drug})=>!q||rx038MasterSearchText(drug).includes(q))
       .slice(0,100);
   }
   function decorateList(){

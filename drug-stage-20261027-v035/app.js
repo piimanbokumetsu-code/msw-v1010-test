@@ -1578,7 +1578,16 @@ function renderTasks(){
   });
 }
 function renderDrugs(){const ds=state.drugs||[];$('#main').innerHTML=`<div class="hero"><div><h1>薬情</h1><p>端末内の簡易薬剤マスター。患者別の登録は患者情報の「処方薬」タブから行えます。</p></div></div><div class="toolbar"><input id="dq" placeholder="薬名・分類・薬効で検索"></div><div id="drugList"></div>`;$('#dq').oninput=drawDrugs;drawDrugs()}
-function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||[d['薬名'],d['医薬品分類'],d['薬効']].join(' ').toLowerCase().includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>'}
+
+function rx038MasterSearchText(drug){
+ const secondaries=Array.isArray(drug?.rx038?.otherOriginals)?drug.rx038.otherOriginals:[];
+ const generics=Array.isArray(drug?.rx037?.generics)?drug.rx037.generics:[];
+ return [drug?.['薬名'],drug?.['医薬品分類'],drug?.['薬効'],
+         drug?.rx038?.ingredient,
+         ...secondaries.map(x=>x?.name),
+         ...generics.map(x=>x?.name)].join(' ').toLowerCase();
+}
+function drawDrugs(){const q=($('#dq')?.value||'').toLowerCase().trim();const a=(state.drugs||[]).filter(d=>!q||rx038MasterSearchText(d).includes(q)).slice(0,100);$('#drugList').innerHTML=a.length?`<div class="drug-list">${a.map(d=>`<article class="drug"><b>${esc(d['薬名'])}</b><div class="small">${esc(d['医薬品分類'])}　${esc(d['薬価'])}</div><div class="effect">${esc(d['薬効'])}</div></article>`).join('')}</div>`:'<div class="empty">薬剤データがありません。設定から「薬剤CSV」を読み込んでください。</div>'}
 
 
 /* RX01: Patient-specific reference list. Selected master data is copied into
