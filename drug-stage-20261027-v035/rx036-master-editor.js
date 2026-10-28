@@ -62,7 +62,9 @@
       }
       card.addEventListener('click',event=>{
         // Future actions added inside drug cards must remain independent.
-        if(event.target.closest('button,a,input,select,textarea,summary,[role="button"],[contenteditable]'))return;
+        const nested=event.target.closest('button,a,input,select,textarea,summary,[role="button"],[contenteditable]');
+        // The article itself has role="button"; do not suppress its own tap.
+        if(nested&&nested!==card)return;
         activate();
       });
       card.addEventListener('keydown',event=>{
