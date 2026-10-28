@@ -36,12 +36,12 @@
   }
   function sectionHtml(){
     return '<section class="rx037Section" id="rx037MasterPrice"><h4>規格別の薬価</h4>'+
-      '<p class="notice">「量」「単位」「薬価」を1行ずつ入力。例：5｜mg｜12.30円。これは価格の参考値で、1錠・1包など薬価の算定単位は別途確認してください。</p>'+
+      '<p class="notice">「量」「単位」「薬価」を1行ずつ入力。例：5｜mg｜12.30円。薬価は未確認なら空欄のまま規格を保存できます。価格未確認の規格は患者側の薬価候補には表示しません。1錠・1包など薬価の算定単位は別途確認してください。</p>'+
       '<div data-rx037-price-list id="rx037MasterPriceRows"></div>'+
       '<button type="button" class="btn secondary" data-rx037-action="add-master-price">＋ 規格を追加</button>'+
       '<p class="notice" id="rx037LegacyStatus"></p></section>'+
       '<section class="rx037Section" id="rx037GenericSection"><h4>後発品候補の登録（参考情報）</h4>'+
-      '<p class="notice">薬名ごとに規格・薬価を複数登録できます。先発品からの変更可否・同等性は自動判定しません。現在の処方薬は変更されません。</p>'+
+      '<p class="notice">薬名ごとに規格・薬価を複数登録できます。薬価が未確認なら空欄のまま保存できます。先発品からの変更可否・同等性は自動判定しません。現在の処方薬は変更されません。</p>'+
       '<div id="rx037GenericList"></div><button type="button" class="btn secondary" data-rx037-action="add-generic">＋ 後発品候補を追加</button></section>';
   }
   function findList(el){return el.closest('[data-rx037-price-list]');}
@@ -100,7 +100,7 @@
       if(!amount&&!price)continue;
       if(!/^\d{1,6}(?:\.\d{1,3})?$/.test(amount)||Number(amount)<=0||
          !unit||unit.length>15||/[()、,，⇒=>]/.test(unit)||
-         !/^\d{1,7}(?:\.\d{1,2})?$/.test(price)||Number(price)<=0||Number(price)>1000000)
+         (price!==''&&(!/^\d{1,7}(?:\.\d{1,2})?$/.test(price)||Number(price)<=0||Number(price)>1000000)))
         throw Error(name+'：量・単位・薬価を正しい形式で入力してください。');
       rows.push({amount,unit,price});
     }
@@ -164,7 +164,7 @@
       ? '旧薬価データは自動分解できませんでした。下の旧データを確認しながら1規格ずつ入力できます。'
       : raw
         ? '旧薬価データを候補として表示しています。入力を変更するまでは旧文字列のまま保存します。'
-        : '規格を入力して保存すると、患者の処方薬選択でも規格別候補として使えます。';
+        : '規格を入力して保存できます。薬価未入力の規格は患者の薬価選択候補には表示しません。';
     const legacy=el.querySelector('#rx037Legacy');
     if(legacy)legacy.open=false;
     building=false;
@@ -180,7 +180,9 @@
       next.priceRows=rows;
       if(!('originalPriceText' in prev))next.originalPriceText=String(drug?.['薬価']??'');
       // Keep compatibility with the old prescription-price choice parser.
-      priceText=rows.map(r=>r.amount+r.unit+'('+r.price+')').join('');
+      // Keep an unpriced strength in the structured catalog, but do not feed
+      // it to the old parser which only accepts actual numeric prices.
+      priceText=rows.filter(r=>r.price!=='').map(r=>r.amount+r.unit+'('+r.price+')').join('');
       if(priceText.length>650)throw Error('規格別薬価の文字数が多すぎます。');
     }else if(rawDirty&&Object.prototype.hasOwnProperty.call(prev,'priceRows')){
       delete next.priceRows;
