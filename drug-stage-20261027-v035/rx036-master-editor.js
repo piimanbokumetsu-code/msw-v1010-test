@@ -43,6 +43,7 @@
       btn.setAttribute('aria-label',String(displayed[i].drug['薬名']||'薬剤')+'の情報を編集');
       btn.onclick=()=>openEditor('edit',displayed[i].index);
       card.appendChild(btn);
+      window.RX037?.summarize(card,displayed[i].drug);
     });
   }
   function install(){
@@ -107,6 +108,7 @@
       if(!busy){form.hidden=true;editorIndex=null;editorOld=null;}
     };
     form.querySelector('#rx036Form').onsubmit=e=>{e.preventDefault();void commitEdit();};
+    window.RX037?.install(form);
     form.querySelector('#rx036Delete').onclick=()=>{void deleteMasterDrug();};
     const drugList=main.querySelector('#drugList');
     if(drugList)drugList.insertAdjacentHTML('afterend',
@@ -183,6 +185,7 @@
     inputs.namedItem('effect').value=String(editorOld?.['薬効']??'');
     populateCategoryChoices(form);
     updatePricePreview();
+    window.RX037?.open(form,editorOld);
     form.querySelector('#rx036FormStatus').textContent='';
     form.hidden=false;
     form.scrollIntoView({behavior:'auto',block:'start'});
@@ -212,6 +215,14 @@
     if(!form||form.hidden||!key||!state||screen!=='drugs')return;
     const status=form.querySelector('#rx036FormStatus');
     const data=readDraft();
+    let rx037=null;
+    try{
+      rx037=window.RX037?.read(form,editorOld,data)||null;
+    }catch(e){
+      status.textContent=String(e?.message||e);
+      return;
+    }
+    if(rx037?.priceText!==undefined)data['薬価']=rx037.priceText;
     if(!data||!data['薬名']){status.textContent='薬名を入力してください。';return;}
     if(data['薬名'].length>160||data['医薬品分類'].length>150||
        data['薬価'].length>1600||data['薬効'].length>6500){
@@ -226,7 +237,7 @@
     const same=rows.findIndex((drug,i)=>(draftMode!=='edit'||i!==editorIndex)&&
       fields.every(f=>String(drug[f]??'').trim()===data[f]));
     if(same>=0){status.textContent='まったく同じ内容の薬剤が登録済みです。';return;}
-    if(draftMode==='edit'&&fields.every(f=>String(editorOld[f]??'').trim()===data[f])){
+    if(draftMode==='edit'&&fields.every(f=>String(editorOld[f]??'').trim()===data[f])&&!rx037?.changed){
       status.textContent='変更されていません。';return;
     }
     const action=draftMode==='new'?'新規登録':'編集';
@@ -240,8 +251,10 @@
       if(screen!=='drugs'||state!==current||(draftMode==='edit'&&current.drugs[editorIndex]!==editorOld))
         throw new Error('操作中に内容が変わったため保存を中止しました。');
       const nextDrugs=rows.slice();
-      if(draftMode==='new')nextDrugs.push(data);
-      else nextDrugs[editorIndex]={...editorOld,...data};
+      const savedDrug=draftMode==='new'?{...data}:{...editorOld,...data};
+      if(rx037?.changed)savedDrug.rx037=rx037.value;
+      if(draftMode==='new')nextDrugs.push(savedDrug);
+      else nextDrugs[editorIndex]=savedDrug;
       const next={...current,drugs:nextDrugs,version:APP_VERSION,updatedAt:nowISO()};
       const activeKey=key;
       // Same encrypted, serialized commit pattern as the existing CSV importer.

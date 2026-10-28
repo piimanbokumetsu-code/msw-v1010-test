@@ -745,3 +745,19 @@ body.msw-private { visibility: hidden !important; }
 /* RX036 fix4: destructive action is available only on existing master entries. */
 #rx036Delete[hidden]{display:none!important}
 #rx036Delete{margin-left:auto}
+
+/* RX037 structured drug prices / generic alternatives: responsive iPad mini. */
+#rx036Editor .rx037Section{margin:8px 0 12px;border:1px solid rgba(104,133,132,.32);border-radius:10px;padding:12px;min-width:0}
+#rx036Editor .rx037Section h4{margin:0 0 6px;font-size:16px}
+#rx036Editor .rx037Row{display:grid;grid-template-columns:minmax(48px,1fr) minmax(72px,1fr) minmax(80px,1.3fr) 38px;gap:6px;align-items:end;margin:8px 0}
+#rx036Editor .rx037Row label{font-size:12px;min-width:0}
+#rx036Editor .rx037Row input,#rx036Editor .rx037Row select{font-size:16px;min-width:0;padding:8px 6px;max-width:100%}
+#rx036Editor .rx037Row .rx037RemovePrice{min-height:40px;padding:4px;font-size:19px}
+#rx036Editor .rx037Generic{border:1px solid rgba(104,133,132,.38);border-radius:8px;padding:10px;margin:10px 0;background:rgba(115,144,137,.06)}
+#rx036Editor .rx037GenericTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+#rx036Editor .rx037GenericTitle strong{font-size:15px}
+#rx036Editor .rx037GenericTitle button{font-size:12px;padding:5px 8px}
+#rx036Editor #rx037Legacy{padding:11px 0}
+#rx036Editor #rx037Legacy summary{font-weight:700;cursor:pointer;color:inherit;min-height:36px}
+#drugList .rx037Summary{font-size:12px;margin-top:8px;overflow-wrap:anywhere}
+@media(max-width:425px){#rx036Editor .rx037Row{grid-template-columns:minmax(43px,1fr) minmax(66px,1fr) minmax(74px,1.25fr) 34px;gap:4px}#rx036Editor .rx037Row input,#rx036Editor .rx037Row select{padding:7px 4px}}
