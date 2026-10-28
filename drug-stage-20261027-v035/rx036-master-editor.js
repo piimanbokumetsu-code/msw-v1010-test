@@ -62,14 +62,14 @@
     form.innerHTML='<h3 id="rx036Heading">薬剤マスター編集</h3>'+
       '<p class="notice">薬情マスターの1件のみを登録・編集します。登録済み患者の処方薬や参考薬情は自動変更しません。</p>'+
       '<form id="rx036Form" autocomplete="off" novalidate>'+
-        '<label>薬名（必須）<input type="text" name="name" maxlength="160" required placeholder="例：架空薬剤テスト"></label>'+
-        '<label>医薬品分類<input type="text" name="category" maxlength="150" autocomplete="off" aria-controls="rx036CategoryMatches" aria-autocomplete="list" placeholder="例：架空 と入力して候補を表示"></label>'+
+        '<label>薬名（必須）<input type="text" name="name" maxlength="160" required placeholder="例：ノルバスク錠"></label>'+
+        '<label>医薬品分類<input type="text" name="category" maxlength="150" autocomplete="off" aria-controls="rx036CategoryMatches" aria-autocomplete="list" placeholder="分類名で既存候補を検索"></label>'+
         '<div id="rx036CategoryMatches" class="rx036CategoryMatches" role="group" aria-label="医薬品分類の入力候補" hidden></div>'+
         '<p class="notice">入力中に既存の分類を絞り込みます。候補をタップするか、そのまま自由入力できます。</p>'+
         '<label>薬価の元データ<textarea name="price" rows="3" maxlength="1600" placeholder="例：5mg(12.30)10mg(24.50)"></textarea></label>'+
         '<div id="rx036PricePreview" class="notice" role="status" aria-live="polite">薬価を入力すると規格別の読み取り候補が表示されます。</div>'+
-        '<label>薬効・後発品などの参考情報<textarea name="effect" rows="5" maxlength="6500" placeholder="薬効の説明や後発品情報を入力"></textarea></label>'+
-        '<p class="notice">薬価は元データとして文字列を保存します。規格・単位が未確認の金額を自動計算しません。後発品を記す場合は「後発品⇒薬剤名」の形式が使えます。</p>'+
+        '<label>薬効・補足メモ<textarea name="effect" rows="4" maxlength="6500" placeholder="薬効や補足情報を入力"></textarea></label>'+
+        '<p class="notice">旧CSVの「後発品⇒薬剤名」などは参考情報として残せます。銘柄の登録は上の先発品・後発品欄を使ってください。</p>'+
         '<div class="rx036Controls">'+
           '<button class="btn" id="rx036Save" type="submit">保存する</button>'+
           '<button class="btn secondary" id="rx036Cancel" type="button">キャンセル</button>'+
@@ -111,6 +111,7 @@
     form.querySelector('#rx036Form').onsubmit=e=>{e.preventDefault();void commitEdit();};
     window.RX037?.install(form);
     window.RX038?.install(form);
+    window.RX039?.install(form);
     form.querySelector('#rx036Delete').onclick=()=>{void deleteMasterDrug();};
     const drugList=main.querySelector('#drugList');
     if(drugList)drugList.insertAdjacentHTML('afterend',
@@ -189,6 +190,7 @@
     updatePricePreview();
     window.RX037?.open(form,editorOld);
     window.RX038?.open(form,editorOld);
+    window.RX039?.open(form,editorOld);
     form.querySelector('#rx036FormStatus').textContent='';
     form.hidden=false;
     form.scrollIntoView({behavior:'auto',block:'start'});

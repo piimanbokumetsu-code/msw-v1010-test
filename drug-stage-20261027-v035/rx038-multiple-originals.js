@@ -55,10 +55,10 @@
       if(label)label.textContent=nameInput.value||'（画面上部で薬名を入力）';
     });
     form.addEventListener('input',event=>{
-      if(!building&&event.target.closest('#rx038Section'))dirty=true;
+      if(!building&&(event.target.id==='rx038Ingredient'||(event.target.closest('#rx038Section')&&!event.target.closest('#rx037MasterPrice'))))dirty=true;
     });
     form.addEventListener('change',event=>{
-      if(!building&&event.target.closest('#rx038Section'))dirty=true;
+      if(!building&&(event.target.id==='rx038Ingredient'||(event.target.closest('#rx038Section')&&!event.target.closest('#rx037MasterPrice'))))dirty=true;
     });
     form.addEventListener('click',event=>{
       const button=event.target.closest('[data-rx038-action]');

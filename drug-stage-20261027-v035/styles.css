@@ -776,3 +776,42 @@ body.msw-private { visibility: hidden !important; }
 #rx036Editor .rx038RemoveRow{min-height:39px;padding:3px;font-size:18px}
 #drugList .rx038Summary{font-size:12px;margin-top:8px;overflow-wrap:anywhere}
 @media(max-width:430px){#rx036Editor .rx038PriceRow{grid-template-columns:minmax(42px,1fr) minmax(62px,.9fr) minmax(72px,1.15fr) 32px;gap:4px}#rx036Editor .rx038PriceRow input,#rx036Editor .rx038PriceRow select{padding:6px 3px}}
+
+/* RX039: grouped, responsive input layout without changing existing data. */
+#main #rx036Editor{max-width:1000px;scroll-margin-top:72px;padding:clamp(11px,2vw,18px)}
+#main #rx036Editor>h3{font-size:19px;margin:0 0 6px}
+#main #rx036Editor>p.notice{font-size:12px;margin:0 0 12px}
+#main #rx036Editor #rx036Form{gap:12px}
+#main #rx036Editor .rx039Summary{padding:10px 12px;background:#f0f5f5;border:1px solid #d4e2e1;border-radius:10px;font-size:13px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
+#main #rx036Editor .rx039Group{margin:0;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}
+#main #rx036Editor .rx039Group .rx039Title{margin:0 0 7px;font-size:17px;line-height:1.5;font-weight:800}
+#main #rx036Editor .rx039Group .rx039Help{margin:0 0 10px;font-size:12px;line-height:1.6;color:var(--muted)}
+#main #rx036Editor .rx039Fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#main #rx036Editor .rx039Fields>label:first-child{grid-column:1/-1}
+#main #rx036Editor .rx039Basics>#rx036CategoryMatches{margin-top:7px}
+#main #rx036Editor .rx039Basics>p.notice{margin:6px 0 0;font-size:12px}
+#main #rx036Editor .rx039Originals{background:#fbfdfd}
+#main #rx036Editor .rx039Originals>.rx038MainBrand{background:#edf4f3;border:1px solid #dbe8e7;margin:11px 0 0;font-weight:800}
+#main #rx036Editor .rx039Originals>.rx038MainBrand small{font-weight:400;opacity:.8}
+#main #rx036Editor .rx039Originals>#rx037MasterPrice{border:1px solid #dbe8e7;border-radius:0 0 9px 9px;background:#fff;margin:0 0 12px;padding:10px 10px 12px}
+#main #rx036Editor .rx039Originals #rx037MasterPrice h4{font-size:15px;margin:0 0 7px}
+#main #rx036Editor .rx039Originals #rx037MasterPrice>p.notice{font-size:11px;line-height:1.5;margin:5px 0 8px}
+#main #rx036Editor .rx039Originals #rx038Brands>.rx038Brand{background:#fff}
+#main #rx036Editor .rx039Generics{background:#fbfdfd}
+#main #rx036Editor .rx039Generics .rx037Generic{background:#fff}
+#main #rx036Editor .rx039Notes textarea{min-height:76px}
+#main #rx036Editor #rx037Legacy.rx039Legacy{padding:12px;margin:0;border:1px solid var(--line);border-radius:10px;background:#fafcfc}
+#main #rx036Editor .rx039Legacy>summary{font-size:13px}
+#main #rx036Editor .rx039Footer{font-size:12px;color:var(--muted);line-height:1.6;margin:0 2px}
+#main #rx036Editor .rx036Controls{position:sticky;bottom:77px;z-index:5;background:rgba(255,255,255,.97);padding:10px;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 16px rgba(5,45,48,.08)}
+#main #rx036Editor .rx036Controls>.btn{min-height:44px}
+#main #rx036Editor .rx039Originals [data-rx038-action="add-brand"],#main #rx036Editor .rx039Generics [data-rx037-action="add-generic"]{min-height:44px}
+#main #rx036Editor .rx039Originals .rx038PriceRow,#main #rx036Editor .rx039Generics .rx037Row{grid-template-columns:minmax(60px,1fr) minmax(75px,.9fr) minmax(85px,1.25fr) 38px;gap:6px}
+#main #rx036Editor .rx039Originals .rx038RemoveRow,#main #rx036Editor .rx039Generics .rx037RemovePrice{min-width:36px;min-height:42px}
+@media(max-width:660px){
+ #main #rx036Editor .rx039Fields{grid-template-columns:minmax(0,1fr)}
+ #main #rx036Editor .rx039Fields>label:first-child{grid-column:1}
+ #main #rx036Editor .rx039Group{padding:10px}
+ #main #rx036Editor .rx039Originals .rx038PriceRow,#main #rx036Editor .rx039Generics .rx037Row{grid-template-columns:minmax(43px,1fr) minmax(62px,.85fr) minmax(75px,1.1fr) 32px;gap:4px}
+ #main #rx036Editor .rx036Controls{bottom:75px}
+}
