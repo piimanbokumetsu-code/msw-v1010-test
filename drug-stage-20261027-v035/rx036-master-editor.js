@@ -44,6 +44,7 @@
       btn.onclick=()=>openEditor('edit',displayed[i].index);
       card.appendChild(btn);
       window.RX037?.summarize(card,displayed[i].drug);
+      window.RX038?.summarize(card,displayed[i].drug);
     });
   }
   function install(){
@@ -109,6 +110,7 @@
     };
     form.querySelector('#rx036Form').onsubmit=e=>{e.preventDefault();void commitEdit();};
     window.RX037?.install(form);
+    window.RX038?.install(form);
     form.querySelector('#rx036Delete').onclick=()=>{void deleteMasterDrug();};
     const drugList=main.querySelector('#drugList');
     if(drugList)drugList.insertAdjacentHTML('afterend',
@@ -186,6 +188,7 @@
     populateCategoryChoices(form);
     updatePricePreview();
     window.RX037?.open(form,editorOld);
+    window.RX038?.open(form,editorOld);
     form.querySelector('#rx036FormStatus').textContent='';
     form.hidden=false;
     form.scrollIntoView({behavior:'auto',block:'start'});
@@ -223,6 +226,13 @@
       return;
     }
     if(rx037?.priceText!==undefined)data['薬価']=rx037.priceText;
+    let rx038=null;
+    try{
+      rx038=window.RX038?.read(form,editorOld,data,rx037)||null;
+    }catch(e){
+      status.textContent=String(e?.message||e);
+      return;
+    }
     if(!data||!data['薬名']){status.textContent='薬名を入力してください。';return;}
     if(data['薬名'].length>160||data['医薬品分類'].length>150||
        data['薬価'].length>1600||data['薬効'].length>6500){
@@ -237,7 +247,7 @@
     const same=rows.findIndex((drug,i)=>(draftMode!=='edit'||i!==editorIndex)&&
       fields.every(f=>String(drug[f]??'').trim()===data[f]));
     if(same>=0){status.textContent='まったく同じ内容の薬剤が登録済みです。';return;}
-    if(draftMode==='edit'&&fields.every(f=>String(editorOld[f]??'').trim()===data[f])&&!rx037?.changed){
+    if(draftMode==='edit'&&fields.every(f=>String(editorOld[f]??'').trim()===data[f])&&!rx037?.changed&&!rx038?.changed){
       status.textContent='変更されていません。';return;
     }
     const action=draftMode==='new'?'新規登録':'編集';
@@ -253,6 +263,7 @@
       const nextDrugs=rows.slice();
       const savedDrug=draftMode==='new'?{...data}:{...editorOld,...data};
       if(rx037?.changed)savedDrug.rx037=rx037.value;
+      if(rx038?.changed)savedDrug.rx038=rx038.value;
       if(draftMode==='new')nextDrugs.push(savedDrug);
       else nextDrugs[editorIndex]=savedDrug;
       const next={...current,drugs:nextDrugs,version:APP_VERSION,updatedAt:nowISO()};
