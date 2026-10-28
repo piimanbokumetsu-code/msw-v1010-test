@@ -59,8 +59,11 @@
       '<p class="notice">薬情マスターの1件のみを登録・編集します。登録済み患者の処方薬や参考薬情は自動変更しません。</p>'+
       '<form id="rx036Form" autocomplete="off" novalidate>'+
         '<label>薬名（必須）<input type="text" name="name" maxlength="160" required placeholder="例：架空薬剤テスト"></label>'+
-        '<label>医薬品分類<input type="text" name="category" maxlength="150" placeholder="分類を入力"></label>'+
+        '<label>医薬品分類<input type="text" name="category" maxlength="150" placeholder="候補から選択、または自由入力"></label>'+
+        '<label>登録済みの分類から選ぶ（任意）<select id="rx036CategoryPick"><option value="">分類の候補を表示</option></select></label>'+
+        '<p class="notice">候補を選ぶと上の医薬品分類欄に反映します。候補にない分類は自由入力できます。</p>'+
         '<label>薬価の元データ<textarea name="price" rows="3" maxlength="1600" placeholder="例：5mg(12.30)10mg(24.50)"></textarea></label>'+
+        '<div id="rx036PricePreview" class="notice" role="status" aria-live="polite">薬価を入力すると規格別の読み取り候補が表示されます。</div>'+
         '<label>薬効・後発品などの参考情報<textarea name="effect" rows="5" maxlength="6500" placeholder="薬効の説明や後発品情報を入力"></textarea></label>'+
         '<p class="notice">薬価は元データとして文字列を保存します。規格・単位が未確認の金額を自動計算しません。後発品を記す場合は「後発品⇒薬剤名」の形式が使えます。</p>'+
         '<div class="rx036Controls">'+
@@ -70,6 +73,15 @@
       '</form>';
     actions.insertAdjacentElement('afterend',form);
     actions.querySelector('#rx036Add').onclick=()=>openEditor('new');
+    const catInput=form.querySelector('input[name="category"]');
+    const catSelect=form.querySelector('#rx036CategoryPick');
+    catSelect.onchange=()=>{
+      if(catSelect.value){catInput.value=catSelect.value;}
+    };
+    catInput.addEventListener('input',()=>{
+      if(catSelect.value!==catInput.value)catSelect.value='';
+    });
+    form.querySelector('textarea[name="price"]').addEventListener('input',updatePricePreview);
     form.querySelector('#rx036Cancel').onclick=()=>{
       if(!busy){form.hidden=true;editorIndex=null;editorOld=null;}
     };
@@ -78,6 +90,40 @@
     if(drugList)drugList.insertAdjacentHTML('afterend',
       '<p class="notice rx036Foot">薬剤CSVを再取り込みすると、この画面からの追加・編集内容も薬剤マスター全件とともに置き換わります。必要時は事前に暗号化バックアップを保存してください。</p>');
     decorateList();
+  }
+  function populateCategoryChoices(form){
+    const select=form.querySelector('#rx036CategoryPick');
+    if(!select)return;
+    // Uniqueness is by normalized spelling, while retaining the stored label.
+    const seen=new Set(),choices=[];
+    for(const drug of state?.drugs||[]){
+      const category=String(drug?.['医薬品分類']??'').trim();
+      const id=category.normalize('NFKC');
+      if(!category||seen.has(id))continue;
+      seen.add(id);choices.push(category);
+    }
+    choices.sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
+    select.innerHTML='<option value="">既存の分類から選択（任意）</option>'+
+      choices.map(value=>'<option value="'+esc(value)+'">'+esc(value)+'</option>').join('');
+    const current=form.querySelector('input[name="category"]').value;
+    select.value=choices.includes(current)?current:'';
+  }
+  function updatePricePreview(){
+    const form=document.querySelector('#rx036Editor');
+    if(!form)return;
+    const input=form.querySelector('textarea[name="price"]');
+    const preview=form.querySelector('#rx036PricePreview');
+    if(!input||!preview)return;
+    const raw=input.value.trim();
+    if(!raw){preview.textContent='薬価を入力すると規格別の読み取り候補が表示されます。';return;}
+    const choices=(typeof medPriceChoices==='function')?medPriceChoices(raw):[];
+    if(!choices.length){
+      preview.textContent='規格別の薬価候補を認識できません。例：5mg(12.30)10mg(24.50)。入力内容はそのまま保存されます。';
+      return;
+    }
+    preview.innerHTML='<strong>読み取り候補：'+choices.length+'件</strong><div class="rx036Prices">'+
+      choices.map(x=>'<span>'+esc(x.strength)+'：'+esc(x.unitPrice)+'円</span>').join('')+
+      '</div><small>確認用の候補です。1錠・1包などの価格単位は別途確認してください。薬価の自動確定はしません。</small>';
   }
   function openEditor(mode,index=null){
     if(busy)return;
@@ -94,6 +140,8 @@
     inputs.namedItem('category').value=String(editorOld?.['医薬品分類']??'');
     inputs.namedItem('price').value=String(editorOld?.['薬価']??'');
     inputs.namedItem('effect').value=String(editorOld?.['薬効']??'');
+    populateCategoryChoices(form);
+    updatePricePreview();
     form.querySelector('#rx036FormStatus').textContent='';
     form.hidden=false;
     form.scrollIntoView({behavior:'auto',block:'start'});
