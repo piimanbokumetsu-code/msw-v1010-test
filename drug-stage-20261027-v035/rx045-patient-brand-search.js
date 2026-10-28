@@ -10,17 +10,18 @@
   const oldDraw=drawPatientDrugResults;
   const name=s=>String(s??'').trim();
   const norm=s=>name(s).normalize('NFKC').toLocaleLowerCase('ja');
+  const numeral=n=>n>=1&&n<=20?String.fromCodePoint(0x245f+n):String(n);
   function brandOf(drug,kind,brandIndex){
     if(!drug||!Number.isSafeInteger(brandIndex)||brandIndex<0)return null;
     if(kind==='original'&&brandIndex===0)
       return {name:name(drug['薬名']),rows:drug?.rx037?.priceRows,raw:name(drug['薬価']),label:'先発品①'};
     if(kind==='original'&&brandIndex>0){
       const row=Array.isArray(drug?.rx038?.otherOriginals)?drug.rx038.otherOriginals[brandIndex-1]:null;
-      return row?{name:name(row.name),rows:row.priceRows,raw:'',label:'先発品'+(brandIndex+1)}:null;
+      return row?{name:name(row.name),rows:row.priceRows,raw:'',label:'先発品'+numeral(brandIndex+1)}:null;
     }
     if(kind==='generic'){
       const row=Array.isArray(drug?.rx037?.generics)?drug.rx037.generics[brandIndex]:null;
-      return row?{name:name(row.name),rows:row.priceRows,raw:'',label:'後発品'+(brandIndex+1)}:null;
+      return row?{name:name(row.name),rows:row.priceRows,raw:'',label:'後発品'+numeral(brandIndex+1)}:null;
     }
     return null;
   }

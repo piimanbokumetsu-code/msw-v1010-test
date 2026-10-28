@@ -1649,7 +1649,7 @@ function renderPatientMedications(){
  const root=$('#tabbody');
  root.innerHTML=`<div class="patient-med-page">
    <section class="panel"><h3>処方薬一覧（確認用）</h3>
-    <p class="notice">薬効・後発品はFileMaker由来の登録内容で、現在の添付文書・薬価とは限りません。正式な処方・服薬の記録ではありません。</p>
+    <p class="notice">薬効・後発品・薬価は薬情マスター等の参考情報です。実際の処方薬との一致や最新の薬価を保証しません。処方は電子カルテなどで確認してください。</p>
     <div id="patientMedSummary" class="patient-med-summary" role="status" aria-live="polite"></div>
     <p class="notice">参考日額＝確認した単価 × 1日数量。定期薬のみ集計し、未設定分は除外します。実際の請求額ではありません。</p>
     <p id="patientMedStatus" class="patient-med-status" role="status" aria-live="polite">薬名と薬効・後発品・薬価を一覧で確認できます。</p>
@@ -1679,7 +1679,7 @@ function drawPatientMedicationList(){
    const currentPrice=p.unitPrice?medMoney(Number(p.unitPrice))+(p.unit?'／'+p.unit:'（単位未確認）'):'薬価未設定';
    const costText=cost===null?(p.status==='定期'?'参考日額：計算待ち':'参考日額：対象外'):'参考日額：'+medMoney(cost);
    const options=medPriceChoices(d['薬価']);
-   const optionHtml=options.length?`<label>旧データから規格・薬価を選択（内容を確認）<select class="patient-med-choice"><option value="">候補から選ぶ（任意）</option>${
+   const optionHtml=options.length?`<label>登録した薬情の規格・薬価候補を選択（内容を確認）<select class="patient-med-choice"><option value="">候補から選ぶ（任意）</option>${
       options.map((v,i)=>`<option value="${i}">${esc(v.strength)} ／ ${esc(v.unitPrice)}円</option>`).join('')
     }</select></label>`:'<p class="notice">元の薬価から規格別価格を安全に抽出できません。価格は手動で確認してください。</p>';
    return `<article class="patient-med-row">
