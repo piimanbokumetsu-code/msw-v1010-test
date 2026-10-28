@@ -35,14 +35,43 @@
     const cards=Array.from(list.querySelectorAll('.drug-list article.drug'));
     if(displayed.length!==cards.length)return;
     cards.forEach((card,i)=>{
-      // Original render already calls the wrapped drawDrugs(). Avoid double buttons.
-      if(card.querySelector('.rx036Edit'))return;
-      const btn=document.createElement('button');
-      btn.type='button';btn.className='btn secondary rx036Edit';
-      btn.textContent='この薬剤を編集';
-      btn.setAttribute('aria-label',String(displayed[i].drug['薬名']||'薬剤')+'の情報を編集');
-      btn.onclick=()=>openEditor('edit',displayed[i].index);
-      card.appendChild(btn);
+      // Full-card tap replaces the separate edit button. The index follows the
+      // currently filtered/sorted rendered list, not the unfiltered array.
+      // Original render already invokes wrapped drawDrugs() once; do not
+      // install duplicate listeners or duplicate the RX037/038 summaries.
+      if(card.dataset.rx040TapEdit==='1')return;
+      const index=displayed[i].index;
+      const name=String(displayed[i].drug['薬名']||'薬剤');
+      card.dataset.rx040TapEdit='1';
+      card.classList.add('rx040TapCard');
+      card.tabIndex=0;
+      card.setAttribute('role','button');
+      card.setAttribute('aria-label',name+'の編集画面を開く');
+      function activate(){
+        if(busy)return;
+        const visibleEditor=document.querySelector('#rx036Editor');
+        if(visibleEditor&&!visibleEditor.hidden){
+          if(draftMode==='edit'&&editorIndex===index){
+            visibleEditor.scrollIntoView({behavior:'auto',block:'start'});
+            return;
+          }
+          // Prevent silently losing unsaved changes by tapping another card.
+          if(!confirm('編集中の内容はまだ保存されていません。別の薬剤に切り替えますか？'))return;
+        }
+        openEditor('edit',index);
+      }
+      card.addEventListener('click',event=>{
+        // Future actions added inside drug cards must remain independent.
+        if(event.target.closest('button,a,input,select,textarea,summary,[role="button"],[contenteditable]'))return;
+        activate();
+      });
+      card.addEventListener('keydown',event=>{
+        if(event.target!==card)return;
+        if(event.key==='Enter'||event.key===' '){
+          event.preventDefault();
+          activate();
+        }
+      });
       window.RX037?.summarize(card,displayed[i].drug);
       window.RX038?.summarize(card,displayed[i].drug);
     });
@@ -55,6 +84,7 @@
     const actions=document.createElement('div');
     actions.className='rx036Actions';
     actions.innerHTML='<button type="button" class="btn" id="rx036Add">＋ 薬剤を新規登録</button>'+
+      '<span class="notice rx040TapHint">薬剤の枠をタップして編集できます</span>'+
       '<span id="rx036Notice" class="notice" role="status" aria-live="polite"></span>';
     toolbar.insertAdjacentElement('afterend',actions);
     const form=document.createElement('section');

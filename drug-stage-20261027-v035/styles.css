@@ -815,3 +815,22 @@ body.msw-private { visibility: hidden !important; }
  #main #rx036Editor .rx039Originals .rx038PriceRow,#main #rx036Editor .rx039Generics .rx037Row{grid-template-columns:minmax(43px,1fr) minmax(62px,.85fr) minmax(75px,1.1fr) 32px;gap:4px}
  #main #rx036Editor .rx036Controls{bottom:75px}
 }
+
+/* RX040: whole-card tap for edit. No per-card edit button. */
+#main .drug-list article.drug.rx040TapCard{
+ position:relative;cursor:pointer;touch-action:manipulation;
+ padding-right:27px;min-height:56px;
+ -webkit-tap-highlight-color:rgba(15,118,110,.15);
+ transition:background-color .12s,border-color .12s;
+}
+#main .drug-list article.drug.rx040TapCard::after{
+ content:"›";position:absolute;top:8px;right:10px;color:#799391;
+ font-size:24px;font-weight:400;line-height:1;pointer-events:none;
+}
+#main .drug-list article.drug.rx040TapCard:hover{border-color:#7eaaa5;background:#f8fcfb}
+#main .drug-list article.drug.rx040TapCard:active{background:#eaf7f3;border-color:#0f766e}
+#main .drug-list article.drug.rx040TapCard:focus-visible{
+ outline:3px solid #0f766e;outline-offset:2px;
+}
+#main .rx040TapHint{font-size:12px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){#main .drug-list article.drug.rx040TapCard{transition:none}}
