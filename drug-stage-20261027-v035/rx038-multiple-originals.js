@@ -34,7 +34,7 @@
   function html(){
     return '<section class="rx038Section" id="rx038Section">'+
       '<h4>同じ成分の先発品をまとめて登録</h4>'+
-      '<p class="notice">先発品が2種類ある場合は、上の「薬名」と「規格別の薬価」を先発品①として使い、下に先発品②を追加します。未確認の薬価は空欄にできます。</p>'+
+      '<p class="notice">先発品が2種類ある場合は、上の「薬名」と「規格別の薬価」を先発品①として使い、下に先発品②を追加します。先発品②は規格を先に入力し、薬価が未確認なら薬価欄を空欄のまま保存できます。</p>'+
       '<label>有効成分（任意）<input id="rx038Ingredient" type="text" maxlength="160" placeholder="例：アムロジピン（確認した成分名）"></label>'+
       '<div class="rx038MainBrand">先発品①：<strong id="rx038MainName"></strong>'+
       '<small>画面上部の「薬名」と「規格別の薬価」で入力</small></div>'+
@@ -106,7 +106,7 @@
       if(!amount&&!price)continue;
       if(!/^\d{1,6}(?:\.\d{1,3})?$/.test(amount)||Number(amount)<=0||
          !unit||unit.length>15||/[()、,，⇒=>]/.test(unit)||
-         !/^\d{1,7}(?:\.\d{1,2})?$/.test(price)||Number(price)<=0||Number(price)>1000000)
+         (price!==''&&(!/^\d{1,7}(?:\.\d{1,2})?$/.test(price)||Number(price)<=0||Number(price)>1000000)))
         throw Error(title+'：量・単位・薬価は数値を正しく入力してください。空欄の規格は登録されません。');
       result.push({amount,unit,price});
     }
