@@ -13,7 +13,7 @@ function clearPhoto(message='写真とOCR結果を端末メモリから破棄し
  if(originalUrl){URL.revokeObjectURL(originalUrl);originalUrl=null;}
  $('photo').removeAttribute('src');$('photo').hidden=true;$('imagePanel').hidden=true;
  $('result').textContent='';$('resultPanel').hidden=true;$('file').value='';
- $('file').disabled=true;$('capture').disabled=true;$('license').checked=false;
+ $('file').disabled=true;$('capture').disabled=true;$('recognize').disabled=true;$('license').checked=false;
  if(message)status(message);
 }
 function updateBadge(){
@@ -93,7 +93,7 @@ async function checkReady(){
 }
 function openControls(){
  const yes=offlineVerified&&cacheVerified&&isOffline()&&$('license').checked&&!working;
- $('file').disabled=!yes;$('capture').disabled=!yes;
+ $('file').disabled=!yes;$('capture').disabled=!yes;$('recognize').disabled=!(yes&&!!originalUrl);
 }
 function chooseFile(){if(!offlineVerified||!isOffline()){status('オフライン動作確認が必要です。',true);return;}
  $('file').click();
@@ -110,6 +110,7 @@ async function pick(e){
  originalUrl=URL.createObjectURL(f);
  $('photo').src=originalUrl;$('photo').hidden=false;$('imagePanel').hidden=false;
  status('写真を端末内の一時メモリへ読み込みました。「この1枚をOCR」をタップしてください。');
+ openControls();
 }
 async function recognize(){
  if(working)return;
