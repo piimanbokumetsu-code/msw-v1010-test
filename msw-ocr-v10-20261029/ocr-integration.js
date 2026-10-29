@@ -549,6 +549,57 @@ function bindScanner(){
   }catch(e){if(epoch===sessionEpoch)report('サンプルを読み込めませんでした：'+String(e?.message||e));}
   finally{if(sample.isConnected)sample.disabled=false;}
  };
+ // OCR v10 preflight: check Japanese Tesseract worker startup without a photo.
+ // No patient data is read or written; the temporary worker is terminated.
+ document.getElementById('ocrEnginePreflight')?.remove();
+ document.getElementById('ocrEnginePreflightStatus')?.remove();
+ const diagnostic=document.createElement('button');
+ diagnostic.id='ocrEnginePreflight';
+ diagnostic.type='button';
+ diagnostic.className='btn secondary';
+ diagnostic.style.marginLeft='7px';
+ diagnostic.textContent='日本語OCRエンジンの起動診断';
+ sample.insertAdjacentElement('afterend',diagnostic);
+ const diagStatus=document.createElement('div');
+ diagStatus.id='ocrEnginePreflightStatus';
+ diagStatus.className='notice';
+ diagStatus.setAttribute('role','status');
+ diagStatus.setAttribute('aria-live','polite');
+ diagStatus.style.cssText='margin:6px 0;padding:7px;font-size:12px;line-height:1.5';
+ diagStatus.textContent='写真を選ぶ前に、OCR部品の起動を診断できます。';
+ diagnostic.insertAdjacentElement('afterend',diagStatus);
+ diagnostic.onclick=async()=>{
+   if(busy||pages.length){
+     diagStatus.textContent='写真を読み込む前に診断してください。認識中は実行できません。';
+     return;
+   }
+   const epoch=sessionEpoch;
+   let worker=null;
+   busy=true;
+   diagnostic.disabled=true;
+   sample.disabled=true;
+   const show=message=>{
+     if(epoch===sessionEpoch&&diagStatus.isConnected)diagStatus.textContent=message;
+   };
+   show('日本語OCRエンジンと日本語辞書を準備しています…');
+   try{
+     await nextPaint();
+     if(epoch!==sessionEpoch)return;
+     worker=await workerFor(epoch);
+     activeWorker=worker;
+     if(epoch===sessionEpoch){
+       show('日本語OCRエンジンの起動に成功しました。写真の認識精度・4枚連続処理は未検証です。');
+     }
+   }catch(e){
+     show('日本語OCRエンジンの起動に失敗：'+String(e?.message||e).slice(0,180));
+   }finally{
+     if(activeWorker===worker)activeWorker=null;
+     if(worker)try{await worker.terminate();}catch(_){}
+     busy=false;
+     if(diagnostic.isConnected)diagnostic.disabled=false;
+     if(sample.isConnected)sample.disabled=false;
+   }
+ };
  renderScanner();
 }
 const originalJournal=window.renderJournalPreview;
