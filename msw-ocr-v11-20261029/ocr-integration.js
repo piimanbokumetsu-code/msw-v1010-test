@@ -72,6 +72,65 @@ function dateISO(input){
 }
 async function getImage(url){const img=new Image();img.src=url;await img.decode();return img;}
 function compactCanvas(img){const max=1650,ratio=Math.min(1,max/img.width,max*1.6/img.height);const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*ratio));c.height=Math.max(1,Math.round(img.height*ratio));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c;}
+// v11: blank/weak name rows are reprocessed automatically, without user drawing a crop.
+function ocrNameCandidate(result){
+ const value=String(result?.data?.text||'').replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();
+ const conf=Number(result?.data?.confidence);
+ return {value,confidence:Number.isFinite(conf)&&conf>=0&&conf<=100?conf:null};
+}
+function correctedNameCanvas(sub,variant){
+ const scale=Math.min(2.3,Math.max(1,1100/Math.max(1,sub.width)),Math.max(1,300/Math.max(1,sub.height)));
+ const c=document.createElement('canvas');
+ c.width=Math.max(1,Math.round(sub.width*scale));c.height=Math.max(1,Math.round(sub.height*scale));
+ const ctx=c.getContext('2d',{willReadFrequently:variant==='contrast'});
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+ ctx.drawImage(sub,0,0,c.width,c.height);
+ if(variant==='contrast'){
+  const pix=ctx.getImageData(0,0,c.width,c.height);
+  const v=pix.data;
+  for(let i=0;i<v.length;i+=4){
+   const y=.299*v[i]+.587*v[i+1]+.114*v[i+2];
+   const p=Math.min(255,Math.max(0,Math.round((y-35)*255/210)));
+   v[i]=v[i+1]=v[i+2]=p;
+  }
+  ctx.putImageData(pix,0,0);
+ }
+ return c;
+}
+async function autoRetryName(worker,sub,output,epoch,page,description){
+ const first=ocrNameCandidate(output);
+ let best=first;
+ const need=!first.value||Array.from(first.value).length<2||(first.confidence!==null&&first.confidence<70);
+ if(!need)return {value:first.value,warnings:[]};
+ const warnings=[];
+ for(const variant of ['enlarge','contrast']){
+  let c=null;
+  try{
+   assertLive(page,epoch);
+   report(description+'：文字を自動再認識しています…');
+   c=correctedNameCanvas(sub,variant);
+   const result=await worker.recognize(c);
+   assertLive(page,epoch);
+   const next=ocrNameCandidate(result);
+   if(next.value){
+    const better=!best.value || (
+     next.confidence!==null &&
+     (best.confidence===null || next.confidence>=best.confidence+15)
+    );
+    if(better)best=next;
+   }
+   if(best.value&&best.confidence!==null&&best.confidence>=80)break;
+  }catch(e){
+   if(epoch!==sessionEpoch)throw e;
+   warnings.push(description+'：自動再認識の一部が失敗しました。原本と照合してください。');
+  }finally{if(c){c.width=0;c.height=0;}}
+ }
+ if(!best.value)warnings.push(description+'：氏名が空欄です。原本と照合して手入力してください。');
+ else if(best.value!==first.value)warnings.push(description+'：自動再認識で候補が変わりました。原本照合が必要です。');
+ else if(first.confidence===null||first.confidence<70||Array.from(first.value).length<2)
+  warnings.push(description+'：文字認識が不確実です。原本と照合してください。');
+ return {value:best.value,warnings};
+}
 async function recognize(index){
  const p=pages[index],epoch=sessionEpoch;
  if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
@@ -100,7 +159,12 @@ async function recognize(index){
     for(let n=0;n<found.length;n++){
      report(`${index+1}枚目：${label}氏名 ${n+1}/${found.length} を認識しています…`);
      const sub=window.MSWJournalLayout.crop(plan.canvas,found[n].rect,0);
-     try{const output=await worker.recognize(sub);assertLive(p,epoch);const value=String(output?.data?.text||'').replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();result[kind].push(value);}finally{sub.width=sub.height=0;}
+     try{
+      const output=await worker.recognize(sub);assertLive(p,epoch);
+      const candidate=await autoRetryName(worker,sub,output,epoch,p,`${label}氏名 ${n+1}行目`);
+      result[kind].push(candidate.value);
+      result.warnings.push(...candidate.warnings);
+     }finally{sub.width=sub.height=0;}
     }
    }
    result.raw=[`日付：${result.date||'（未認識）'}`,`入院：${result.admission.join('、')||'（なし）'}`,`退院：${result.discharge.join('、')||'（なし）'}`].join('\n');
