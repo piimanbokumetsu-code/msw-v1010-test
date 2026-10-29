@@ -3,7 +3,7 @@
    Uses independently hosted same-origin stage22 OCR assets. */
 (()=>{
 'use strict';
-const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";ocrV2Css.textContent += "\n.ocr-crop-preview{display:block;max-width:100%;width:100%;height:auto;margin:8px 0;border:1px solid #bdd9d5;border-radius:6px;background:#fff;image-rendering:auto}.ocr-crop-preview[hidden]{display:none!important}.ocr-destination-note{font-size:11px;color:#525d6c;line-height:1.45;margin-top:3px}.ocr-crop-label{font-size:12px;font-weight:700;margin:8px 0 0}.ocr-region-ui label{min-width:min(150px,100%)}";ocrV2Css.textContent += "\n.ocr-name-shortcuts{margin:8px 0 12px;padding:7px 9px;border:1px solid #c7ddd8;border-radius:8px;background:#f7fbfa}.ocr-name-shortcuts strong{display:block;font-size:12px;margin:0 0 3px}.ocr-name-list{display:grid;gap:5px;max-height:170px;overflow-y:auto;overscroll-behavior:contain}.ocr-name-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center;padding:4px;border:1px solid #e1eae7;border-radius:5px;background:#fff}.ocr-name-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ocr-name-item button{padding:5px 6px;min-height:31px;font-size:11px}.ocr-name-shortcuts p{font-size:11px;margin:3px 0 6px;color:#4e6267;line-height:1.4}.ocr-name-shortcuts .ocr-name-flag{color:#a23145;font-size:11px;font-weight:700}.ocr-target-note{font-size:12px;font-weight:700;color:#087262;margin:6px 0 4px}\n@media(max-width:440px){.ocr-name-item{grid-template-columns:minmax(0,1fr) auto}.ocr-name-item button:last-child{grid-column:2}}";ocrV2Css.textContent += "\n.ocr-batch-summary{font-size:12px;font-weight:750;margin:8px 0;padding:6px 8px;border-radius:7px;background:#edf7f4;color:#15544c;line-height:1.6}";ocrV2Css.textContent += "\n.ocr-review-board{margin:7px 0 10px;padding:7px 9px;border:1px solid #b9d4d0;border-radius:8px;background:#f6fbfa}.ocr-review-board summary{cursor:pointer;font-size:13px;font-weight:800;color:#175d53}.ocr-review-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:7px;margin:8px 0}.ocr-review-card{background:#fff;border:1px solid #dae6e1;border-radius:7px;padding:8px;min-width:0}.ocr-review-card strong{font-size:12px}.ocr-review-card p{font-size:11px;margin:3px 0;line-height:1.55;overflow-wrap:anywhere}.ocr-review-card .ocr-review-caution{color:#ab4026;font-weight:700}.ocr-review-jump{font-size:12px;min-height:32px;padding:5px 8px;margin-top:4px}.ocr-review-hint{color:#405c57;font-size:11px;line-height:1.55;margin:5px 0}";ocrV2Css.textContent += ".ocr-auto-choices{grid-column:1 / -1;display:flex;align-items:center;flex-wrap:wrap;gap:5px;font-size:12px;color:#9a3412}.ocr-auto-choices button{min-height:34px;padding:5px 9px;border:1px solid #bb7f22;background:#fff8e5;color:#54380d;border-radius:7px;font-size:12px}";document.head.appendChild(ocrV2Css);
+const ocrV2Css=document.createElement('style');ocrV2Css.textContent=".ocr-image-wrap{position:relative;width:100%;max-width:100%;line-height:0}\n.ocr-image-wrap .ocr-original{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}\n.ocr-range-box{position:absolute;z-index:2;border:2px solid #ef7400;background:rgba(255,206,70,.27);box-sizing:border-box;pointer-events:none}\n.ocr-range-box[hidden]{display:none!important}\n.ocr-region-ui{display:flex;align-items:end;flex-wrap:wrap;gap:7px;margin:9px 0;padding:8px;border:1px solid #cae1df;border-radius:8px;background:#f4faf8}\n.ocr-region-ui label{min-width:160px;font-size:11px;margin:0}\n.ocr-region-ui select{display:block;min-height:35px;width:100%;margin-top:4px;font-size:13px}\n.ocr-guide{border:1px solid #c2e2da;border-radius:8px;padding:6px 9px;margin-bottom:8px;font-size:12px;background:#f8fdfb;line-height:1.6}\n.ocr-guide summary{font-weight:750;cursor:pointer}\n.ocr-guide ol{padding-left:23px;margin:6px 0}.ocr-guide li{margin-bottom:3px}.ocr-guide p{margin:4px 0}";ocrV2Css.textContent += "\n.ocr-crop-preview{display:block;max-width:100%;width:100%;height:auto;margin:8px 0;border:1px solid #bdd9d5;border-radius:6px;background:#fff;image-rendering:auto}.ocr-crop-preview[hidden]{display:none!important}.ocr-destination-note{font-size:11px;color:#525d6c;line-height:1.45;margin-top:3px}.ocr-crop-label{font-size:12px;font-weight:700;margin:8px 0 0}.ocr-region-ui label{min-width:min(150px,100%)}";ocrV2Css.textContent += "\n.ocr-name-shortcuts{margin:8px 0 12px;padding:7px 9px;border:1px solid #c7ddd8;border-radius:8px;background:#f7fbfa}.ocr-name-shortcuts strong{display:block;font-size:12px;margin:0 0 3px}.ocr-name-list{display:grid;gap:5px;max-height:170px;overflow-y:auto;overscroll-behavior:contain}.ocr-name-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px;align-items:center;padding:4px;border:1px solid #e1eae7;border-radius:5px;background:#fff}.ocr-name-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ocr-name-item button{padding:5px 6px;min-height:31px;font-size:11px}.ocr-name-shortcuts p{font-size:11px;margin:3px 0 6px;color:#4e6267;line-height:1.4}.ocr-name-shortcuts .ocr-name-flag{color:#a23145;font-size:11px;font-weight:700}.ocr-target-note{font-size:12px;font-weight:700;color:#087262;margin:6px 0 4px}\n@media(max-width:440px){.ocr-name-item{grid-template-columns:minmax(0,1fr) auto}.ocr-name-item button:last-child{grid-column:2}}";ocrV2Css.textContent += "\n.ocr-batch-summary{font-size:12px;font-weight:750;margin:8px 0;padding:6px 8px;border-radius:7px;background:#edf7f4;color:#15544c;line-height:1.6}";ocrV2Css.textContent += "\n.ocr-review-board{margin:7px 0 10px;padding:7px 9px;border:1px solid #b9d4d0;border-radius:8px;background:#f6fbfa}.ocr-review-board summary{cursor:pointer;font-size:13px;font-weight:800;color:#175d53}.ocr-review-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:7px;margin:8px 0}.ocr-review-card{background:#fff;border:1px solid #dae6e1;border-radius:7px;padding:8px;min-width:0}.ocr-review-card strong{font-size:12px}.ocr-review-card p{font-size:11px;margin:3px 0;line-height:1.55;overflow-wrap:anywhere}.ocr-review-card .ocr-review-caution{color:#ab4026;font-weight:700}.ocr-review-jump{font-size:12px;min-height:32px;padding:5px 8px;margin-top:4px}.ocr-review-hint{color:#405c57;font-size:11px;line-height:1.55;margin:5px 0}";ocrV2Css.textContent += ".ocr-auto-choices{grid-column:1 / -1;display:flex;align-items:center;flex-wrap:wrap;gap:5px;font-size:12px;color:#9a3412}.ocr-auto-choices button{min-height:34px;padding:5px 9px;border:1px solid #bb7f22;background:#fff8e5;color:#54380d;border-radius:7px;font-size:12px}";ocrV2Css.textContent += ".ocr-name-shortcuts .ocr-name-list{max-height:360px;overflow-y:auto}.ocr-name-item .ocr-name-thumb{display:block;grid-column:1 / -1;width:auto;max-width:100%;height:auto;max-height:82px;object-fit:contain;object-position:left center;border:1px solid #c2d3d0;border-radius:4px;background:white;image-rendering:auto}.ocr-name-preview-label{grid-column:1 / -1;font-size:11px;color:#3d605d}";document.head.appendChild(ocrV2Css);
 const BASE = new URL('../ocr-auto-stage22/', document.baseURI);
 const expected='/msw-v1010-test/ocr-auto-stage22/';
 const pages=[];
@@ -260,11 +260,25 @@ async function compareNameReadings(worker,layout,rect,value,epoch,page,descripti
  if(!chosen)warnings.push(description+'：別方式でも氏名が空欄です。原本を見て修正してください。');
  return {value:chosen,candidates:alternatives,inspected:attempted>0,warnings};
 }
+// v14: private, short-lived in-memory preview of the cropped original name field.
+function createInlineNamePreview(sub){
+ let c=null;
+ try{
+  const factor=Math.min(2.4,460/Math.max(1,sub.width),90/Math.max(1,sub.height));
+  c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(sub.width*factor)+16);
+  c.height=Math.max(1,Math.round(sub.height*factor)+16);
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(sub,8,8,c.width-16,c.height-16);
+  return c.toDataURL('image/png');
+ }catch(_){return '';}finally{if(c){c.width=0;c.height=0;}}
+}
 async function recognize(index){
  const p=pages[index],epoch=sessionEpoch;
  if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
  // New attempts must not leave old OCR results marked as current if the new run fails.
- p.scanned=false;p.nameChoices=[];p.checked={date:false,names:false,counts:false};
+ p.scanned=false;p.nameChoices=[];p.namePreviews=[];p.checked={date:false,names:false,counts:false};
  let worker=null,plan=null,img=null,generic=null;
  try{
   report(`${index+1}枚目：画像の書式を確認しています…`);
@@ -274,7 +288,7 @@ async function recognize(index){
   try{if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);plan=window.MSWJournalLayout.inspect(img);}catch(e){layoutError=String(e?.message||e);}
   assertLive(p,epoch);
   worker=await workerFor(epoch);activeWorker=worker;assertLive(p,epoch);
-  let result={date:'',admission:[],discharge:[],raw:'',mode:'全文OCR',warnings:[],nameChoices:[]};
+  let result={date:'',admission:[],discharge:[],raw:'',mode:'全文OCR',warnings:[],nameChoices:[],namePreviews:[]};
   if(plan){
    result.mode='模擬書式の欄別OCR';
    result.warnings=plan.warnings||[];
@@ -289,6 +303,8 @@ async function recognize(index){
      report(`${index+1}枚目：${label}氏名 ${n+1}/${found.length} を認識しています…`);
      const sub=window.MSWJournalLayout.crop(plan.canvas,found[n].rect,0);
      try{
+      const preview=createInlineNamePreview(sub);
+      if(preview)result.namePreviews.push({kind,row:n,url:preview});
       const output=await worker.recognize(sub);assertLive(p,epoch);
       const candidate=await autoRetryName(worker,sub,output,epoch,p,`${label}氏名 ${n+1}行目`);
       const checked=await compareNameReadings(worker,plan,found[n].rect,candidate.value,epoch,p,`${label}氏名 ${n+1}行目`);
@@ -308,7 +324,7 @@ async function recognize(index){
    result.warnings=[`日誌の欄位置を認識できませんでした（${layoutError.slice(0,120)}）。全文OCRのみ表示し、氏名や日付を推定・登録しません。`];
   }
   assertLive(p,epoch);
-  p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.nameChoices=result.nameChoices;p.scanned=true;p.approved=false;p.humanEdited=false;p.checked={date:false,names:false,counts:false};
+  p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.nameChoices=result.nameChoices;p.namePreviews=result.namePreviews;p.scanned=true;p.approved=false;p.humanEdited=false;p.checked={date:false,names:false,counts:false};
   report(`${index+1}枚目：${result.mode}が完了。必ず写真と照合してください。`);
  }finally{
   if(generic){generic.width=0;generic.height=0;}
@@ -548,10 +564,12 @@ function nameCandidateShortcuts(p,busy){
   const rows=p[kind]||[];
   for(let index=0;index<rows.length;index++){
    const candidate=String(rows[index]||'（空欄）');
+   const previewUrl=(p.namePreviews||[]).find(x=>x.kind===kind&&x.row===index)?.url||'';
+   const previewHtml=previewUrl?'<div class="ocr-name-preview-label">原本の該当氏名（自動拡大・写真の切り抜き）</div><img class="ocr-name-thumb" src="'+safe(previewUrl)+'" alt="'+safe(title+' '+(index+1)+'行目の原本文字')+'">':'';
    const alternatives=(p.nameChoices||[]).find(x=>x.kind===kind&&x.row===index)?.candidates||[];
    const inspected=(p.nameChoices||[]).some(x=>x.kind===kind&&x.row===index);
    const choicesHtml=alternatives.length?'<div class="ocr-auto-choices"><b>別方式の候補（原本確認必須）</b>'+alternatives.map((v,k)=>`<button type="button" class="ocr-auto-choice" data-kind="${kind}" data-row="${index}" data-choice="${k}" ${busy?'disabled':''}>${safe(v)}</button>`).join('')+'</div>':inspected?'<div class="ocr-auto-choices">別方式も試しましたが、異なる候補はありません（原本確認必須）</div>':'';
-   items.push(`<div class="ocr-name-item"><span title="${safe(title+' '+(index+1)+'行目：'+candidate)}">${safe(title)} ${index+1}行目：${safe(candidate)}</span><button type="button" class="btn secondary ocr-fix-by-ocr" data-kind="${kind}" data-row="${index}" ${busy?'disabled':''}>再認識</button><button type="button" class="btn secondary ocr-fix-manual" data-kind="${kind}" data-row="${index}" ${busy?'disabled':''}>手入力</button>${choicesHtml}</div>`);
+   items.push(`<div class="ocr-name-item"><span title="${safe(title+' '+(index+1)+'行目：'+candidate)}">${safe(title)} ${index+1}行目：${safe(candidate)}</span><button type="button" class="btn secondary ocr-fix-by-ocr" data-kind="${kind}" data-row="${index}" ${busy?'disabled':''}>再認識</button><button type="button" class="btn secondary ocr-fix-manual" data-kind="${kind}" data-row="${index}" ${busy?'disabled':''}>手入力</button>${previewHtml}${choicesHtml}</div>`);
   }
  }
  return `<section class="ocr-name-shortcuts" aria-label="氏名の修正"><strong>氏名候補を行ごとに修正</strong><p>「再認識」→写真の該当氏名を指で囲んで実行。「手入力」→選んだ氏名を直接修正。</p><div class="ocr-name-list">${items.join('')||'<p>氏名候補はまだありません。下の入力欄から手入力できます。</p>'}</div>${p.approved?'<p class="ocr-name-flag">確認済みの再認識には確認取消が必要です。</p>':''}</section>`;
@@ -664,23 +682,29 @@ function renderScanner(){
   el('ocrPhotoOriginal')?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
  };
  // Manual correction places the caret on exactly the candidate's original line.
+ // v14: one tap opens native direct edit without selecting ranges or scrolling to a full textarea.
  for(const btn of host.querySelectorAll('.ocr-fix-manual'))btn.onclick=()=>{
   if(busy)return;
   const kind=btn.dataset.kind,index=Number(btn.dataset.row);
-  const list=p[kind],field=el(kind==='admission'?'ocrAdmission':'ocrDischarge');
-  if(!field||!Array.isArray(list)||index<0||index>=list.length)return;
-  if(p.approved){
-   if(!confirm('この写真の確認済みを取り消して手入力で修正しますか？'))return;
-   p.approved=false;p.checked={date:false,names:false,counts:false};
-   refreshApproval(p);
-  }
-  const start=list.slice(0,index).reduce((n,s)=>n+String(s).length+1,0);
-  const end=start+String(list[index]).length;
-  field.focus();
-  field.setSelectionRange?.(start,end);
-  field.scrollIntoView?.({block:'nearest'});
-  report((kind==='admission'?'入院':'退院')+' '+(index+1)+'行目を選択しました。編集後は原本と再照合してください。');
+  const list=p[kind];
+  if(!Array.isArray(list)||!Number.isSafeInteger(index)||index<0||index>=list.length)return;
+  const title=kind==='admission'?'入院':'退院';
+  const old=String(list[index]||'');
+  const value=prompt(title+(index+1)+'行目の氏名を原本と見比べて修正してください。',old);
+  if(value===null)return;
+  const replacement=String(value).trim().replace(/[\r\n]+/g,' ');
+  if(!replacement){report('氏名が空欄です。記入のある行を空欄にはできません。');return;}
+  if(replacement===old){report('氏名は変更されませんでした。');return;}
+  if(p.approved&&!confirm('確認済みを取り消して氏名を修正しますか？'))return;
+  list[index]=replacement;
+  p.humanEdited=true;p.approved=false;p.nameChoices=[];
+  p.checked={date:false,names:false,counts:false};
+  p.raw=['日付：'+(p.date||'（未認識）'),'入院：'+(p.admission.join('、')||'（なし）'),'退院：'+(p.discharge.join('、')||'（なし）')].join('\n');
+  p.warnings.push(title+(index+1)+'行目を原本に合わせて手修正しました。3項目を再照合してください。');
+  renderScanner();
+  report(title+(index+1)+'行目を手修正しました。原本の氏名と人数を再照合してください。');
  };
+
  el('ocrApprove').onclick=()=>{if(!approvalReady(p))return;p.approved=true;report('原本照合を記録しました。患者データには自動登録していません。');renderScanner();};
  for(const button of host.querySelectorAll('.ocr-copy-name'))button.onclick=()=>{
   if(!p.approved)return;
