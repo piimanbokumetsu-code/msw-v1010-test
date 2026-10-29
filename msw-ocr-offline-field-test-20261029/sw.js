@@ -4,7 +4,7 @@ const VERSION='msw-realjournal-offline-preflight-20261029-01';
 const SCOPE='/msw-v1010-test/msw-ocr-offline-field-test-20261029/';
 const OCR='/msw-v1010-test/ocr-auto-stage22/ocr/';
 const PATHS=[
- SCOPE+'index.html',SCOPE+'app.js',SCOPE+'sw.js',
+ SCOPE+'index.html',SCOPE+'style.css',SCOPE+'app.js',SCOPE+'sw.js',
  OCR+'tesseract.min.js',OCR+'worker.min.js',OCR+'lang/jpn.traineddata.gz',
  ...['tesseract-core','tesseract-core-simd','tesseract-core-lstm','tesseract-core-simd-lstm'].flatMap(x=>[OCR+'core/'+x+'.wasm',OCR+'core/'+x+'.wasm.js'])
 ];
@@ -28,13 +28,14 @@ self.addEventListener('activate',event=>{
 });
 self.addEventListener('fetch',event=>{
  const u=new URL(event.request.url);
- if(u.origin!==self.location.origin||event.request.method!=='GET'||!allowed.has(u.pathname)){
+ const wanted=u.pathname===SCOPE?SCOPE+'index.html':u.pathname;
+ if(u.origin!==self.location.origin||event.request.method!=='GET'||!allowed.has(wanted)){
   event.respondWith(new Response('Request blocked by offline-only OCR policy',{status:403,headers:{'Content-Type':'text/plain'}}));return;
  }
  event.respondWith((async()=>{
   const c=await caches.open(VERSION);
   // Never use network fallback after installation. Also covers requests while online.
-  return await c.match(fullPath(u.pathname)) || new Response('Offline asset missing. Do not use real journals.',{status:503});
+  return await c.match(fullPath(wanted)) || new Response('Offline asset missing. Do not use real journals.',{status:503});
  })());
 });
 self.addEventListener('message',event=>{
