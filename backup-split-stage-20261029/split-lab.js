@@ -5,7 +5,7 @@
 const $=s=>document.querySelector(s);
 const enc=new TextEncoder();
 const MAX_TEST_BYTES=40*1024;
-const ROOT='MSWDB-SPLIT-LAB-20261029';
+const ROOT='MSWDB-SPLIT-LAB-20261030-V03';
 const isUniqueName=x=>/^[A-Za-z0-9_.-]{1,120}$/.test(x);
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
 const bytes=v=>enc.encode(typeof v==='string'?v:JSON.stringify(v));
@@ -26,11 +26,11 @@ async function exportFictional(){
  for(const entry of entries){
   const serialized=JSON.stringify(entry.payload);
   if(bytes(serialized).length>MAX_TEST_BYTES)throw Error('1つの架空レコードが上限超過');
-  const name='fake-backup-part-'+String(chunks.length+1).padStart(3,'0')+'.mswpart';
+  const name='fake-v03-part-'+String(chunks.length+1).padStart(3,'0')+'.json';
   chunks.push({name,serialized,sha256:await sha256(bytes(serialized)),byteLength:bytes(serialized).length,kind:entry.kind});
  }
  const manifest={format:ROOT,kind:'manifest',version:1,parts:chunks.map(({name,sha256,byteLength,kind})=>({name,sha256,byteLength,kind})),totalParts:chunks.length};
- const mName='fake-backup-manifest.json';
+ const mName='fake-v03-manifest.json';
  $('#out').innerHTML='<p class="ok">架空パート'+chunks.length+'個とマニフェストを生成しました。各ダウンロードが保存されたか「ファイル」で確認してください。</p>';
  const d=document.createElement('div');$('#out').appendChild(d);
  for(const item of [{name:mName,serialized:JSON.stringify(manifest)},...chunks]){
@@ -47,7 +47,7 @@ async function inspectFiles(fileList){
  if(files.some(f=>!isUniqueName(f.name)||f.size>MAX_TEST_BYTES*2))throw Error('ファイル名またはサイズが不正');
  const seen=new Map();
  for(const f of files){if(seen.has(f.name))throw Error('重複ファイル名: '+f.name);seen.set(f.name,f)}
- const manifestFile=seen.get('fake-backup-manifest.json');
+ const manifestFile=seen.get('fake-v03-manifest.json');
  if(!manifestFile)throw Error('検証用マニフェストがありません');
  const manifest=JSON.parse(await manifestFile.text());
  if(manifest.format!==ROOT||manifest.kind!=='manifest'||manifest.version!==1||!Array.isArray(manifest.parts))throw Error('検証用マニフェストの形式が違います。本番ファイルは受け付けません');
@@ -55,7 +55,7 @@ async function inspectFiles(fileList){
  if(seen.size!==manifest.parts.length+1)throw Error('必要なパートの欠落、または余分なファイルがあります');
  const names=new Set(),ids=new Set();let coreCount=0,photoCount=0,core=null;
  for(const part of manifest.parts){
-  if(!part||!isUniqueName(part.name)||!part.name.endsWith('.mswpart')||names.has(part.name)||!Number.isSafeInteger(part.byteLength)||part.byteLength<1||part.byteLength>MAX_TEST_BYTES||!(/^[0-9a-f]{64}$/).test(part.sha256))throw Error('パート一覧が不正');
+  if(!part||!isUniqueName(part.name)||!part.name.endsWith('.json')||names.has(part.name)||!Number.isSafeInteger(part.byteLength)||part.byteLength<1||part.byteLength>MAX_TEST_BYTES||!(/^[0-9a-f]{64}$/).test(part.sha256))throw Error('パート一覧が不正');
   names.add(part.name);const file=seen.get(part.name);if(!file)throw Error('必要なパートがありません: '+part.name);
   const b=await file.arrayBuffer();if(b.byteLength!==part.byteLength)throw Error('ファイルのサイズが違います: '+part.name);
   if(await sha256(b)!==part.sha256)throw Error('ハッシュが一致しません: '+part.name);
@@ -71,12 +71,13 @@ async function inspectFiles(fileList){
 }
 $('#make').onclick=async()=>{const b=$('#make');b.disabled=true;try{await exportFictional()}catch(e){$('#out').textContent='エラー: '+String(e.message||e)}finally{b.disabled=false}};
 
-/* iPad Files may grey out custom .mswpart files when accept=.mswpart.
+/* iPad Files refused .mswpart files even without an accept filter in v02.
+ * In v03, all six files use the same .json extension that worked for the manifest.
  * The input intentionally has no accept filter. Only exact fictional filenames
  * are retained in memory; never read a real backup file. A picker session may
  * contain only one file, so accumulate safe files across multiple sessions. */
 const selectedFakeFiles=new Map();
-const isFictionalLabName=name=>name==='fake-backup-manifest.json'||/^fake-backup-part-00[1-5]\.mswpart$/.test(name);
+const isFictionalLabName=name=>name==='fake-v03-manifest.json'||/^fake-v03-part-00[1-5]\.json$/.test(name);
 function updateSelectedFiles(){
  const names=Array.from(selectedFakeFiles.keys()).sort();
  $('#selected').textContent='選択済み '+names.length+' / 6 ファイル'+(names.length?'\n'+names.join('\n'):'');
