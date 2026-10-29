@@ -1,0 +1,9 @@
+# MSW 患者検索とフリガナ5列レイアウト：独立架空患者検証版 2026-10-29
+- Original: `msw-ipadmini-app/msw-ipadmini-app.github.io` at `80ff567ea9e4e6172a4727bff9b70c6cb2aecdf4`.
+- Test only: separate GitHub repo subfolder and `DB_NAME=msw_kana_search_fake_20261029_v1`, separate origin from production and Service Worker scope. All fictional patients. Production unchanged.
+- New basic row: `ID / 氏名 / フリガナ / 住所 / 家族構成`. Existing underlying city field `市町村`, validation, other rows, print unchanged.
+- Furigana: locally stored *limited dictionary candidate* for known family/given combinations. No browser built-in conversion guarantees correctness, no remote name API, no automatic confirmation. User must select `確認して保存`; unconfirmed suggestions are never persisted. Manually edited kana remains editable, confirmed readings never auto-overwritten. Existing patients with blank kana still accessible.
+- Search: kana normalization of hiragana/katakana, kanji, bed, doctor and disease, field is sticky below topbar, clear search button, query retained during return from patient detail, only matched rooms rendered (each room shows its entire original bed map for safe moves). Normal blank query layout unchanged, including 208-213 and ICU. Does not filter the morning print.
+- Independent seed on first PIN registration (6 fictional patients), only with this new DB. New PIN is dedicated to isolated test; PIN requirements are 12+ mixed alphanumeric characters. DO NOT put any real patient names into this public-source test.
+- Code syntax/static checks passed at commit. Live GitHub Pages and iPad mini behavior must be tested by user separately. Do not call automatic kana generation complete for arbitrary Japanese personal names.
+- No production deployment. User explicit permission required to modify main after isolated iPad checks. Does not touch existing patient's live data or current iPad website data.
