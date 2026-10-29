@@ -473,8 +473,9 @@ function furiganaSuggestion(name){
 function basicFuriganaHtml(){
  const p=selectedPatient;return '<div class="field basic-field basic-furigana-field">'+
  '<label>フリガナ <span class="furigana-status" id="furiganaStatus">要確認</span></label>'+
+ '<div class="furigana-entry-control">'+
  '<input type="text" data-field="フリガナ" autocomplete="off" placeholder="自動候補／手入力" value="'+esc(p.data?.['フリガナ']||'')+'">'+
- '<button type="button" class="furigana-confirm" id="furiganaConfirm">確認して保存</button></div>';
+ '<button type="button" class="furigana-confirm" id="furiganaConfirm" aria-label="フリガナの読みを確認して保存" title="フリガナを確認して保存">確認</button></div></div>';
 }
 function bindBasicFurigana(root){
  const name=root.querySelector('[data-field="氏名"]');
@@ -491,6 +492,8 @@ function bindBasicFurigana(root){
   status.textContent=confirmed?'確認済み':(kana.value.trim()?'要確認':'未入力');
   status.dataset.confirmed=confirmed?'yes':'no';
   confirmButton.disabled=confirmed||!kana.value.trim()||!currentName;
+  confirmButton.textContent=confirmed?'済':'確認';
+  confirmButton.setAttribute('aria-label',confirmed?'フリガナ確認済み':'フリガナの読みを確認して保存');
  }
  function propose(){
   // Confirmed readings are NEVER overwritten, even when a name changes.
