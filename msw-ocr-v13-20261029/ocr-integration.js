@@ -133,51 +133,132 @@ async function autoRetryName(worker,sub,output,epoch,page,description){
 }
 // v12: An independent second reading can expose highly confident kanji mistakes.
 // Suggestions are NEVER accepted as verified names without a human looking at the page.
+// v13: inspect tight glyph crops with several OCR segmentation modes.
+// Never infer or substitute the known test names: suggestions are unverified OCR strings.
 function candidateNames(values){
- return [...new Set(values.map(v=>String(v||'').trim()).filter(Boolean))].slice(0,4);
+ return [...new Set(values.map(v=>String(v||'').trim()).filter(Boolean))]
+  .filter(v=>v.length<=24&&!/[\r\n]/.test(v)).slice(0,6);
+}
+function nameImageAnalysis(layout,rect){
+ const src=window.MSWJournalLayout.crop(layout.canvas,rect,0);
+ const w=src.width,h=src.height;
+ const pixels=src.getContext('2d',{willReadFrequently:true}).getImageData(0,0,w,h).data;
+ let minx=w,miny=h,maxx=-1,maxy=-1,count=0;
+ const columns=new Uint16Array(w);
+ for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+  const k=4*(y*w+x);
+  const lum=.299*pixels[k]+.587*pixels[k+1]+.114*pixels[k+2];
+  if(lum<195){
+   minx=Math.min(minx,x);maxx=Math.max(maxx,x);
+   miny=Math.min(miny,y);maxy=Math.max(maxy,y);
+   columns[x]++;count++;
+  }
+ }
+ if(count<8){minx=0;miny=0;maxx=w-1;maxy=h-1;}
+ return {src,pixels,w,h,minx,maxx,miny,maxy,columns};
+}
+function glyphCanvas(source,from,to,variant){
+ const sx=Math.max(0,Math.floor(from)),ex=Math.min(source.w-1,Math.ceil(to));
+ const sy=Math.max(0,source.miny-2),ey=Math.min(source.h-1,source.maxy+2);
+ const sw=Math.max(1,ex-sx+1),sh=Math.max(1,ey-sy+1);
+ const scale=Math.min(2.6,Math.max(1,640/Math.max(1,sw+24)));
+ const pad=16;
+ const canvas=document.createElement('canvas');
+ canvas.width=Math.max(1,Math.round((sw+pad*2)*scale));
+ canvas.height=Math.max(1,Math.round((sh+pad*2)*scale));
+ const ctx=canvas.getContext('2d',{willReadFrequently:variant!=='plain'});
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(source.src,sx,sy,sw,sh,Math.round(pad*scale),Math.round(pad*scale),Math.round(sw*scale),Math.round(sh*scale));
+ if(variant==='contrast'||variant==='binary'){
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height),p=img.data;
+  for(let i=0;i<p.length;i+=4){
+   const lum=.299*p[i]+.587*p[i+1]+.114*p[i+2];
+   let v=variant==='binary'?(lum<185?0:255):Math.max(0,Math.min(255,Math.round((lum-43)*255/192)));
+   p[i]=p[i+1]=p[i+2]=v;
+  }
+  ctx.putImageData(img,0,0);
+ }
+ return canvas;
+}
+function twoGlyphSplit(source){
+ const range=source.maxx-source.minx;
+ if(range<14)return null;
+ const low=Math.round(source.minx+range*.34),high=Math.round(source.minx+range*.66);
+ let split=null,score=Infinity,mid=(source.minx+source.maxx)/2;
+ for(let x=low;x<=high;x++){
+  const y=source.columns[x];
+  // Favor vertical whitespace around midpoint; do not need an entirely empty column.
+  const scoreAt=y+Math.abs(x-mid)*.06;
+  if(scoreAt<score){score=scoreAt;split=x;}
+ }
+ if(split===null||split<=source.minx+3||split>=source.maxx-3)return null;
+ return split;
 }
 async function compareNameReadings(worker,layout,rect,value,epoch,page,description){
- const primary=String(value||'').trim(), alternatives=[primary],warnings=[];
- const short=Array.from(primary).length<=2;
- // Only add extra work to short/blank names or the cells already flagged by v11.
- if(!short)return {value:primary,candidates:[],warnings};
- const candidatesBefore=alternatives.length;
- const variants=['block'];
- if(!primary||Array.from(primary).length===1)variants.push('rawline');
- for(const variant of variants){
-  let canvas=null;
-  try{
-   assertLive(page,epoch);
-   report(description+'：別方式の文字認識で照合しています…');
-   // Retain a little margin from the original ruled table crop.
-   // Bounds are kept inside the existing corrected document canvas.
-   canvas=window.MSWJournalLayout.crop(layout.canvas,rect,7);
-   let input=canvas;
-   if(variant==='rawline'){
-    input=correctedNameCanvas(canvas,'contrast');
-   }
+ const primary=String(value||'').trim(),size=Array.from(primary).length;
+ if(size>2)return {value:primary,candidates:[],inspected:false,warnings:[]};
+ const seen=[primary],warnings=[];
+ let source=null,attempted=0;
+ try{
+  source=nameImageAnalysis(layout,rect);
+  // Tight, ruled-line-free image OCR. In contrast to v12, PSM7 sees no table borders.
+  const modes=[['plain','7'],['contrast','7'],['binary','10']];
+  for(const [variant,psm] of modes){
+   let canvas=null;
    try{
-    await worker.setParameters({tessedit_pageseg_mode:variant==='block'?'6':'13'});
-    const out=await worker.recognize(input);
     assertLive(page,epoch);
-    const alternative=ocrNameCandidate(out).value;
-    if(alternative)alternatives.push(alternative);
+    report(description+'：切り出した文字を別方式で照合中…');
+    canvas=glyphCanvas(source,Math.max(0,source.minx-2),Math.min(source.w-1,source.maxx+2),variant);
+    await worker.setParameters({tessedit_pageseg_mode:psm});
+    const recognized=ocrNameCandidate(await worker.recognize(canvas));
+    assertLive(page,epoch);attempted++;
+    if(recognized.value&&!/[\r\n]/.test(recognized.value))seen.push(recognized.value);
+   }catch(err){
+    if(epoch!==sessionEpoch)throw err;
+    warnings.push(description+'：一部の自動再認識に失敗しました。');
    }finally{
-    await worker.setParameters({tessedit_pageseg_mode:'7'});
-    if(input!==canvas){input.width=0;input.height=0;}
+    try{await worker.setParameters({tessedit_pageseg_mode:'7'});}catch(_){}
+    if(canvas){canvas.width=0;canvas.height=0;}
    }
-  }catch(e){
-   if(epoch!==sessionEpoch)throw e;
-   warnings.push(description+'：別方式の自動照合に失敗しました。原本で確認してください。');
-  }finally{if(canvas){canvas.width=0;canvas.height=0;}}
+  }
+  // A two-kanji name may have an incorrect first character despite high confidence.
+  // Reading each glyph separately can surface a different candidate without guessing.
+  if(size===2){
+   const split=twoGlyphSplit(source);
+   if(split!==null){
+    const parts=[];
+    for(const [lo,hi] of [[source.minx,split],[split+1,source.maxx]]){
+     let canvas=null;
+     try{
+      assertLive(page,epoch);
+      canvas=glyphCanvas(source,lo,hi,'plain');
+      await worker.setParameters({tessedit_pageseg_mode:'10'});
+      const recognized=ocrNameCandidate(await worker.recognize(canvas));
+      assertLive(page,epoch);attempted++;
+      if(Array.from(recognized.value).length===1&&/^[一-龯々〆ヵヶぁ-ゖァ-ヿー]$/.test(recognized.value))parts.push(recognized.value);
+     }catch(err){
+      if(epoch!==sessionEpoch)throw err;
+      warnings.push(description+'：1文字ずつの認識に失敗しました。');
+     }finally{
+      try{await worker.setParameters({tessedit_pageseg_mode:'7'});}catch(_){}
+      if(canvas){canvas.width=0;canvas.height=0;}
+     }
+    }
+    if(parts.length===2)seen.push(parts.join(''));
+   }
+  }
+ }catch(err){
+  if(epoch!==sessionEpoch)throw err;
+  warnings.push(description+'：自動の候補照合を完了できませんでした。');
+ }finally{
+  if(source?.src){source.src.width=0;source.src.height=0;}
  }
- const unique=candidateNames(alternatives);
- // A blank initial result may be replaced only as an UNVERIFIED OCR candidate.
- const chosen=primary || unique[0] || '';
- if(!primary&&chosen)warnings.push(description+'：空欄から自動候補が得られました。原本を必ず確認してください。');
- if(unique.length>1)warnings.push(description+'：別方式で文字が一致しません。候補を原本と比較してください。');
- if(!chosen)warnings.push(description+'：再認識しても氏名を読めません。原本で手入力してください。');
- return {value:chosen,candidates:unique.filter(v=>v!==chosen),warnings};
+ const unique=candidateNames(seen);
+ const chosen=primary||unique[0]||'';
+ const alternatives=unique.filter(v=>v!==chosen);
+ if(alternatives.length)warnings.push(description+'：別方式で違う候補が見つかりました。必ず原本と比較してください。');
+ if(!chosen)warnings.push(description+'：別方式でも氏名が空欄です。原本を見て修正してください。');
+ return {value:chosen,candidates:alternatives,inspected:attempted>0,warnings};
 }
 async function recognize(index){
  const p=pages[index],epoch=sessionEpoch;
@@ -212,7 +293,7 @@ async function recognize(index){
       const candidate=await autoRetryName(worker,sub,output,epoch,p,`${label}氏名 ${n+1}行目`);
       const checked=await compareNameReadings(worker,plan,found[n].rect,candidate.value,epoch,p,`${label}氏名 ${n+1}行目`);
       result[kind].push(checked.value);
-      if(checked.candidates.length)result.nameChoices.push({kind,row:n,candidates:checked.candidates});
+      if(checked.inspected)result.nameChoices.push({kind,row:n,candidates:checked.candidates});
       result.warnings.push(...candidate.warnings,...checked.warnings);
      }finally{sub.width=sub.height=0;}
     }
@@ -468,7 +549,8 @@ function nameCandidateShortcuts(p,busy){
   for(let index=0;index<rows.length;index++){
    const candidate=String(rows[index]||'（空欄）');
    const alternatives=(p.nameChoices||[]).find(x=>x.kind===kind&&x.row===index)?.candidates||[];
-   const choicesHtml=alternatives.length?'<div class="ocr-auto-choices"><b>別方式の候補（原本確認必須）</b>'+alternatives.map((v,k)=>`<button type="button" class="ocr-auto-choice" data-kind="${kind}" data-row="${index}" data-choice="${k}" ${busy?'disabled':''}>${safe(v)}</button>`).join('')+'</div>':'';
+   const inspected=(p.nameChoices||[]).some(x=>x.kind===kind&&x.row===index);
+   const choicesHtml=alternatives.length?'<div class="ocr-auto-choices"><b>別方式の候補（原本確認必須）</b>'+alternatives.map((v,k)=>`<button type="button" class="ocr-auto-choice" data-kind="${kind}" data-row="${index}" data-choice="${k}" ${busy?'disabled':''}>${safe(v)}</button>`).join('')+'</div>':inspected?'<div class="ocr-auto-choices">別方式も試しましたが、異なる候補はありません（原本確認必須）</div>':'';
    items.push(`<div class="ocr-name-item"><span title="${safe(title+' '+(index+1)+'行目：'+candidate)}">${safe(title)} ${index+1}行目：${safe(candidate)}</span><button type="button" class="btn secondary ocr-fix-by-ocr" data-kind="${kind}" data-row="${index}" ${busy?'disabled':''}>再認識</button><button type="button" class="btn secondary ocr-fix-manual" data-kind="${kind}" data-row="${index}" ${busy?'disabled':''}>手入力</button>${choicesHtml}</div>`);
   }
  }
