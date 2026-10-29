@@ -8,8 +8,8 @@ const APP_VERSION='1.0.21-MVP01-sec13-RC3M-PILOT-BASIC-FIX1-RX02-NAVFIX1-JP01-RX
 // LIMITED OPERATIONAL PILOT. Clinical authorization is determined by employer and operator, not by this program.
 // Patient data must never be uploaded to ChatGPT or GitHub. Local encryption does not replace institutional controls.
 const DEPLOYMENT_POLICY=Object.freeze({
-  origin:'https://msw-ipadmini-app.github.io',
-  basePath:'/',
+  origin:'https://piimanbokumetsu-code.github.io',
+  basePath:'/msw-v1010-test/rx046-jp01-isolated-20261029/',
   releaseCandidate:true
 });
 function deploymentLocationAllowed(loc){
