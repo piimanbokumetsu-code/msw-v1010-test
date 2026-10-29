@@ -212,7 +212,7 @@ async function compareNameReadings(worker,layout,rect,value,epoch,page,descripti
     await worker.setParameters({tessedit_pageseg_mode:psm});
     const recognized=ocrNameCandidate(await worker.recognize(canvas));
     assertLive(page,epoch);attempted++;
-    if(recognized.value&&!/[\r\n]/.test(recognized.value))seen.push(recognized.value);
+    if(recognized.value&&!/[\r\n]/.test(recognized.value)&&(!primary||Array.from(recognized.value).length===size))seen.push(recognized.value);
    }catch(err){
     if(epoch!==sessionEpoch)throw err;
     warnings.push(description+'：一部の自動再認識に失敗しました。');
