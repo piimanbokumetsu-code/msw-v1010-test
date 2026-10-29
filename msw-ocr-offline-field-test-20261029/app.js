@@ -3,7 +3,7 @@
 const appPath='/msw-v1010-test/msw-ocr-offline-field-test-20261029/';
 const ocrPath='/msw-v1010-test/ocr-auto-stage22/ocr/';
 const $=id=>document.getElementById(id);
-let offlineVerified=false,worker=null,originalUrl=null,runGeneration=0,working=false,cacheVerified=false;
+let offlineVerified=false,worker=null,originalUrl=null,runGeneration=0,working=false,cacheVerified=false,selectingFile=false;
 const status=(msg,error=false)=>{const el=$('status');el.textContent=msg;el.dataset.error=error?'1':'0';};
 const guardPage=()=>location.protocol==='https:'&&location.origin==='https://piimanbokumetsu-code.github.io'&&location.pathname===appPath;
 function isOffline(){return navigator.onLine===false;}
@@ -96,9 +96,11 @@ function openControls(){
  $('file').disabled=!yes;$('capture').disabled=!yes;$('recognize').disabled=!(yes&&!!originalUrl);
 }
 function chooseFile(){if(!offlineVerified||!isOffline()){status('オフライン動作確認が必要です。',true);return;}
+ selectingFile=true;
  $('file').click();
 }
 async function pick(e){
+ selectingFile=false;
  const f=e.target.files?.[0];e.target.value='';
  if(!f)return;
  if(!offlineVerified||!cacheVerified||!isOffline()||!$('license').checked){status('安全確認が未完了です。画像は読み込めません。',true);return;}
@@ -147,12 +149,14 @@ $('offlineTest').addEventListener('click',checkReady);
 $('license').addEventListener('change',openControls);
 $('capture').addEventListener('click',chooseFile);
 $('file').addEventListener('change',pick);
+$('file').addEventListener('cancel',()=>{selectingFile=false;});
+window.addEventListener('focus',()=>{if(selectingFile)setTimeout(()=>{selectingFile=false;},1500);});
 $('recognize').addEventListener('click',recognize);
 $('wipe').addEventListener('click',()=>clearPhoto());
 window.addEventListener('offline',updateBadge);
 window.addEventListener('online',updateBadge);
 window.addEventListener('pagehide',()=>clearPhoto(''));
-document.addEventListener('visibilitychange',()=>{if(document.hidden)clearPhoto('');});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!selectingFile)clearPhoto('');});
 updateBadge();
 if(navigator.serviceWorker?.controller){
  asyncCacheStatus().then(x=>{cacheVerified=x.ok;status(x.ok?'OCR部品を確認済み。通信を切って「オフライン動作テスト」を押してください。':'キャッシュ不足。先にオフライン準備をやり直してください。');}).catch(()=>{});
