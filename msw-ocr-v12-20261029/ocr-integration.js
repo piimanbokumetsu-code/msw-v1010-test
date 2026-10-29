@@ -131,11 +131,59 @@ async function autoRetryName(worker,sub,output,epoch,page,description){
   warnings.push(description+'：文字認識が不確実です。原本と照合してください。');
  return {value:best.value,warnings};
 }
+// v12: An independent second reading can expose highly confident kanji mistakes.
+// Suggestions are NEVER accepted as verified names without a human looking at the page.
+function candidateNames(values){
+ return [...new Set(values.map(v=>String(v||'').trim()).filter(Boolean))].slice(0,4);
+}
+async function compareNameReadings(worker,layout,rect,value,epoch,page,description){
+ const primary=String(value||'').trim(), alternatives=[primary],warnings=[];
+ const short=Array.from(primary).length<=2;
+ // Only add extra work to short/blank names or the cells already flagged by v11.
+ if(!short)return {value:primary,candidates:[],warnings};
+ const candidatesBefore=alternatives.length;
+ const variants=['block'];
+ if(!primary||Array.from(primary).length===1)variants.push('rawline');
+ for(const variant of variants){
+  let canvas=null;
+  try{
+   assertLive(page,epoch);
+   report(description+'：別方式の文字認識で照合しています…');
+   // Retain a little margin from the original ruled table crop.
+   // Bounds are kept inside the existing corrected document canvas.
+   canvas=window.MSWJournalLayout.crop(layout.canvas,rect,7);
+   let input=canvas;
+   if(variant==='rawline'){
+    input=correctedNameCanvas(canvas,'contrast');
+   }
+   try{
+    await worker.setParameters({tessedit_pageseg_mode:variant==='block'?'6':'13'});
+    const out=await worker.recognize(input);
+    assertLive(page,epoch);
+    const alternative=ocrNameCandidate(out).value;
+    if(alternative)alternatives.push(alternative);
+   }finally{
+    await worker.setParameters({tessedit_pageseg_mode:'7'});
+    if(input!==canvas){input.width=0;input.height=0;}
+   }
+  }catch(e){
+   if(epoch!==sessionEpoch)throw e;
+   warnings.push(description+'：別方式の自動照合に失敗しました。原本で確認してください。');
+  }finally{if(canvas){canvas.width=0;canvas.height=0;}}
+ }
+ const unique=candidateNames(alternatives);
+ // A blank initial result may be replaced only as an UNVERIFIED OCR candidate.
+ const chosen=primary || unique[0] || '';
+ if(!primary&&chosen)warnings.push(description+'：空欄から自動候補が得られました。原本を必ず確認してください。');
+ if(unique.length>1)warnings.push(description+'：別方式で文字が一致しません。候補を原本と比較してください。');
+ if(!chosen)warnings.push(description+'：再認識しても氏名を読めません。原本で手入力してください。');
+ return {value:chosen,candidates:unique.filter(v=>v!==chosen),warnings};
+}
 async function recognize(index){
  const p=pages[index],epoch=sessionEpoch;
  if(!p||p.approved)throw new Error('確認済みの画像は再認識で上書きできません。');
  // New attempts must not leave old OCR results marked as current if the new run fails.
- p.scanned=false;p.checked={date:false,names:false,counts:false};
+ p.scanned=false;p.nameChoices=[];p.checked={date:false,names:false,counts:false};
  let worker=null,plan=null,img=null,generic=null;
  try{
   report(`${index+1}枚目：画像の書式を確認しています…`);
@@ -145,7 +193,7 @@ async function recognize(index){
   try{if(!window.MSWJournalLayout)await loadScript(new URL('layout-memory-safe.js?v=20261022c',document.baseURI).href);plan=window.MSWJournalLayout.inspect(img);}catch(e){layoutError=String(e?.message||e);}
   assertLive(p,epoch);
   worker=await workerFor(epoch);activeWorker=worker;assertLive(p,epoch);
-  let result={date:'',admission:[],discharge:[],raw:'',mode:'全文OCR',warnings:[]};
+  let result={date:'',admission:[],discharge:[],raw:'',mode:'全文OCR',warnings:[],nameChoices:[]};
   if(plan){
    result.mode='模擬書式の欄別OCR';
    result.warnings=plan.warnings||[];
@@ -162,8 +210,10 @@ async function recognize(index){
      try{
       const output=await worker.recognize(sub);assertLive(p,epoch);
       const candidate=await autoRetryName(worker,sub,output,epoch,p,`${label}氏名 ${n+1}行目`);
-      result[kind].push(candidate.value);
-      result.warnings.push(...candidate.warnings);
+      const checked=await compareNameReadings(worker,plan,found[n].rect,candidate.value,epoch,p,`${label}氏名 ${n+1}行目`);
+      result[kind].push(checked.value);
+      if(checked.candidates.length)result.nameChoices.push({kind,row:n,candidates:checked.candidates});
+      result.warnings.push(...candidate.warnings,...checked.warnings);
      }finally{sub.width=sub.height=0;}
     }
    }
@@ -177,7 +227,7 @@ async function recognize(index){
    result.warnings=[`日誌の欄位置を認識できませんでした（${layoutError.slice(0,120)}）。全文OCRのみ表示し、氏名や日付を推定・登録しません。`];
   }
   assertLive(p,epoch);
-  p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.scanned=true;p.approved=false;p.humanEdited=false;p.checked={date:false,names:false,counts:false};
+  p.date=result.date;p.admission=result.admission;p.discharge=result.discharge;p.raw=result.raw;p.mode=result.mode;p.warnings=result.warnings;p.nameChoices=result.nameChoices;p.scanned=true;p.approved=false;p.humanEdited=false;p.checked={date:false,names:false,counts:false};
   report(`${index+1}枚目：${result.mode}が完了。必ず写真と照合してください。`);
  }finally{
   if(generic){generic.width=0;generic.height=0;}
