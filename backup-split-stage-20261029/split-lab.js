@@ -70,4 +70,42 @@ async function inspectFiles(fileList){
  return {parts:manifest.parts.length,patients:core.patients.length,photos:ids.size,verified:true};
 }
 $('#make').onclick=async()=>{const b=$('#make');b.disabled=true;try{await exportFictional()}catch(e){$('#out').textContent='エラー: '+String(e.message||e)}finally{b.disabled=false}};
-$('#check').onclick=async()=>{const el=$('#result');el.textContent='検査中…';try{const report=await inspectFiles($('#parts').files);el.className='ok';el.textContent='全パート整合性確認 合格\n架空患者 '+report.patients+' 件／架空写真 '+report.photos+' 件／ファイル '+report.parts+' 個。\n実際のデータ復元・書込みは実行していません。'}catch(e){el.className='danger';el.textContent='検査中断: '+String(e.message||e)}};
+
+/* iPad Files may grey out custom .mswpart files when accept=.mswpart.
+ * The input intentionally has no accept filter. Only exact fictional filenames
+ * are retained in memory; never read a real backup file. A picker session may
+ * contain only one file, so accumulate safe files across multiple sessions. */
+const selectedFakeFiles=new Map();
+const isFictionalLabName=name=>name==='fake-backup-manifest.json'||/^fake-backup-part-00[1-5]\.mswpart$/.test(name);
+function updateSelectedFiles(){
+ const names=Array.from(selectedFakeFiles.keys()).sort();
+ $('#selected').textContent='選択済み '+names.length+' / 6 ファイル'+(names.length?'\n'+names.join('\n'):'');
+ $('#selected').style.whiteSpace='pre-line';
+}
+$('#parts').addEventListener('change',()=>{
+ const chosen=Array.from($('#parts').files||[]);
+ // Clear picker immediately so the same file can be reselected on iPadOS.
+ $('#parts').value='';
+ const refused=chosen.filter(f=>!isFictionalLabName(f.name)||f.size>MAX_TEST_BYTES*2);
+ if(refused.length){
+  $('#result').className='danger';
+  $('#result').textContent='架空の検証ファイル以外は受け付けません。実際の患者バックアップは選ばないでください。';
+ }
+ for(const f of chosen){
+  if(isFictionalLabName(f.name)&&f.size<=MAX_TEST_BYTES*2)selectedFakeFiles.set(f.name,f);
+ }
+ updateSelectedFiles();
+});
+$('#clear').onclick=()=>{selectedFakeFiles.clear();updateSelectedFiles();$('#result').className='';$('#result').textContent='未実施'};
+$('#check').onclick=async()=>{
+ const el=$('#result');el.textContent='検査中…';el.className='';
+ try{
+  const report=await inspectFiles(selectedFakeFiles.values());
+  el.className='ok';
+  el.textContent='全パート整合性確認 合格\n架空患者 '+report.patients+' 件／架空写真 '+report.photos+' 件／ファイル '+report.parts+' 個。\n実際のデータ復元・書込みは実行していません。';
+ }catch(e){
+  el.className='danger';el.textContent='検査中断: '+String(e.message||e);
+ }
+};
+updateSelectedFiles();
+
