@@ -922,7 +922,7 @@ function renderTab(){const root=$('#tabbody'),p=selectedPatient;if(activeTab==='
 function basicFieldHtml(field,label,{multiline=false,rows=2}={}){
   const p=selectedPatient,v=p.data?.[field]??'';
   if(field==='ベッド番号')return `<div class="field basic-field"><label>ベッド番号</label><input type="hidden" data-field="ベッド番号" id="patientBedValue" value="${esc(v)}"><button type="button" class="btn secondary basic-bed-picker" id="patientBedPick">${esc(v||'その他・未配置')} ▾</button></div>`;
-  if(field==='入院日数')return `<div class="field basic-field"><label>入院日数（自動）</label><div id="basicAdmissionDays" class="basic-readonly" aria-live="polite">${esc(daysSince(p.data['入院日'])||p.data['入院日数']||'—')}${daysSince(p.data['入院日'])||p.data['入院日数']?'日':''}</div></div>`;
+  if(field==='入院日数')return `<div class="field basic-field"><label>入院日数</label><div id="basicAdmissionDays" class="basic-readonly" aria-live="polite">${esc(daysSince(p.data['入院日'])||p.data['入院日数']||'—')}${daysSince(p.data['入院日'])||p.data['入院日数']?'日':''}</div></div>`;
   const placeholder=field==='家構'?'例：2同別':field==='市町村'?'例：小美玉（市町村名の略称可・番地不可）':field==='介護情報'?'ケアマネ・介護サービスなど':'';
   const common=`data-field="${esc(field)}" aria-label="${esc(label)}" placeholder="${esc(placeholder)}"`;
   if(multiline)return `<div class="field basic-field"><label>${esc(label)}</label><textarea ${common} rows="${rows}">${esc(v)}</textarea></div>`;
@@ -1091,7 +1091,7 @@ function renderBasicDashboard(){
         <div class="basic-row basic-r2">${basicFieldHtml('ＩＤ','ID')}${basicFieldHtml('氏名','氏名')}${basicFuriganaHtml()}${basicFieldHtml('市町村','住所')}${basicFieldHtml('家構','家族構成')}</div>
         <div class="basic-row basic-r3">${basicFieldHtml('主治医','主治医')}${basicFieldHtml('病名','病名')}</div>
         <div class="basic-row basic-r4">${basicFieldHtml('介護度','介護度')}${basicFieldHtml('調査日','調査日')}</div>
-        <div class="basic-row basic-r5">${basicFieldHtml('介護情報','介護情報（広め）',{multiline:true,rows:2})}</div>
+        <div class="basic-row basic-r5">${basicFieldHtml('介護情報','介護情報',{multiline:true,rows:2})}</div>
         <div class="basic-row basic-r6">${basicFieldHtml('入院元','入院元')}</div>
         <div class="basic-row basic-r7">${basicFieldHtml('備考','備考',{multiline:true,rows:2})}</div>
       </div>
