@@ -4,12 +4,12 @@
  */
 'use strict';
 const CACHE_PREFIX='msw-rx046-fake-isolated-20261029-';
-const CACHE=CACHE_PREFIX+'v1';
+const CACHE=CACHE_PREFIX+'v2-guardfix1';
 const ASSETS=[
   './', './index.html',
   './pwa-updater.js?v=mvp01-sec13-20261027-journal-print-jp01',
   './styles.css?v=jp01-rx046-20261028',
-  './app.js?v=jp01-rx046-fake-20261029',
+  './app.js?v=jp01-rx046-fake-20261029-guardfix1',
   './rx035-addon.js?v=jp01-rx046-20261028',
   './rx036-master-editor.js?v=jp01-rx046-20261028',
   './rx037-structured-editor.js?v=jp01-rx046-20261028',
