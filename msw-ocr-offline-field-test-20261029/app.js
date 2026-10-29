@@ -1,7 +1,7 @@
 /* MSW offline-only journal OCR privacy preflight. No storage, uploads, analytics, or patient registration. */
 (()=>{'use strict';
 const appPath='/msw-v1010-test/msw-ocr-offline-field-test-20261029/';
-const ocrPath='/msw-v1010-test/ocr-auto-stage22/ocr/';
+const ocrPath='/msw-v1010-test/msw-ocr-offline-field-test-20261029/ocr/';
 const $=id=>document.getElementById(id);
 let offlineVerified=false,worker=null,originalUrl=null,runGeneration=0,working=false,cacheVerified=false,selectingFile=false;
 const status=(msg,error=false)=>{const el=$('status');el.textContent=msg;el.dataset.error=error?'1':'0';};

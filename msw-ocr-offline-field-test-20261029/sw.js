@@ -1,8 +1,8 @@
 /* Local-only real-journal OCR preflight. Static assets only; no server submissions. */
 'use strict';
-const VERSION='msw-realjournal-offline-preflight-20261029-01';
+const VERSION='msw-realjournal-offline-preflight-20261029-02';
 const SCOPE='/msw-v1010-test/msw-ocr-offline-field-test-20261029/';
-const OCR='/msw-v1010-test/ocr-auto-stage22/ocr/';
+const OCR='/msw-v1010-test/msw-ocr-offline-field-test-20261029/ocr/';
 const PATHS=[
  SCOPE+'index.html',SCOPE+'style.css',SCOPE+'app.js',SCOPE+'sw.js',
  OCR+'tesseract.min.js',OCR+'worker.min.js',OCR+'lang/jpn.traineddata.gz',
