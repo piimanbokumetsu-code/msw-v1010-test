@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>MSW 日誌OCR／実名検証準備・オフライン専用</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<main id="main">
+<header><h1>日誌OCR｜実名検証の準備</h1><p>完全オフライン確認後に限る・患者の登録や自動照合はしません</p></header>
+<section class="warning"><strong>実名画像の取扱い</strong><p>撮影・OCRの院内許可がある端末のみ使用してください。先に部品を準備し、通信を切って動作確認を完了するまで実名の日誌を選ばないでください。写真や文字をこのチャットに送らないでください。</p></section>
+<section><h2>① オフライン準備</h2><button id="prepare">オフライン用OCR部品を準備・確認</button><p>準備後にこのページを再読み込みする案内が出る場合があります。ここでは実名画像を選ばないでください。</p></section>
+<section><h2>② 通信を切って実行確認</h2><div id="connection">通信状態を確認中</div><button id="offlineTest">オフラインで日本語OCR動作テスト</button><p>Wi-Fiとモバイル通信を切ってから試してください。このテストは端末内で作った架空文字だけを認識します。</p></section>
+<section id="status" role="status" aria-live="polite">検証前です。実名の日誌はまだ選ばないでください。</section>
+<section><h2>③ 実名日誌を1枚だけ診断</h2>
+<label class="checkbox"><input type="checkbox" id="license">院内許可を確認済み。端末が通信オフであることを確認しました。</label>
+<button id="capture" disabled>写真を1枚選ぶ／撮影</button>
+<input id="file" type="file" accept="image/*" hidden disabled>
+<button id="recognize" type="button" disabled>この1枚をOCR</button>
+<p>初回の診断は全文文字認識のみ。日付・入退院氏名や人数の自動確定はまだ行いません。読み取り結果の誤字・脱字を原本で確認してください。</p>
+</section>
+<section id="imagePanel" hidden><h2>原本画像（拡大可能）</h2><div class="imageScroll"><img id="photo" alt="端末内で選択した日誌の原本" hidden></div></section>
+<section id="resultPanel" hidden><h2>端末内OCR結果（未確認候補）</h2><pre id="result"></pre></section>
+<section class="warning"><button id="wipe">写真・OCR結果を今すぐ消去</button><p>画面を閉じる・アプリを切り替える・通信が復帰する場合も一時データを破棄します。端末の「写真」アプリに元画像が存在する場合は、このボタンでは削除されません。</p></section>
+<footer>オフライン動作未確認の場合は実名画像を扱わないでください。コードは公開されますが、画像・OCR結果をGitHubに送る機能は設けていません。</footer>
+</main>
+</body></html>
