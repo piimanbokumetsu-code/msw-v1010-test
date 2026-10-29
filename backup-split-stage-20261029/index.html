@@ -4,6 +4,6 @@
 <h1>分割バックアップ 技術検証版</h1><p class="danger">架空データ専用／本番患者データは選択・入力しないでください。</p>
 <p>この画面は分割ファイルの生成・欠落検出・SHA-256改ざん検出・復元前検証を、架空の暗号化レコードで試す独立技術検証です。本番アプリのDBを開かず、実際のバックアップの復元・上書きはしません。</p>
 <section class="panel"><h2>1. 架空データの分割書き出し</h2><p>架空の患者データ・写真レコードを生成し、1ファイルにつき最大40KiBの小さな検証用ファイルに分割します。実運用での分割サイズではありません。</p><button id="make">架空バックアップを生成する</button><div id="out" role="status"></div></section>
-<section class="panel"><h2>2. 全ファイルの検査</h2><p>作成したマニフェスト（.json）と全パート（.mswpart）をまとめて選択。実際の患者ファイルは選ばないでください。</p><input id="parts" type="file" multiple accept=".json,.mswpart"><div><button id="check">復元前検証（書き込みなし）</button></div><pre id="result">未実施</pre></section>
+<section class="panel"><h2>2. 全ファイルの検査（iPad対応）</h2><p>「ファイルを選択」から<strong>架空マニフェストと架空パート001〜005の計6個</strong>を選んでください。iPadでは1個ずつ選んでも追加されます。実際の患者ファイルは選ばないでください。</p><input id="parts" type="file" multiple aria-label="架空バックアップファイルを追加"><div id="selected" role="status">選択済み 0 / 6 ファイル</div><div><button id="check">復元前検証（書き込みなし）</button> <button id="clear" class="secondary">選択をやり直す</button></div><pre id="result">未実施</pre><small>iPadの独自拡張子認識に対応するためファイル種別フィルタを外しています。検証版は架空ファイル名だけを受け付けます。</small></section>
 <section class="panel"><h2>3. 故障時の安全策</h2><ul><li>パートの欠落・重複・内容改変を検出して中断</li><li>すべて揃うまで患者DBへ一切書き込まない</li><li>暗証・写真暗号文は変更せず分割する構想</li><li>将来、本体組込前にiPad miniで大量データ・写真の復元試験を実施する</li></ul><small>技術検証段階のため本番データの代わりにはなりません。</small></section>
-<script src="./split-lab.js"></script></body></html>
+<script src="./split-lab.js?v=02"></script></body></html>
