@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>MSW 分割バックアップ統合UI・架空患者専用 v01</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;color:#123047}
+body{margin:0;background:#edf4f9;font-size:16px;line-height:1.55}
+main{max-width:780px;margin:15px auto;padding:20px;background:#fff;border:1px solid #cfdeea;border-radius:15px}
+h1{font-size:1.35rem;line-height:1.4}h2{font-size:1.15rem}
+.panel{margin:17px 0;padding:16px;border-radius:10px;border:1px solid #d0dfea;background:#f7fafc}
+.settings-row{display:flex;align-items:center;gap:12px;justify-content:space-between}
+button{font:600 1rem -apple-system,sans-serif;background:#17629e;color:#fff;border:0;border-radius:8px;padding:12px 15px;min-height:46px;margin:7px 0}
+.btn.secondary{background:#fff;color:#13557d;border:1px solid #bed2df}
+button:disabled{opacity:.48}
+.notice,.note{font-size:.92rem;line-height:1.6;color:#425b6c}
+.notice{white-space:pre-wrap}
+.note{background:#e9f3fc;padding:11px;border-radius:8px}
+input[type=file]{font-size:1rem;max-width:100%;padding:10px;border:1px solid #ccdce8;border-radius:9px}
+code{overflow-wrap:anywhere}
+small{font-size:.83rem;color:#456}
+@media(max-width:540px){main{margin:5px;padding:12px;border-radius:6px}.settings-row{flex-wrap:wrap}}
+</style></head><body><main>
+<h1>分割バックアップ統合UI・架空患者専用 v01</h1>
+<p class="note"><b>実患者情報・実暗証番号・本番バックアップを使用しないでください。</b> この試験専用の架空患者2件と写真2枚だけを保存します。本番アプリと保存領域は完全に別です。自動初期登録した架空データ以外は不要です。</p>
+<div id="app" role="region" aria-label="架空患者管理画面"><p>架空患者データを準備しています…</p></div>
+<p><small>試験目的：実際の未公開分割バックアップ部品を画面へ接続し、書き出し・ファイル選択・復元ボタンの動作を確認。130枚以上の実写真や現在の本番アプリ全機能を試すページではありません。オフライン用Service Workerは使用しません。</small></p>
+</main>
+<script src="./fake-app.js"></script>
+<script src="./split-format.js"></script>
+<script src="./split-export-bridge.js"></script>
+<script src="./split-import-bridge.js"></script>
+<script src="./split-file-selection.js"></script>
+<script src="./split-export-ui.js"></script>
+<script src="./split-import-ui.js"></script>
+</body></html>
