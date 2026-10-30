@@ -4,10 +4,11 @@
 const STORE='kv',DB_NAME='msw_fake_fullrestore_isolated_20261030_v01',P='FAKE-PIN-NOT-REAL';
 const enc=new TextEncoder(),dec=new TextDecoder(),$=id=>document.getElementById(id);
 let db=null,nativeDb=null,key=null,state=null,meta=null,selectedPatient=null;
+let forcePostCommitUiError=false;
 let dataWriteTail=Promise.resolve(),maintenance=false,approve=true,abortWhenConfirmed=false,abortNext=false,locks=0;
 const confirm=()=>{if(abortWhenConfirmed)abortNext=true;return approve};
 const alert=()=>{};
-function dismissPhotoViewer(){}
+function dismissPhotoViewer(){if(forcePostCommitUiError)throw Error('FAKE UI update exception after atomic commit')}
 function renderLock(){locks++}
 async function beginMaintenance(){if(maintenance)throw Error('重複実行');maintenance=true;await dataWriteTail}
 function endMaintenance(){maintenance=false}
@@ -44,7 +45,7 @@ async function encryptPatientIndex(s,k){const c=JSON.parse(JSON.stringify(s));re
 function validateStoredPhoto(p){if(!p||!p.dataUrl?.startsWith('data:image/jpeg;base64,')||p.width<1||p.height<1)throw Error('架空JPEG形式が不正')}
 const oldData={iv:'OLD_FAKE_IV',ct:'OLD_FAKE_DATA'},oldMeta={salt:'OLD_FAKE_SALT',check:{iv:'OLD',ct:'OLD'}},oldPhoto={iv:'OLD_FAKE_IV',ct:'OLD_FAKE_PHOTO'};
 async function reset(){
- abortNext=false;abortWhenConfirmed=false;approve=true;maintenance=false;locks=0;
+ abortNext=false;abortWhenConfirmed=false;approve=true;maintenance=false;locks=0;forcePostCommitUiError=false;
  key={};state={patients:[{id:'OLD_FAKE'}]};meta=oldMeta;selectedPatient=null;
  await new Promise((ok,no)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE);s.clear();s.put(oldData,'data');s.put(oldMeta,'meta');s.put(oldPhoto,'photo:old_fake');t.oncomplete=ok;t.onerror=()=>no(t.error)});
 }
@@ -64,7 +65,7 @@ async function source({badAuth=false,badHash=false}={}){
  if(badHash){const v=await parts[1].text();parts[1]=new File([v.replace('"photos":{','"ph0tos":{')],parts[1].name,{type:'application/json'})}
  return {manifest:new File([r.blob],r.name,{type:'application/json'}),parts};
 }
-async function reject(fn){let failed=false;try{await fn()}catch{failed=true}if(!failed)throw Error('拒否すべき処理が成功')}
+async function reject(fn,expected){let failed=false;try{await fn()}catch(e){failed=true;const description=String(e?.message||e),type=String(e?.name||'');if(expected&&!description.includes(expected)&&!type.includes(expected))throw Error('想定と異なる理由で拒否されました：'+description)}if(!failed)throw Error('拒否すべき処理が成功')}
 async function success(src){
  await reset();const r=await MSWImportBridge.run(src.manifest,src.parts,P);
  if(!r.restored||r.patients!==2||r.photos!==2||locks!==1||state!==null||key!==null)throw Error('新しい架空患者・写真または再ロックが不正');
@@ -73,10 +74,17 @@ async function success(src){
  const m=await idbGet('meta'),k=await derive(P,unb64(m.salt)),v=await decryptObj(await idbGet('data'),k);
  if(v.patients.length!==2||(await idbKeys()).some(x=>String(x).startsWith('splitstage:')))throw Error('索引または一時ファイルが不正');
 }
+async function postCommitUiError(src){
+ await reset();forcePostCommitUiError=true;
+ const r=await MSWImportBridge.run(src.manifest,src.parts,P);
+ if(!r.restored||!r.uiWarning||!r.uiWarning.includes('保存済み')||key!==null||state!==null)throw Error('保存済みの復元を未完了と誤報告');
+ if(await idbGet('photo:old_fake'))throw Error('旧写真が残存');
+ if(!await idbGet('photo:fake_photo_a')||!await idbGet('photo:fake_photo_b'))throw Error('新写真が保存されていない');
+}
 async function failed(src,pin,mode){
  await reset();if(mode==='cancel')approve=false;if(mode==='abort')abortWhenConfirmed=true;
  if(mode==='cancel'){const r=await MSWImportBridge.run(src.manifest,src.parts,pin);if(!r.cancelled)throw Error('取り消しできない')}
- else await reject(()=>MSWImportBridge.run(src.manifest,src.parts,pin));
+ else await reject(()=>MSWImportBridge.run(src.manifest,src.parts,pin),mode==='abort'?'AbortError':mode==='tampered'?'ハッシュ検証に失敗':mode==='badPhoto'||pin!=='FAKE-PIN-NOT-REAL'?'OperationError':undefined);
  await oldIsIntact();
 }
 async function run(){
@@ -88,10 +96,11 @@ async function run(){
   const tests=[
    ['架空患者2件・JPEG写真2件のAES-GCM完全復元',()=>success(normal)],
    ['誤った暗証番号を拒否し旧記録を保護',()=>failed(normal,'WRONG-FAKE-PIN')],
-   ['SHA-256改ざんを拒否し旧記録を保護',()=>failed(tampered,P)],
-   ['写真のAES-GCM認証失敗を拒否し旧記録を保護',()=>failed(badPhoto,P)],
+   ['SHA-256改ざんを拒否し旧記録を保護',()=>failed(tampered,P,'tampered')],
+   ['写真のAES-GCM認証失敗を拒否し旧記録を保護',()=>failed(badPhoto,P,'badPhoto')],
    ['最終置き換え取り消しで旧記録を保護',()=>failed(normal,P,'cancel')],
-   ['IndexedDB書込トランザクション強制中断で旧記録を保護',()=>failed(normal,P,'abort')]
+   ['IndexedDB書込トランザクション強制中断で旧記録を保護',()=>failed(normal,P,'abort')],
+   ['復元完了後の画面エラーで「未復元」と誤報告しない',()=>postCommitUiError(normal)]
   ];
   for(const [label,fn] of tests){
    try{await fn();good++;out.textContent+='✓ '+label+'：合格\n'}
