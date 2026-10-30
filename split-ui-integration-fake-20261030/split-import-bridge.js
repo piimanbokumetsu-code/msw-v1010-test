@@ -26,16 +26,24 @@ const m=JSON.parse(await manifest.text());if(m.format!=='MSWDB-SPLIT-V04'||!/^[0
 stage=prefix(m.run);await clean(stage);
 let core=null,passKey=null,index=null,photoIds=[];
 const report=await MSWSplitV04.verify({manifestFile:manifest,partFiles:parts,getReferenceIds:async v=>{
-core=v;passKey=await derive(pin,unb64(v.meta.salt));
-const check=await decryptObj(v.meta.check,passKey);if(check!==true&&check?.ok!==true)throw Error('バックアップ暗証の確認に失敗');
-index=await decryptObj(v.data,passKey);photoIds=refs(index);return photoIds}});
+core=v;
+try{passKey=await derive(pin,unb64(v.meta.salt))}
+catch(e){throw Error('診断A：鍵の生成に失敗（暗証または管理ファイル）')}
+let check;
+try{check=await decryptObj(v.meta.check,passKey)}
+catch(e){throw Error('診断B：バックアップ暗証の照合に失敗（AES認証）')}
+if(check!==true&&check?.ok!==true)throw Error('診断B：バックアップ暗証の確認値が不正');
+try{index=await decryptObj(v.data,passKey)}
+catch(e){throw Error('診断C：患者索引の復号に失敗（AES認証）')}
+photoIds=refs(index);return photoIds}});
 // Keep the production restore privacy policy: omit prohibited structured fields.
 const privacyReduction=removeProhibitedContactFieldsFromState(index);
 const safeCore={meta:core.meta,data:privacyReduction.removed
   ?await encryptPatientIndex(index,passKey):core.data};
 const wanted=new Set(photoIds);let checked=0;
 for(const file of parts){const part=JSON.parse(await file.text());if(part.kind!=='photos')continue;
-for(const [id,cipher] of Object.entries(part.photos||{})){if(!wanted.has(id)||!cipher?.ct||!cipher?.iv)throw Error('写真レコードが不正');validateStoredPhoto(await decryptObj(cipher,passKey));await idbSet(stage+id,cipher);progress(++checked,report.photos)}}
+for(const [id,cipher] of Object.entries(part.photos||{})){if(!wanted.has(id)||!cipher?.ct||!cipher?.iv)throw Error('写真レコードが不正');let photo;try{photo=await decryptObj(cipher,passKey)}catch(e){throw Error('診断D：写真 '+(checked+1)+' 件目の復号に失敗（AES認証）')}
+validateStoredPhoto(photo);await idbSet(stage+id,cipher);progress(++checked,report.photos)}}
 if(checked!==report.photos)throw Error('写真の検査枚数が不一致');
 const disclosure=privacyReduction.removed
   ?'旧バックアップの不要な構造化項目 '+privacyReduction.removed+'件（値あり '+privacyReduction.nonempty+'件）を除外して復元します。\n':'';
