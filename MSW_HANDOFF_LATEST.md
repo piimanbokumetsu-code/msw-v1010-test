@@ -830,3 +830,9 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 架空試験限定 `split-import-bridge.js` の診断Aを分離。`診断PIN` はそのまま表示、saltの不正は診断A1、WebCrypto鍵生成失敗は診断A2（例外名のみ）。`split-import-ui.js` のPINダイアログは架空固定値を初期入力する仕様に変更。実患者用本番コードは変更していない。
 - 架空統合UI `index.html` を v03へ変更、JS7件を `?v=diagnostic03` にキャッシュ更新。JS7件の構文PASS、GitHub保存SHA確認。URL `https://piimanbokumetsu-code.github.io/msw-v1010-test/split-ui-integration-fake-20261030/?v=03`。
 - 次はiPad miniでv03を開き、既存3ファイルを再選択→復元ボタン→自動入力済みPINをOK→置換確認の有無と診断文字を報告してもらう。3ファイルの再作成は不要。旧単体バックアップおよび本番患者データは変更なし。推定進捗95%で据え置き。
+
+
+### 2026-10-30: 架空分割統合UI v03実機復元成功→v04写真表示確認へ
+- iPad mini Safariの架空統合UI診断版v03で、既に保存してあった2パート＋manifestを選び、架空専用PIN自動入力後に『架空患者データを置き換えますか』表示、ユーザー承認後に『復元完了』、続いて『固定の架空PINでロック解除』が成功し架空患者画面表示。**書出→保存→読込→照合→復元→ロック解除を実機確認済み。**
+- 現在の架空UIは従来写真プレビューが無かったので、復元した2枚のJPEGの実表示検証はまだ未合格。`split-ui-integration-fake-20261030/fake-app.js` に既存独立IndexedDBから暗号化写真を読み、AES-GCM復号＋JPEG構造チェック＋患者名と画像表示、成功件数表示を追加。アプリ初回起動/ロック解除後に表示。`index.html` をv04、7 JSのクエリを `?v=photo-check04` として更新。CSPは画像 `data:` だけ許可、外部送信不可の `connect-src 'none'` を維持。JS7/7構文確認済み。
+- v04の試験ページ `https://piimanbokumetsu-code.github.io/msw-v1010-test/split-ui-integration-fake-20261030/?v=04` を開けば、前回復元した同一架空DBから『FAKE A』『FAKE B』画像を表示予定。**再バックアップ・再復元不要**。まず開いて写真2枚表示をユーザーに確認してもらう。実機v04表示は未確認。生産用main・臨床DB・未公開統合候補は変更していない。推定進捗97%据え置き。
