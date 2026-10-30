@@ -5,7 +5,7 @@ const STORE='kv',DB_NAME='msw_fake_fullrestore_isolated_20261030_v01',P='FAKE-PI
 const enc=new TextEncoder(),dec=new TextDecoder(),$=id=>document.getElementById(id);
 let db=null,nativeDb=null,key=null,state=null,meta=null,selectedPatient=null;
 let forcePostCommitUiError=false;
-let dataWriteTail=Promise.resolve(),maintenance=false,approve=true,abortWhenConfirmed=false,abortNext=false,locks=0;
+let dataWriteTail=Promise.resolve(),maintenance=false,approve=true,abortWhenConfirmed=false,abortNext=false,abortInjected=false,locks=0;
 const confirm=()=>{if(abortWhenConfirmed)abortNext=true;return approve};
 const alert=()=>{};
 function dismissPhotoViewer(){if(forcePostCommitUiError)throw Error('FAKE UI update exception after atomic commit')}
@@ -15,8 +15,32 @@ function endMaintenance(){maintenance=false}
 function photoKey(id){return 'photo:'+id}
 function tx(mode){
  const t=nativeDb.transaction(STORE,mode);
- if(abortNext&&mode==='readwrite'){abortNext=false;queueMicrotask(()=>{try{t.abort()}catch{}})}
- return t;
+ if(!(abortNext&&mode==='readwrite'))return t;
+ abortNext=false;
+ // Inject an abort AFTER the first restored photo put has been queued,
+ // so rollback tests a partially queued replacement, not an empty transaction.
+ // Use native IDB methods with their real receivers for iPad Safari support.
+ return new Proxy(t,{
+  get(target,prop){
+   if(prop==='objectStore')return name=>{
+    const store=target.objectStore(name);
+    return new Proxy(store,{
+     get(s,k){
+      if(k==='put')return (...args)=>{
+       const request=s.put(...args);
+       if(!abortInjected)queueMicrotask(()=>{try{target.abort();abortInjected=true}catch(e){}});
+       return request;
+      };
+      const value=Reflect.get(s,k,s);
+      return typeof value==='function'?value.bind(s):value;
+     }
+    });
+   };
+   const value=Reflect.get(target,prop,target);
+   return typeof value==='function'?value.bind(target):value;
+  },
+  set(target,prop,value){return Reflect.set(target,prop,value,target)}
+ });
 }
 function openDB(){return new Promise((ok,no)=>{
  const r=indexedDB.open(DB_NAME,1);
@@ -45,7 +69,7 @@ async function encryptPatientIndex(s,k){const c=JSON.parse(JSON.stringify(s));re
 function validateStoredPhoto(p){if(!p||!p.dataUrl?.startsWith('data:image/jpeg;base64,')||p.width<1||p.height<1)throw Error('架空JPEG形式が不正')}
 const oldData={iv:'OLD_FAKE_IV',ct:'OLD_FAKE_DATA'},oldMeta={salt:'OLD_FAKE_SALT',check:{iv:'OLD',ct:'OLD'}},oldPhoto={iv:'OLD_FAKE_IV',ct:'OLD_FAKE_PHOTO'};
 async function reset(){
- abortNext=false;abortWhenConfirmed=false;approve=true;maintenance=false;locks=0;forcePostCommitUiError=false;
+ abortNext=false;abortInjected=false;abortWhenConfirmed=false;approve=true;maintenance=false;locks=0;forcePostCommitUiError=false;
  key={};state={patients:[{id:'OLD_FAKE'}]};meta=oldMeta;selectedPatient=null;
  await new Promise((ok,no)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE);s.clear();s.put(oldData,'data');s.put(oldMeta,'meta');s.put(oldPhoto,'photo:old_fake');t.oncomplete=ok;t.onerror=()=>no(t.error)});
 }
@@ -84,7 +108,8 @@ async function postCommitUiError(src){
 async function failed(src,pin,mode){
  await reset();if(mode==='cancel')approve=false;if(mode==='abort')abortWhenConfirmed=true;
  if(mode==='cancel'){const r=await MSWImportBridge.run(src.manifest,src.parts,pin);if(!r.cancelled)throw Error('取り消しできない')}
- else await reject(()=>MSWImportBridge.run(src.manifest,src.parts,pin),mode==='abort'?'AbortError':mode==='tampered'?'ハッシュ検証に失敗':mode==='badPhoto'||pin!=='FAKE-PIN-NOT-REAL'?'OperationError':undefined);
+ else await reject(()=>MSWImportBridge.run(src.manifest,src.parts,pin),mode==='abort'?undefined:mode==='tampered'?'ハッシュ検証に失敗':mode==='badPhoto'||pin!=='FAKE-PIN-NOT-REAL'?'OperationError':undefined);
+ if(mode==='abort'&&!abortInjected)throw Error('実際のIndexedDB強制中断を確認できません');
  await oldIsIntact();
 }
 async function run(){
