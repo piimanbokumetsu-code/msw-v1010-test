@@ -741,6 +741,18 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 実患者用の.mswdbバックアップは削除対象外。本番アプリ・患者データの更新は行っていない。
 - 次工程は公開本番mainを保護したまま、未公開統合候補の架空環境で全写真AES-GCM認証、トランザクション復元、中断保護および旧形式互換性の安全試験を進める。
 
+
+### 2026-10-30 未公開復元コードそのものを用いる架空・完全復元／中断保護の独立試験ページを作成
+- 前工程：約13MiB (4件)・約136MiB (14件)の架空実ファイル保存読戻し＋FAKE TEST画像復号表示は実機合格済み。その後18件の試験ファイル削除済み。繰り返さない。
+- 新しい独立試験ディレクトリ `split-full-restore-isolated-20261030/` に `index.html`, `harness.js`, `split-format.js`, `split-import-bridge.js` を作成した。
+- URL: https://piimanbokumetsu-code.github.io/msw-v1010-test/split-full-restore-isolated-20261030/?v=01
+- 復元形式・復元本体の2 JSは本番**未公開**候補 `msw-ipadmini-app/msw-ipadmini-app.github.io:integration-kana-split-backup-prep-20261030` から同一バイトで複写。GitHub blob SHA: split-format.js `ea5778d8e480be475eade3cd3459df2b03cc99c9`; split-import-bridge.js `2c5fdaa92b846dee27b770988bbd994084bbce44`。
+- `harness.js` は別名の架空専用IndexedDB `msw_fake_fullrestore_isolated_20261030_v01` と固定架空PIN、架空患者2件＋実際にAES-GCMで暗号化した架空JPEG2件のみを使う。患者本番DB・外部送信・実患者情報・本番PINは使わない。PIN派生はPBKDF2 250000回を模倣。
+- **6項目をボタン1回で予定**：(1)正常な架空患者2件＋JPEG2件のAES-GCM検証とDB完全置換 (2)暗証違い拒否／旧記録維持 (3)同一バイト数のファイル改ざんSHA-256拒否／旧記録維持 (4)写真AES-GCM認証失敗／旧記録維持 (5)最終置換取り消し／旧記録維持 (6)IndexedDBの復元コミット強制abort／旧記録維持。ステージ取り残しもチェック。
+- 配信4ファイルのGitHub上の配置とJavaScript静的構文を確認。**GitHub Pagesでの公開表示、ブラウザ実行・iPad mini実機合格は未確認**。成功したと主張しない。ボタンを押す実行確認はユーザーが行う。
+- この独立試験は写真2枚の少量試験。大容量全JPEG復号・容量不足・既存単体.mswdb互換・本番導入の保証はしない。本番main、既存患者情報・画像・PIN・105.2MB .mswdbには触れない。
+- 次の一操作はiPad mini Safariで上記URLを開き、試験タイトルが見えたかタップ回答で報告。次のターンで検証ボタンを1回押すよう案内する。
+
 ## 8. 本書を更新した時のチェック欄
 - [ ] 現物のGitHub main /開発ブランチ SHAを照合した
 - [ ] 本番コードと実患者保存領域を無断変更していない
