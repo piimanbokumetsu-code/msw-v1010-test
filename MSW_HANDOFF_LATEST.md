@@ -905,3 +905,11 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 実コードを使用した合成ファイル（digestは合成代替）の連動検証3/3合格：正常3パートの逆順選択・キャンセル、写真Aだけ二度目読込変更、写真Bだけ変更。元患者記録保持と一時写真後始末を確認。実SHA-256暗号強度やiPad実機の大容量性能を検証したものではない。
 - SHA-384 SRIを変更2 JSで更新、index/SWの6資産を`split-prep-20261030-integrated-v09`／キャッシュ`20261030-kana01-split-prep-v09`に統一。static6/6構文・SRI・SW参照/順序合格。commit index`95526eca4ae94fe189bacd3726bacf1ac6a8e6ef`、SW`d4fb80cc95f555f41f11898b8f59b84f200a4a5d`。公開main index/swと元のapp.jsは不変。未公開詳細申し送り`SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit`1c063cd10fb3306bf1326a49c071ba88038458e9`。
 - 残るゲートはフルアプリの別URL/DBでのiPad統合検証（既存単体バックアップ共存、大容量写真復元と背景ロック）と明示的な本番承認。以前GitHub安全チェックでブロックされた本体app.jsの他repo複製を迂回しない。臨床本番患者・PIN・バックアップ未接触、追加ユーザー操作不要。導入準備推定98%（進捗は動かさず）。
+
+
+### 2026-10-30 ユーザー「まず更新をお願いします」：フリガナ／検索KANA01公開準備・公開直前ゲート
+- 最後のユーザー指示：バックアップ機能の開発は継続し、その前に**2026-10-29にiPad mini独立検証したフリガナ・患者検索・5列・検索欄固定・該当病室表示**を本番反映したい、という明示依頼。過去の「導入希望」も有効。公開対象は`msw-ipadmini-app/msw-ipadmini-app.github.io`。別の`piimanbokumetsu-code/msw-db`(Ver.1.0.9)へ混同して適用しない。
+- 2026-10-30 GitHub現物比較`main...integration-furigana-kana01-20261029`：`main`の基点`80ff567ea9e4e6172a4727bff9b70c6cb2aecdf4`からahead 1/behind 0、変更ファイルは **app.js/styles.css/index.html/sw.js 4個のみ**。`DB_NAME='mswdb_mvp01_clinical_v1'`維持、`openDB`,`save`, 旧形式`.mswdb` backup/restore, `renderSettings`,`printMorningList`,写真データ保存/暗号処理の原関数は候補とmainで同一。app.js JS構文チェック合格。候補バージョン末尾`-KANA01`。
+- **GitHub下書きPR #3** `https://github.com/msw-ipadmini-app/msw-ipadmini-app.github.io/pull/3` を作成（未公開・未マージ）。タイトル「【本番反映準備・保留】患者フリガナ／検索固定／検索時の該当病室表示 KANA01」。ユーザーの更新希望に向けた準備は済んだ。
+- **保全条件が未充足**：10/29本番の最新`.mswdb`書出しは120MiB上限で失敗。10/28の保存確認済み旧バックアップと現在患者内容の一致は未確認。独立架空患者の分割バックアップ復元成功は実患者バックアップの代わりにならない。現時点では最新の安全バックアップを確認できないため、**PRはドラフトでmainへ未反映**。新バックアップを確保するか、ユーザーがこの特定の未バックアップ更新リスクを十分理解して明示的に受容する必要あり。
+- 本番mainとIndexedDB/実患者/PIN/旧バックアップは未変更。分割バックアップ統合候補v09は従来どおり別ブランチで継続開発可能で、KANA01の先行リリースに含めない。次はユーザーへ一問一答で、未バックアップのまま公開を進める意思の有無を確認する。既存のiPad mini合格試験は繰り返さない。安全確保後はGitHub公開操作→iPad患者数、既存ベッド、フリガナ、検索、印刷4ページの順に最小確認。 
