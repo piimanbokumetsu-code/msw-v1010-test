@@ -890,3 +890,10 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 模擬容量ケース6/6・実ブリッジで低容量時元データ維持1/1、計7/7合格。実iPadの容量限界を保証しない。
 - 変更JSのSHA-384 SRIを検証、index/SW全6件を `split-prep-20261030-integrated-v07` / `20261030-kana01-split-prep-v07` に統一、6/6静的整合・構文・キャッシュ順を確認。index commit `306092c24a0c7313e56616449bd14ec5b05e7882`、SW `836e17a75657aa79276d8232bbf36b913424a257`。元app.jsの旧単体バックアップと本番mainのindex/sw SHAも変更なし。
 - 未公開ブランチ申し送り `SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit `5576f3d91791598c5ad5304f07a75d70afcae469`。未だフルアプリの別URL/DBでの実機統合確認とユーザー公開承認が未完了。安全フィルターでブロックされたapp.jsの別repo複写は迂回しない。本番患者情報/PIN/105.2MB既存バックアップには一切触れていない。導入準備推定98%。
+
+
+### 2026-10-30 未公開統合v08：Safari画面非表示時の分割復元中断
+- 未公開 `msw-ipadmini-app/msw-ipadmini-app.github.io` の `integration-kana-split-backup-prep-20261030` のみ変更。`split-import-ui.js`でSafariの`visibilitychange:hidden`/ `pagehide`を`AbortController`に接続。未完了SHAパート検証と写真復号・IndexedDB一時保存の処理は、既存患者の一括置換開始**前**に段階的に中断できる。`split-format.js`の任意`checkAbort`で大容量パートごとのチェック、`split-import-bridge.js`の任意第5`signal`で復号・一時保存・コミット直前のチェックを実装。コミット開始後の成否は保存トランザクション結果で判断し、「中断だから旧データは無変更」という誤案内をしない。
+- 実コードと模擬ファイル/DBで`MSWSplitV04.verify`中断 **4/4**、`MSWImportBridge.run`中断・取り消し・完了 **7/7** 合格。模擬試験でありiPad実機のバックグラウンド試験ではない。
+- 修正コミット format `4c3de897094fbb8efbee424752e23fe133c577c2`、bridge`5281a122b03f9dea2c3671da7256b31ebd26f12d`、UI`59a23bb76225ce2eef527622902e6a44cd9f63ba`。3件のSHA-384 SRI再計算、index/SWの6件を`split-prep-20261030-integrated-v08`/ SWキャッシュ`20261030-kana01-split-prep-v08`に更新。index`9533b04a71512eba2fdea1d397bafa61050f3b34`、SW`9f4371e604de727afcfc9653b86115756542c42f`。6/6静的照合・順序正常、旧`.mswdb`と元`app.js`維持、本番main index/SW SHA不変を再確認。
+- 本番組み込みブランチの申し送りは`SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit`ef2715390e5752ba18bfffb2d1d944502837c3fd`に保存。架空患者のiPad mini E2E検証100%合格は維持。**未完了はフル本番候補の独立URL/別IndexedDBによるiPad統合確認とユーザーの明示公開承認**。以前のGitHub安全チェックにより拒否されたapp.jsの別repo複製を迂回しない。公開main、実患者/PIN、既存バックアップは未変更。導入準備進捗は推定98%据え置き。
