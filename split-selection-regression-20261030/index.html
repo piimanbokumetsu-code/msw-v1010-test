@@ -1,0 +1,15 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>MSW 架空ファイル取り違え防止試験 v01</title>
+<style>
+body{font:17px/1.65 -apple-system,BlinkMacSystemFont,sans-serif;background:#f3f6fa;margin:0;color:#152438}
+main{max-width:760px;margin:20px auto;padding:22px;background:white;border:1px solid #d6e1ed;border-radius:16px}
+h1{font-size:1.4rem}button{display:block;width:100%;border:0;border-radius:9px;background:#1767aa;color:white;font-weight:700;font-size:1rem;padding:16px}
+button:disabled{opacity:.5}.notice{background:#eaf3fa;padding:14px;border-radius:10px}#status{background:#f4f6f9;padding:13px;border-radius:8px;white-space:pre-wrap}li{padding:6px 0}
+</style></head><body><main><h1>ファイル取り違え防止・架空試験 v01</h1>
+<p class="notice">本番統合候補と同じファイル選択判定部品を使用します。架空ファイル名とサイズ情報のみで検証し、実患者・写真・暗証番号・IndexedDB・実ファイル保存にはアクセスしません。</p>
+<button id="start">架空ファイル選択の安全試験を実行</button>
+<h2>実行結果</h2><p id="status" role="status" aria-live="polite">未実施</p><ol id="results"></ol>
+<p>この試験に合格しても、大容量の実ファイル保存・完全復元・本番導入は未検証です。</p>
+</main><script defer src="./split-file-selection.js"></script><script defer src="./runner.js"></script></body></html>
