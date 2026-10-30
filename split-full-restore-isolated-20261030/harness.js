@@ -61,7 +61,7 @@ async function source({badAuth=false,badHash=false}={}){
  const photos={};for(const id of ids)photos[id]=await encryptObj(fakeJpeg(),k);
  if(badAuth){const v=photos[ids[1]].ct;photos[ids[1]].ct=(v[0]==='A'?'B':'A')+v.slice(1)}
  const parts=[];const r=await MSWSplitV04.create({meta:{salt:b64(salt),check:await encryptObj(true,k)},data:await encryptObj(patients,k),photoIds:ids,getPhoto:async id=>photos[id],maxBytes:4*1024*1024,onPart:async(info,blob)=>parts.push(new File([blob],info.name,{type:'application/json'}))});
- if(badHash){const v=await parts[1].text();parts[1]=new File([v.replace('"photos":{','"photos": {')],parts[1].name,{type:'application/json'})}
+ if(badHash){const v=await parts[1].text();parts[1]=new File([v.replace('"photos":{','"ph0tos":{')],parts[1].name,{type:'application/json'})}
  return {manifest:new File([r.blob],r.name,{type:'application/json'}),parts};
 }
 async function reject(fn){let failed=false;try{await fn()}catch{failed=true}if(!failed)throw Error('拒否すべき処理が成功')}
