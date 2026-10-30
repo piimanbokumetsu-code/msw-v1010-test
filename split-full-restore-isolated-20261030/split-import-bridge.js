@@ -37,9 +37,21 @@ if(!confirm('患者'+index.patients.length+'件／写真'+checked+'件を確認�
   '写真や自由記述内の住所・連絡先は自動除去されません。\n現在の本番患者データを置き換えますか？'))
   return {cancelled:true};
 await dataWriteTail;await commit(stage,wanted,safeCore);
-dismissPhotoViewer();selectedPatient=null;document.getElementById('modal')?.remove();
-meta=core.meta;key=null;state=null;alert('分割バックアップから復元しました。バックアップの暗証でロック解除してください。');renderLock();
-return {restored:true,patients:index.patients.length,photos:checked};
+// The IndexedDB replacement is committed at this point. Never report it as
+// "cancelled" or "old data unchanged" because a subsequent UI update fails.
+// Invalidate the old in-memory decrypted index before touching the DOM.
+meta=core.meta;key=null;state=null;selectedPatient=null;
+let uiWarning='';
+try{
+  dismissPhotoViewer();
+  document.getElementById('modal')?.remove();
+  renderLock();
+  alert('分割バックアップから復元しました。バックアップの暗証でロック解除してください。');
+}catch(e){
+  uiWarning='復元は保存済みですが画面更新に失敗しました。アプリを再読み込みしてバックアップ暗証でロック解除してください。';
+  try{renderLock()}catch(_){}
+}
+return {restored:true,patients:index.patients.length,photos:checked,uiWarning};
 }finally{if(stage)await clean(stage).catch(()=>{});endMaintenance(action)}
 }
 return Object.freeze({run});
