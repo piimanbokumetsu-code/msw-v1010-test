@@ -852,3 +852,10 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 静的検査: JS6件の順序・SRI属性・同一版パラメータとSW6件の参照、スクリプト構文、旧単体.mswdb機能の残存を確認。UI実コードの模擬操作7/7合格。index/SW更新後も本番mainを再取得し、以前のSHAと一致することを確認して未公開状態を維持した。
 - 作業コミット: `acfdeef3ca5a4cdd4a015efecb17934bcebcb1af`、`74a31af5787c0d89b5bf75e305e3ddf8457fd84e`、`b2f71984ea740e63508c6ae8f86d67d20711a8f9`、`167b185d1f101c50e3bfd345e4c69636bed30f57`。統合ブランチ申し送り `7c9c46ac97fe71a5a06e64705fd913a70996ef3c`。
 - **残課題は本番候補全体のiPad実機起動・旧単体機能共存を確かめる隔離検証環境、ユーザー明示承認後のリリース。** GitHub接続の安全チェックによってフル本番app.jsのテスト環境への複製は従前ブロック。再試行・迂回はしない。本番main/実患者/PIN/105.2MBバックアップは未変更。導入準備進捗は推定98％、本番公開は未実施。
+
+
+### 2026-10-30 未公開統合v03：残留復元ステージ整理・安全確認
+- 本番導入候補 `msw-ipadmini-app/msw-ipadmini-app.github.io` の未公開 `integration-kana-split-backup-prep-20261030` の `split-import-bridge.js` で、Safari強制終了時に残る `splitstage:` プレフィックスの一時暗号写真を新しい分割復元前に安全に整理する修正（commit `43abaeadc08a254f1ec868b91f0400c1ec95397a`）。臨床保存 `meta/data/photo:` キーには手を触れない。
+- 実コード＋模擬DBで、古いステージ削除／確認取り消し／検証失敗／QuotaExceeded相当の途中失敗／無関係な類似キー保持を検査し4/4合格。iPad実機での容量限界試験ではない。
+- 新JSのSHA-384 SRI、index6件とswキャッシュ6件の版番号を `split-prep-20261030-integrated-v03` に統一。静的照合6/6、JavaScript構文6/6、旧単体 `.mswdb` の関数/ボタン残存、app.jsと本番main index/sw SHA不変を再取得確認。commit index `b4cc5c8c0009734e64383412f2d2a2969856f8c9`、sw `755ef576cc99cbe5e70f80a17afdee40e257a840`。
+- 統合候補ブランチの引継ぎ詳細ファイル `SPLIT_BACKUP_PREP_NOT_RELEASED.md` を更新（commit `dc1925094b4c22c8b3f30f6623aa7b5335cb9d9d`）。本番main・患者データ・実暗証・保存済バックアップは一切変更していない。残る重要ゲートは本番候補全体の隔離実機検証と明示的リリース承認。導入準備98%推定を据え置き。
