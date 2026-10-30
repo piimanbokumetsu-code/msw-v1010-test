@@ -763,6 +763,16 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - GitHub上の4ファイル存在、JavaScript構文、復元本体の候補とのSHA一致、架空DB名の独立性、外部送信fetchなし、7項目のコードを確認。**iPad mini実機起動・7項目の合格は未確認**。
 - 残り：この7項目のiPad mini実機確認→未公開統合（index/SRI/sw、旧.mswdb保持）→最終実機確認。合格を得る前に本番公開しない。本番患者データ・暗証・105.2MBバックアップを変更しない。
 
+
+### 2026-10-30 iPad mini実機試験v02 6/7→強制中断テスト改善v03（実機未確認）
+- ユーザーのiPad mini Safariスクリーンショットで `split-full-restore-isolated-20261030/?v=02` が「未合格：6/7」。合格6項目：架空患者2件＋JPEG写真2件AES-GCM完全復元、誤PIN拒否、SHA-256改ざん拒否、写真AES-GCM認証失敗拒否、最終置換取消、**復元完了後のUIエラー誤報防止**。
+- 唯一の未合格は「IndexedDB書込トランザクション強制中断で旧記録を保護」。画面理由「想定と異なる理由で拒否されました：写真の参照に失敗」。この結果単独では旧記録破損とは断定できず、旧記録維持の検査まで到達していない。成功済み6項目のやり直しを要求しない。
+- 未公開候補の `split-import-bridge.js` で、すでにabortしたトランザクションのカーソルerrorで二重abort／誤った写真参照失敗に置換しないよう修正。候補commit `0b68f3f1ea0862dfde4de5607e22e4a62c3a4432`。本番main無変更。
+- 独立架空試験 `harness.js` で、写真1件のputが実際にキューに入った直後に同じトランザクションを明示的abort。`abortInjected=true` を確認し、復元処理が拒否され、最後に旧架空データ・写真・未完了ステージなしを照合する方式に修正。Safariのabort例外文言を固定で要求しない。
+- 新URL `https://piimanbokumetsu-code.github.io/msw-v1010-test/split-full-restore-isolated-20261030/?v=03`。`index.html`, `harness.js`, `split-import-bridge.js`, `split-format.js` はGitHubで取得・存在確認とJS構文PASS。独立試験の`split-import-bridge.js`は未公開候補と同一blob SHA `d679ad3b2f8ec0d665c54cdd48247011b99a62fc`。
+- **v03のiPad mini実機テストは未実施、合格と断言しない。** ブラウザ自動実行は環境の接続制限で実施できなかった。v03に7/7が出れば固定ゲート①完了として②未公開統合（SRI/SW/旧.mswdb共存）に進む。
+- 本番アプリ・患者情報・写真・暗証番号・105.2MB `.mswdb`バックアップに一切変更なし。ユーザーへの次の操作はv03のURL表示を確認するだけ。一問一答・タップ式を守る。
+
 ## 8. 本書を更新した時のチェック欄
 - [ ] 現物のGitHub main /開発ブランチ SHAを照合した
 - [ ] 本番コードと実患者保存領域を無断変更していない
