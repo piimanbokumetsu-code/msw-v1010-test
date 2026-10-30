@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>MSW 架空分割ファイル実保存・読戻し v01</title>
+<style>
+body{margin:0;background:#f2f6fb;color:#152437;font:17px/1.6 -apple-system,BlinkMacSystemFont,sans-serif}
+main{max-width:720px;margin:16px auto 42px;background:#fff;padding:20px;border-radius:16px;border:1px solid #d0dce9}
+h1{font-size:1.37rem;line-height:1.35}h2{font-size:1.12rem;margin-top:24px}
+button{display:block;width:100%;font:600 1rem -apple-system,BlinkMacSystemFont,sans-serif;border:none;border-radius:8px;background:#1363a4;color:white;padding:15px;margin:11px 0}
+button.alt{background:#405d7b}button:disabled{opacity:.45}
+.note{background:#e9f3fc;border-radius:9px;padding:14px}
+#status,#result{background:#f3f6f9;padding:14px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+input[type=file]{max-width:100%;font-size:1rem;margin:8px 0}
+img{display:block;max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;margin:12px auto}
+small{color:#526274}
+</style></head><body><main>
+<h1>分割バックアップの実ファイル保存・読戻し（架空試験 v01）</h1>
+<p class="note">独立した架空データ専用の技術検証です。実際の患者情報・写真・暗証番号は使いません。患者管理アプリのデータベースも開きません。端末に架空JSONファイルを保存し、選択して検証します。</p>
+<p>まずは約13MiBの小さい保存・読み戻しを確認し、その後に約136MiBの大容量試験へ進む方式です。大容量試験は端末の空き容量を消費します。どちらも写真に見立てた架空レコードを含み、<strong>架空JPEG画像1枚だけをAES-GCM暗号化</strong>しています。</p>
+<h2>1. 架空ファイルを作成・保存</h2>
+<button id="small">約13MiB：実ファイル保存の事前試験を開始</button>
+<button id="large" class="alt">約136MiB：大容量実ファイル試験を開始</button>
+<button id="save" disabled><span id="saveLabel">次のファイルを保存</span></button>
+<div id="status" role="status" aria-live="polite">未実施</div>
+<h2>2. ファイルを選択して検証</h2>
+<p>作成した同じバックアップ回の分割パートすべてと管理ファイルを選択してください。<strong>選択したファイルの内容は外部送信されません。</strong></p>
+<input id="files" type="file" multiple accept=".json,application/json" aria-label="架空の分割パートと管理ファイルを選択">
+<button id="verify" class="alt">選択した架空ファイルを整合性検証して読戻す</button>
+<div id="result" role="status">未検証</div>
+<img id="picture" alt="復号された架空JPEG画像 FAKE TEST" hidden>
+<p><small>注意：この検証は保存したファイルを実際に読み戻す試験です。患者アプリへの完全復元、全架空レコードのAES-GCM認証、容量不足時の安全性を証明するものではありません。途中でページを閉じると書き出しは中断します。</small></p>
+</main>
+<script defer src="./split-format.js"></script>
+<script defer src="./roundtrip.js"></script></body></html>
