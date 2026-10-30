@@ -639,6 +639,13 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 本番候補は msw-ipadmini-app/msw-ipadmini-app.github.io の integration-kana-split-backup-prep-20261030 ブランチに存在、SPLIT_BACKUP_PREP_NOT_RELEASED.md確認。未公開・index.html未接続。mainと本番IndexedDB、実患者データと105.2MBバックアップは変更しない。
 - 次の開発：本番候補ブランチ上で統合コード・SRI/Service Worker・既存.mswdbとの互換性を静的検査し、架空患者専用の独立した大容量保存・復元・中断保護テストを組み立てる。実機操作は新しい検証版が準備できてから一つずつ案内。本番更新を急いで無断実施しない。
 
+
+### 2026-10-30 導入準備の続行：隔離された分割形式の回帰テストを追加
+- 本番候補 `msw-ipadmini-app/msw-ipadmini-app.github.io` ブランチ `integration-kana-split-backup-prep-20261030` の index.html / sw.js / split-format.js / import / export UI / bridge を読んで確認。分割統合部品は index.html と sw.js にまだ追加されていないため本番利用状態ではない。
+- 新規 `split-format-preflight-tests.js` を同じ未公開ブランチへ作成。コミット `bc44629bd883a06dfb962adbde4727aa11c43d19`。架空の暗号形式レコードだけで正常な分割・復元前整合性判定、パート欠落、重複、写真ID不整合、SHA-256改ざん拒否の5条件を検証する独立テスト部品。患者DB、ファイル保存、実写真にアクセスせず本番index/swには未接続。
+- テスト部品はGitHub上の作成まで完了。ブラウザでの5件テスト実行・iPad mini実機・容量不足/中断時復元・本番統合の合格を主張しない。
+- v08 136.4MiB分割合格と架空小容量写真付き復元合格は維持。ユーザーに再実行を求めない。次は架空独立環境で回帰テスト実行・大容量保存/復元・中断安全性の検証環境を準備する。本番mainと実患者情報、既存バックアップは無変更。
+
 ## 8. 本書を更新した時のチェック欄
 - [ ] 現物のGitHub main /開発ブランチ SHAを照合した
 - [ ] 本番コードと実患者保存領域を無断変更していない
