@@ -753,6 +753,16 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - この独立試験は写真2枚の少量試験。大容量全JPEG復号・容量不足・既存単体.mswdb互換・本番導入の保証はしない。本番main、既存患者情報・画像・PIN・105.2MB .mswdbには触れない。
 - 次の一操作はiPad mini Safariで上記URLを開き、試験タイトルが見えたかタップ回答で報告。次のターンで検証ボタンを1回押すよう案内する。
 
+
+### 2026-10-30 復元導入の残工程を固定・未公開候補の復元後誤報告を修正・架空試験v02
+- ユーザーは終着点が不明な試験の連続に強いストレスを感じている。**今後は ①未公開コードの完全復元安全確認→②既存アプリへの未公開統合→③iPad miniで最終動作確認／承認後反映 の順を固定**し、作業のたびにどこまで終えたか明示。完了済みの約13MiB/136MiB実ファイル試験を繰り返さず、必要性のない新規試験を増やさない。
+- 未公開候補 `msw-ipadmini-app/msw-ipadmini-app.github.io` ブランチ `integration-kana-split-backup-prep-20261030` の `split-import-bridge.js` を修正（commit `3780ec268f57354149b2710e58c5af0633f0fbbf`）。IndexedDB一括コミット完了後に画面更新／通知が失敗しても、既存データ無変更と誤認させず、まず旧復号状態をメモリから無効化し、`restored:true` と `uiWarning` を返す。
+- 未公開候補の `split-import-ui.js` も曖昧な失敗時に「既存患者は変更なし」と断言しないよう修正（commit `26bafa960b9de968577a41e9b3c516805ccda631`）。本番main未変更。
+- 独立架空試験 `split-full-restore-isolated-20261030/` の `split-import-bridge.js` を修正済み候補と同一Git blob SHA `97b4872d3e5b770226462e954a376aa93757b009` に更新。`harness.js` はハッシュを同一ファイルサイズで改ざんして検査し、失敗ケースの例外が想定する失敗理由によるものかも照合。**復元成功後の画面エラーによる誤報告防止**を追加し合計7項目とした。
+- 新ページURL: https://piimanbokumetsu-code.github.io/msw-v1010-test/split-full-restore-isolated-20261030/?v=02
+- GitHub上の4ファイル存在、JavaScript構文、復元本体の候補とのSHA一致、架空DB名の独立性、外部送信fetchなし、7項目のコードを確認。**iPad mini実機起動・7項目の合格は未確認**。
+- 残り：この7項目のiPad mini実機確認→未公開統合（index/SRI/sw、旧.mswdb保持）→最終実機確認。合格を得る前に本番公開しない。本番患者データ・暗証・105.2MBバックアップを変更しない。
+
 ## 8. 本書を更新した時のチェック欄
 - [ ] 現物のGitHub main /開発ブランチ SHAを照合した
 - [ ] 本番コードと実患者保存領域を無断変更していない
