@@ -913,3 +913,13 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - **GitHub下書きPR #3** `https://github.com/msw-ipadmini-app/msw-ipadmini-app.github.io/pull/3` を作成（未公開・未マージ）。タイトル「【本番反映準備・保留】患者フリガナ／検索固定／検索時の該当病室表示 KANA01」。ユーザーの更新希望に向けた準備は済んだ。
 - **保全条件が未充足**：10/29本番の最新`.mswdb`書出しは120MiB上限で失敗。10/28の保存確認済み旧バックアップと現在患者内容の一致は未確認。独立架空患者の分割バックアップ復元成功は実患者バックアップの代わりにならない。現時点では最新の安全バックアップを確認できないため、**PRはドラフトでmainへ未反映**。新バックアップを確保するか、ユーザーがこの特定の未バックアップ更新リスクを十分理解して明示的に受容する必要あり。
 - 本番mainとIndexedDB/実患者/PIN/旧バックアップは未変更。分割バックアップ統合候補v09は従来どおり別ブランチで継続開発可能で、KANA01の先行リリースに含めない。次はユーザーへ一問一答で、未バックアップのまま公開を進める意思の有無を確認する。既存のiPad mini合格試験は繰り返さない。安全確保後はGitHub公開操作→iPad患者数、既存ベッド、フリガナ、検索、印刷4ページの順に最小確認。 
+
+
+### 2026-10-30 KANA01 本番main反映完了（ユーザー明示リスク承認）
+- ユーザーは「最新バックアップが未完成で、万一の場合は最新状態に復旧できない可能性があることを理解しました。フリガナ・患者検索の修正を本番に反映してください。」と明示承認。バックアップは引き続き開発。
+- GitHub `msw-ipadmini-app/msw-ipadmini-app.github.io` の `main` に、2026-10-29に独立iPad miniで検証・承認済みの `integration-furigana-kana01-20261029` を **PR #3でマージ成功**。URL `https://github.com/msw-ipadmini-app/msw-ipadmini-app.github.io/pull/3`。マージcommit `efb17546c589ef8b659ede1c44726a86261ff7f2`。事前チェック: base HEAD `80ff567ea9e4e6172a4727bff9b70c6cb2aecdf4`、ahead1/behind0、PR head `1e733f678e56bbafa569ec829a9e7df8e3c40ec2`、変更は`app.js`/`styles.css`/`index.html`/`sw.js`の4ファイルのみ。GitHubは mergeable=true を確認。
+- マージ後、mainの4ファイルすべてが承認候補と**同一Git blob SHA**であることを再取得確認: `app.js d47702a132ca2c8f1d609166cda4d72b2d3872fc`、`styles.css 1394981e945124d5ae5af2888932cc6b0707b078`、`index.html 2864356f234c68a1050773718ae7f5bc7ee07d76`、`sw.js ba997a1d2a2ebe0d8ba25517c17f7768e50428f0`。
+- 本番app.jsの`APP_VERSION`は末尾`-KANA01`、DB名`mswdb_mvp01_clinical_v1`不変。既存`backup()`/`restore()`、openDB、save、photoKey、朝一印刷関数、renderSettings等の関連コードは候補と旧mainで変更なし。JavaScript構文・SWキャッシュ参照・フリガナ/検索固定の実装確認済み。分割バックアップ候補v09は**このリリースへ含めていない**。
+- **リリース状態の区別:** GitHub mainへのマージ成功とソース一致は確認済み。GitHub Pagesの公開URL `https://msw-ipadmini-app.github.io/` は外部ブラウザ取得ツールが到達できなかったため、公開サイトの最新配信・PWAキャッシュ切替・iPad miniでの患者情報保持は**現時点では未確認**。ユーザーの実機起動確認が次の一操作。まず通常利用しているホーム画面の患者管理アプリを開いていただき、画面が起動するか報告してもらい、それから患者一覧/患者数/検索/フリガナ/朝一4ページを一問一答で確認。iPadのサイトデータ消去やPWA削除を促さない。
+- **バックアップ保全:** 10/29最新`.mswdb`書出は写真120MiB超で失敗したまま。10/28の旧保存確認では最新患者写真を保証できない。ユーザーはこのリスクを明確に認識して反映を承認した。実患者/PIN/バックアップはチャットやGitHubへ送信していない。何か問題があればコードだけ戻す方針、患者DB/ブラウザの記録を削除しない。分割バックアップ開発は独立ブランチ`integration-kana-split-backup-prep-20261030`で継続する。
+- **混同禁止:** `piimanbokumetsu-code/msw-db` Ver.1.0.9-JP01 はこのリリースの変更対象ではない。ユーザーからそれぞれの本番URL/アプリを操作する具体的指示が出たら現物確認。
