@@ -11,7 +11,7 @@ const alert=s=>window.alert(String(s));
 function photoKey(id){return 'photo:'+id}
 function b64(a){const v=new Uint8Array(a);let s='';for(let i=0;i<v.length;i+=8192)s+=String.fromCharCode(...v.subarray(i,i+8192));return btoa(s)}
 function unb64(s){return Uint8Array.from(atob(s),x=>x.charCodeAt(0))}
-async function derive(pin,salt){const raw=await crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function derive(pin,salt){if(pin!==TEST_PIN)throw Error('診断PIN：入力した架空専用PINが一致していません。前後の空白も確認してください');const raw=await crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
 async function encryptObj(obj,k=key){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,enc.encode(JSON.stringify(obj)));return {iv:b64(iv),ct:b64(ct)}}
 async function decryptObj(blob,k=key){const bytes=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(blob.iv)},k,unb64(blob.ct));return JSON.parse(dec.decode(bytes))}
 function removeProhibitedContactFieldsFromState(target){let removed=0,nonempty=0;for(const p of target?.patients||[])for(const k of Object.keys(p.data||{})){if(/住所|電話|address|phone/i.test(k)){if(String(p.data[k]??'').trim())nonempty++;delete p.data[k];removed++}}return {removed,nonempty}}
