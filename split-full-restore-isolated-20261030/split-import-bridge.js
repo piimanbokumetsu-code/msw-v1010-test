@@ -9,7 +9,13 @@ await new Promise((resolve,reject)=>{
 const tx=db.transaction(STORE,'readwrite'),s=tx.objectStore(STORE);let count=0,reason='復元トランザクションが中断されました';
 const r=s.openCursor(IDBKeyRange.bound(p,p+'\uffff'));
 tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error(reason));tx.onabort=()=>reject(tx.error||Error(reason));
-r.onerror=()=>{reason='写真の参照に失敗';tx.abort()};
+r.onerror=()=>{
+  // A forced transaction abort also raises a cursor error. Do not hide the
+  // original abort with a misleading photo-reference error or abort twice.
+  if(tx.error)return;
+  reason='写真の参照に失敗';
+  try{tx.abort()}catch(e){if(e?.name!=='InvalidStateError')reason='写真の参照に失敗：'+(e?.message||e)}
+};
 r.onsuccess=()=>{const c=r.result;if(c){const id=String(c.key).slice(p.length);if(!expected.has(id)){reason='未知の写真が混在';tx.abort();return}s.put(c.value,photoKey(id));s.delete(c.key);count++;c.continue();return}if(count!==expected.size){reason='写真件数の不一致';tx.abort();return}for(const k of old)if(!expected.has(k.slice(6)))s.delete(k);s.put(core.meta,'meta');s.put(core.data,'data')};
 })}
 async function run(manifest,parts,pin,progress=()=>{}){
