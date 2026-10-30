@@ -868,3 +868,10 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 変更したスクリプトのSRIはSHA-384標準テストと別資産ハッシュで照合して `sha384-e/URJOYeYYni1wEuOm28e0dNflpTgFONcTSDx3ziQsiYIgxWDxeiq4h4AiMJ5d64` に更新。6資産のindex/SWを統合 `split-prep-20261030-integrated-v04`、SWキャッシュ `20261030-kana01-split-prep-v04` に合わせた。index commit `ce82c86ed4a4d21ca7ab7372f7a41d5f9fb05961`、SW commit `031cb1590141ea16ac9403f26b34ba7ece1a1797`。
 - 静的検査6/6合格、旧形式 .mswdb のアプリ関数維持、app.js SHA維持、本番main index/SW SHA不変確認。統合ブランチの申し送り `SPLIT_BACKUP_PREP_NOT_RELEASED.md` 更新commit `2114a71a2cc06912629148d8bec12e6bfb071362`。患者保存領域、公開mainおよび既存暗号化バックアップは一切変更していない。
 - 残りはフルアプリ統合候補の**隔離したURL/DBでの実機確認**とユーザーの明示的な公開承認。元の約198KB app.jsのテスト複製は安全性チェックでブロックされたため、迂回しない。導入準備は98%（推定）据え置き。ユーザー側の追加操作は現時点で不要。
+
+
+### 2026-10-30 未公開統合v05：復元前の不足チェックと暗証エラー案内
+- 本番統合候補 `msw-ipadmini-app/msw-ipadmini-app.github.io` の未公開 `integration-kana-split-backup-prep-20261030` だけを更新。復元前、管理ファイルの軽量preflightで選択済みパートの数・ファイル名・サイズの一致を確認し、不足なら暗証番号の入力前に停止。事前中止と暗証/復号/実コミット後の例外を別案内。
+- PINが違うか認証情報が破損している場合、英語OperationErrorの代わりに日本語で適切に案内するよう、ブリッジを修正。元のハッシュ・AES-GCM確認と原子的な復元処理は変更せず。
+- JSモック試験：前置チェック6/6、PIN/AESエラー2/2、UIを使用した連動チェック3/3。全6 JS構文/HTML SRI/SW資産の版v05と順序6/6合格。commit bridge `539ed7c9565998156a9d692290937667e9ec6038`、UI最終 `b25f3a03086a2a202faf1589cbc1fdfc5d62e9bf`、HTML `7eef3602b2630bb3ba7c635a5a0572d741e61f74`、SW `c4e02be71a32d147630fb8e5b3fb2f6967e3a074`。統合ブランチ引継ぎ `SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit `8b2d42cd998a3d88497a7616f4e6ee5de02f65cc`。
+- 本番main index/sw SHA不変・旧単体.mswdb関数残存・app.js sha不変を再取得。ユーザーのiPadで追加操作不要。固定98%は最終フル統合隔離実機検証と公開承認の工程を未完了とするため。安全チェックでブロックされたフルapp.jsの別Repo複写は迂回せず。本番の実患者情報、PIN、既存バックアップには一切触れない。
