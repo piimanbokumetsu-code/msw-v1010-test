@@ -88,7 +88,10 @@
       if(raw.length<100||raw[0]!==255||raw[1]!==216)throw Error('画像形式が不正');
       if(photoUrl)URL.revokeObjectURL(photoUrl);
       photoUrl=URL.createObjectURL(new Blob([raw],{type:'image/jpeg'}));
-      picture.src=photoUrl;picture.hidden=false;
+      picture.src=photoUrl;
+      if(typeof picture.decode==='function')await picture.decode();
+      else await new Promise((resolve,reject)=>{picture.onload=resolve;picture.onerror=()=>reject(Error('架空画像の表示に失敗'))});
+      picture.hidden=false;
       return;
     }
     throw Error('架空画像レコードがありません');
