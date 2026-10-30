@@ -66,7 +66,7 @@ async function renderPhotoReview(){
     img.src=photo.dataUrl;
    }
   }
-  status.textContent='患者 '+(state.patients||[]).length+' 名・保存済み写真 '+expected+' 枚を検証済み。画像を表示しています…';
+  status.textContent='患者 '+(state.patients||[]).length+' 名・写真 '+shown+' / '+expected+' 枚を表示'+(shown===expected?'（表示成功）':'（画像読み込み中）');
  }catch(e){status.textContent='架空写真の確認エラー：'+(e?.message||String(e))}
 }
 async function unlock(){key=await derive(TEST_PIN,unb64(meta.salt));const test=await decryptObj(meta.check,key);if(test!==true&&test?.ok!==true)throw Error('架空PINの照合に失敗');state=await decryptObj(await idbGet('data'),key);await renderSettings();await renderPhotoReview()}
