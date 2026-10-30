@@ -34,7 +34,8 @@ async function ensureFakeData(){
  meta=await idbGet('meta');if(meta)return;
  const salt=crypto.getRandomValues(new Uint8Array(16)),k=await derive(TEST_PIN,salt),initial=fakeIndex();
  const meta0={salt:b64(salt),check:await encryptObj(true,k)},data=await encryptObj(initial,k);
- await new Promise((resolve,reject)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE);s.put(meta0,'meta');s.put(data,'data');s.put(await encryptObj(fakePhoto('A'),k),'photo:fake_a_photo');s.put(await encryptObj(fakePhoto('B'),k),'photo:fake_b_photo');t.oncomplete=resolve;t.onerror=()=>reject(t.error)});
+ const photoA=await encryptObj(fakePhoto('A'),k),photoB=await encryptObj(fakePhoto('B'),k);
+ await new Promise((resolve,reject)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE);s.put(meta0,'meta');s.put(data,'data');s.put(photoA,'photo:fake_a_photo');s.put(photoB,'photo:fake_b_photo');t.oncomplete=resolve;t.onerror=()=>reject(t.error)});
  meta=meta0;
 }
 async function unlock(){key=await derive(TEST_PIN,unb64(meta.salt));const test=await decryptObj(meta.check,key);if(test!==true&&test?.ok!==true)throw Error('架空PINの照合に失敗');state=await decryptObj(await idbGet('data'),key);await renderSettings()}
