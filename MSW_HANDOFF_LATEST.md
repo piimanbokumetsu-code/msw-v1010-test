@@ -693,6 +693,15 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - これはGitHubコードの修正まで。ブラウザ・iPad mini実機試験は未実施。本番 `main` と実患者情報・105.2MB既存バックアップは未変更。
 - 次の未完了：新UIの架空入力試験、大容量分割データの実ファイル保存＋完全復元、容量不足と中断の本番候補コード試験、index/SRI/swを含む統合後の検証。すべて合格するまで本番公開しない。
 
+
+### 2026-10-30 新チャット継続：復元ファイル選択の共通検証を作成（ユーザー実機未確認）
+- 前回の「同名ファイル重複拒否・別run ID混在拒否」を、未公開本番候補ブランチ `msw-ipadmini-app/msw-ipadmini-app.github.io:integration-kana-split-backup-prep-20261030` で `split-file-selection.js` という実際の共通判定部品に分離。復元UI `split-import-ui.js` は共通部品を呼ぶ方式に変更。コミット `3052e71e32534c6e0885041d80fdeddf954c21e1`, `2bb53538c4ed9e278ed7b7eb50d682abb98e77fd`。
+- 架空ファイル名＋サイズだけを使う検証ページ `split-selection-regression-20261030/` をテストrepoに作成。URL `https://piimanbokumetsu-code.github.io/msw-v1010-test/split-selection-regression-20261030/?v=01`。正常3ファイルの段階選択、同名重複2種、別run混在2種、不正名、サイズ超過2種、空ファイル、パート番号0000の10シナリオ。
+- 共通部品のGitHub blob SHAは未公開候補と独立テストで同一 `a620fe20109184fb521f936919f04e61968233e9`。GitHub上で `index.html`, `runner.js`, `split-file-selection.js` の存在・内容を再取得確認。ブラウザ公開到達・JSの10試験実行・iPad mini実機合格は未確認。
+- 未公開候補の `SPLIT_BACKUP_PREP_NOT_RELEASED.md` に依存関係を追記（コミット `6808f87af5cb7973bc97f72592d6afbee613c2c6`）。本番候補では `split-file-selection.js` を `split-import-ui.js` より先に読み込む必要がある。SRIとSWの更新が必要。現時点ではどちらもindex/swに未接続。
+- 次の一操作：iPad mini Safariで上記URLを開き、ページが表示されるか報告。その後10項目の試験を1回実行する。本番main、実患者データ・写真・PIN・旧105.2MBバックアップは変更しない。
+- 既に成功した小容量写真付き復元、136.4MiB架空逐次分割、整合性5/5、中断保護5/5は再実施不要。大容量実ファイル保存＋完全復元・容量不足中断・本番統合は未完了。
+
 ## 8. 本書を更新した時のチェック欄
 - [ ] 現物のGitHub main /開発ブランチ SHAを照合した
 - [ ] 本番コードと実患者保存領域を無断変更していない
