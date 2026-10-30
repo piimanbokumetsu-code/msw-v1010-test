@@ -859,3 +859,12 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 実コード＋模擬DBで、古いステージ削除／確認取り消し／検証失敗／QuotaExceeded相当の途中失敗／無関係な類似キー保持を検査し4/4合格。iPad実機での容量限界試験ではない。
 - 新JSのSHA-384 SRI、index6件とswキャッシュ6件の版番号を `split-prep-20261030-integrated-v03` に統一。静的照合6/6、JavaScript構文6/6、旧単体 `.mswdb` の関数/ボタン残存、app.jsと本番main index/sw SHA不変を再取得確認。commit index `b4cc5c8c0009734e64383412f2d2a2969856f8c9`、sw `755ef576cc99cbe5e70f80a17afdee40e257a840`。
 - 統合候補ブランチの引継ぎ詳細ファイル `SPLIT_BACKUP_PREP_NOT_RELEASED.md` を更新（commit `dc1925094b4c22c8b3f30f6623aa7b5335cb9d9d`）。本番main・患者データ・実暗証・保存済バックアップは一切変更していない。残る重要ゲートは本番候補全体の隔離実機検証と明示的リリース承認。導入準備98%推定を据え置き。
+
+
+### 2026-10-30 未公開統合v04：Safari自動ロックと手動分割書出しの衝突防止
+- 既存 `app.js` のSafari非表示時プライバシーロックが `maintenanceDone` を待つ一方、分割バックアップのパート保存待ちはmaintenance lockを保持しており、バックグラウンド移行で中断不能になる問題を発見。
+- 本番組み込み**未公開ブランチのみ** `split-export-ui.js` を修正し、Safari `visibilitychange:hidden` または `pagehide` で未完了の分割書出しを中断・保留Promiseをreject、実コードの `finally:endMaintenance` に進めるようにした。すでにダウンロードした一部のファイルは残すが不完全として使用しない。コードcommit `9e679646a87b44bd7790ff636ff08d7284bda2e9`。
+- 実コードを模擬Safari/DOMに接続した中断・通常保存の検査 **6/6合格**、app.jsの実maintenance関数を直接使ったactive中lock待ち/end後releaseも合格。コード模擬試験でありiPad実機のSafari背景遷移はまだ未検証。
+- 変更したスクリプトのSRIはSHA-384標準テストと別資産ハッシュで照合して `sha384-e/URJOYeYYni1wEuOm28e0dNflpTgFONcTSDx3ziQsiYIgxWDxeiq4h4AiMJ5d64` に更新。6資産のindex/SWを統合 `split-prep-20261030-integrated-v04`、SWキャッシュ `20261030-kana01-split-prep-v04` に合わせた。index commit `ce82c86ed4a4d21ca7ab7372f7a41d5f9fb05961`、SW commit `031cb1590141ea16ac9403f26b34ba7ece1a1797`。
+- 静的検査6/6合格、旧形式 .mswdb のアプリ関数維持、app.js SHA維持、本番main index/SW SHA不変確認。統合ブランチの申し送り `SPLIT_BACKUP_PREP_NOT_RELEASED.md` 更新commit `2114a71a2cc06912629148d8bec12e6bfb071362`。患者保存領域、公開mainおよび既存暗号化バックアップは一切変更していない。
+- 残りはフルアプリ統合候補の**隔離したURL/DBでの実機確認**とユーザーの明示的な公開承認。元の約198KB app.jsのテスト複製は安全性チェックでブロックされたため、迂回しない。導入準備は98%（推定）据え置き。ユーザー側の追加操作は現時点で不要。
