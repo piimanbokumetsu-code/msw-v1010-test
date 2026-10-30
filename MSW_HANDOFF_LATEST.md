@@ -882,3 +882,11 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 書出UIはパート保存待ちを含む全工程、復元UIはpreflight・PIN確認・コミットまでロック。Safari背景移行で書出中断すると解放。実コードと共有Web Locksを模した2タブ回帰試験 **6/6合格**。iPad Safariでの同時2タブ実機試験ではない。
 - GitHub commits: export UI`097e80b430c1f8ac165160065c60c2838556b860`、import UI`bb460e6f95e05f35bf56357b4517918952be4000`、index SHA-384 SRI/参照v06`3afd9b8ba089d4efaf031434a567d24e38ee0e4b`、SW cache v06`7dcac170c93f2ad3cb6abf2a7786e6c0e106cab9`。6/6静的構文・SRI・SW・順序一致。元app.js/旧単体.mswdb処理残存と本番main index/sw SHA不変を再確認。統合ブランチ引継ぎcommit`66be0ca58b4f6f2f76598a4ad654d2d62567ae95`。
 - **注意:** Web Locks追加で全タブの患者編集/旧バックアップを排他できるわけではない。単一タブでの実務運用を推奨し、未公開フル統合アプリの独立URL/DB実機起動・既存機能共存検証が未完了。GitHub接続が以前ブロックしたapp.jsの外部repo複製は迂回しない。ユーザー承認前に本番公開禁止。推定進捗98％据え置き。
+
+
+### 2026-10-30 未公開統合v07：iPad大容量復元の保存容量事前チェック
+- Safari/iPad版のWeb Locks APIはiOS Safari 15.4以降に対応（Web仕様確認）。Safari StorageManager.estimateは目安であり成功保証ではない。
+- `msw-ipadmini-app/msw-ipadmini-app.github.io` 未公開 `integration-kana-split-backup-prep-20261030` の `split-import-bridge.js` に、元データ置換や写真の一時保存前に保存領域の空き推定を検査する `checkStageCapacity` を追加。写真パート総量より少ないと推定される場合だけ開始前に停止し、患者情報を置換しない。取得不能/不正見積ではこれだけを理由に阻止しない。commit `36ffdd233b39e1af133d2ac84307aa25b7aca15f`。
+- 模擬容量ケース6/6・実ブリッジで低容量時元データ維持1/1、計7/7合格。実iPadの容量限界を保証しない。
+- 変更JSのSHA-384 SRIを検証、index/SW全6件を `split-prep-20261030-integrated-v07` / `20261030-kana01-split-prep-v07` に統一、6/6静的整合・構文・キャッシュ順を確認。index commit `306092c24a0c7313e56616449bd14ec5b05e7882`、SW `836e17a75657aa79276d8232bbf36b913424a257`。元app.jsの旧単体バックアップと本番mainのindex/sw SHAも変更なし。
+- 未公開ブランチ申し送り `SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit `5576f3d91791598c5ad5304f07a75d70afcae469`。未だフルアプリの別URL/DBでの実機統合確認とユーザー公開承認が未完了。安全フィルターでブロックされたapp.jsの別repo複写は迂回しない。本番患者情報/PIN/105.2MB既存バックアップには一切触れていない。導入準備推定98%。
