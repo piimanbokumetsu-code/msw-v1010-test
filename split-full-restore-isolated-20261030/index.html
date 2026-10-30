@@ -2,7 +2,7 @@
 <html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>MSW 架空患者・写真の完全復元／中断保護試験 v01</title>
+<title>MSW 架空患者・写真の完全復元／中断保護試験 v02</title>
 <style>
 body{margin:0;background:#f2f6fb;color:#152437;font:17px/1.6 -apple-system,BlinkMacSystemFont,sans-serif}
 main{max-width:740px;margin:16px auto 42px;background:#fff;padding:20px;border-radius:16px;border:1px solid #d0dce9}
@@ -10,10 +10,10 @@ h1{font-size:1.35rem;line-height:1.4}button{display:block;width:100%;font:600 1.
 .note{background:#e8f3fd;padding:15px;border-radius:9px}#summary,#results{background:#f3f6f9;padding:14px;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}
 #results{font-size:.93rem;line-height:1.9}small{color:#526274}
 </style></head><body><main>
-<h1>架空患者・写真の完全復元／中断保護試験 v01</h1>
+<h1>架空患者・写真の完全復元／中断保護試験 v02</h1>
 <p class="note">実患者情報・本番アプリ・本番暗証番号は使用しません。別名の架空専用IndexedDBだけを初期化します。ネットワーク送信は行いません。</p>
-<p>未公開の分割復元コード <code>split-import-bridge.js</code> を同一内容で読み込み、架空患者2件・架空JPEG2件を暗号化して、正常復元と5種類の失敗時保護を自動検証します。</p>
-<button id="start">架空の完全復元・中断保護 6項目を検証</button>
+<p>未公開の分割復元コード <code>split-import-bridge.js</code> を同一内容で読み込み、架空患者2件・架空JPEG2件を暗号化して、正常復元・5種類の失敗時保護・復元後画面エラーの誤報告防止を自動検証します。</p>
+<button id="start">架空の完全復元・中断保護 7項目を検証</button>
 <div id="summary" role="status">未実施</div>
 <pre id="results"></pre>
 <p><small>写真2件の小容量試験です。約136MiBの全写真復元や実患者データの復元、保存容量不足の動作を保証するものではありません。本番の患者管理アプリや既存バックアップには触れません。</small></p>
