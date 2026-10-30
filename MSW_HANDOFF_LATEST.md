@@ -791,6 +791,18 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - ③用に別URL・別DBの架空統合アプリをtest repoへコピーする操作を試みたが、GitHub接続の安全性チェックでブロックされた。現時点で架空統合アプリのURLを提示しない。本番mainに未検証コードを公開しない。安全に独立配信できる手段の確立が次の作業。
 - 患者記録・写真・PIN・105.2MB保存済み.mswdb・本番mainは未変更。ユーザーにはまだ追加操作を求めない。
 
+### 2026-10-30 独立・架空患者専用の分割バックアップ統合UI試験ページ v01を作成
+- iPad miniで独立完全復元安全試験v03は7/7合格済み、再実施不要。未公開アプリ本体への6JS index/SRI/SW接続も完了、本番mainは無変更。
+- GitHub接続の安全性チェックで大きな本番候補app.jsを別URLへ複製する処理はブロック。これを理由に本番で直接実験することはしない。
+- test repo piimanbokumetsu-code/msw-v1010-test 内に架空患者専用ミニアプリ split-ui-integration-fake-20261030/ を作成。
+- URL: https://piimanbokumetsu-code.github.io/msw-v1010-test/split-ui-integration-fake-20261030/?v=01
+- index.html, fake-app.js と分割部品6件の計8ファイルをGitHub上に作成し再取得確認。形式・書出・読込・ファイル選択の実処理4JSは未公開候補と完全同一Git blob SHA。書出と読込の2UI JSはorigin/pathname制約だけ架空専用URLに変更。
+- fake-app.jsは専用IndexedDB名msw_fake_split_ui_integration_20261030_v01、固定架空PIN FAKE-TEST-ONLY-PIN、架空患者2件とCanvas生成JPEG写真2件を使用。実患者氏名・本番PIN・本番.mswdbを使わない。
+- 8ファイル再取得後の静的確認：7 JS構文PASS、読込順序OK、専用URL制約OK、同一blob SHA 4/4、架空DB名・本番DB名不在、fetch通信とService Worker登録なし。
+- **iPad miniでの開通・書出・読戻し操作は未確認。** 本番フルアプリとは異なる架空専用ミニアプリであり、本番アプリの動作確認完了とは断言しない。
+- 次の一操作：ユーザーがiPad mini Safariで新URLを開いて画面表示をタップ回答で報告。その後、架空分割UIの書出と復元を一操作ずつ試す。既に合格した136MiB 14ファイル保存試験と7/7安全試験は繰り返さない。
+- 本番main、実患者記録・写真・暗証番号、既存105.2MB単体バックアップには変更なし。
+
 ## 8. 本書を更新した時のチェック欄
 - [ ] 現物のGitHub main /開発ブランチ SHAを照合した
 - [ ] 本番コードと実患者保存領域を無断変更していない
