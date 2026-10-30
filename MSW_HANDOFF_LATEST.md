@@ -897,3 +897,11 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - 実コードと模擬ファイル/DBで`MSWSplitV04.verify`中断 **4/4**、`MSWImportBridge.run`中断・取り消し・完了 **7/7** 合格。模擬試験でありiPad実機のバックグラウンド試験ではない。
 - 修正コミット format `4c3de897094fbb8efbee424752e23fe133c577c2`、bridge`5281a122b03f9dea2c3671da7256b31ebd26f12d`、UI`59a23bb76225ce2eef527622902e6a44cd9f63ba`。3件のSHA-384 SRI再計算、index/SWの6件を`split-prep-20261030-integrated-v08`/ SWキャッシュ`20261030-kana01-split-prep-v08`に更新。index`9533b04a71512eba2fdea1d397bafa61050f3b34`、SW`9f4371e604de727afcfc9653b86115756542c42f`。6/6静的照合・順序正常、旧`.mswdb`と元`app.js`維持、本番main index/SW SHA不変を再確認。
 - 本番組み込みブランチの申し送りは`SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit`ef2715390e5752ba18bfffb2d1d944502837c3fd`に保存。架空患者のiPad mini E2E検証100%合格は維持。**未完了はフル本番候補の独立URL/別IndexedDBによるiPad統合確認とユーザーの明示公開承認**。以前のGitHub安全チェックにより拒否されたapp.jsの別repo複製を迂回しない。公開main、実患者/PIN、既存バックアップは未変更。導入準備進捗は推定98%据え置き。
+
+
+### 2026-10-30 未公開統合v09：検証後の写真パート再読込でもSHA-256照合
+- 未公開`msw-ipadmini-app/msw-ipadmini-app.github.io` の`integration-kana-split-backup-prep-20261030`のみ修正。`MSWSplitV04.verify`が全パートを検証したあと、ブリッジが写真パートを`file.text()`で二度目に読む際にはハッシュ再照合がなかったTOCTOU危険を発見。
+- `split-format.js`に`readVerifiedPhotoPart`追加。二度目読込の名前・サイズ・番号・run・SHA-256・写真件数と暗号フィールドを再照合。`split-import-bridge.js`はmanifest順にこれを使ってからAES復号・一時写真保存。不一致なら原子的な患者置換前に停止、既存の`splitstage:`一時データ整理で元患者保護。coreパートの不要な二度目読込は廃止。commit format`30e414f56b10a8027253a6085f8fc089ebbc0a36`、bridge`c0451cd86fe865ab7660224d24fc7221e0ccd9be`。
+- 実コードを使用した合成ファイル（digestは合成代替）の連動検証3/3合格：正常3パートの逆順選択・キャンセル、写真Aだけ二度目読込変更、写真Bだけ変更。元患者記録保持と一時写真後始末を確認。実SHA-256暗号強度やiPad実機の大容量性能を検証したものではない。
+- SHA-384 SRIを変更2 JSで更新、index/SWの6資産を`split-prep-20261030-integrated-v09`／キャッシュ`20261030-kana01-split-prep-v09`に統一。static6/6構文・SRI・SW参照/順序合格。commit index`95526eca4ae94fe189bacd3726bacf1ac6a8e6ef`、SW`d4fb80cc95f555f41f11898b8f59b84f200a4a5d`。公開main index/swと元のapp.jsは不変。未公開詳細申し送り`SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit`1c063cd10fb3306bf1326a49c071ba88038458e9`。
+- 残るゲートはフルアプリの別URL/DBでのiPad統合検証（既存単体バックアップ共存、大容量写真復元と背景ロック）と明示的な本番承認。以前GitHub安全チェックでブロックされた本体app.jsの他repo複製を迂回しない。臨床本番患者・PIN・バックアップ未接触、追加ユーザー操作不要。導入準備推定98%（進捗は動かさず）。
