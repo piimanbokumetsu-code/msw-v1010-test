@@ -28,7 +28,11 @@ let core=null,passKey=null,index=null,photoIds=[];
 const report=await MSWSplitV04.verify({manifestFile:manifest,partFiles:parts,getReferenceIds:async v=>{
 core=v;
 try{passKey=await derive(pin,unb64(v.meta.salt))}
-catch(e){throw Error('診断A：鍵の生成に失敗（暗証または管理ファイル）')}
+catch(e){
+ if(String(e?.message||'').startsWith('診断PIN：'))throw e;
+ if(e?.name==='InvalidCharacterError')throw Error('診断A1：管理ファイル中の暗号saltが不正');
+ throw Error('診断A2：鍵の生成に失敗（'+String(e?.name||'UnknownError')+'）');
+}
 let check;
 try{check=await decryptObj(v.meta.check,passKey)}
 catch(e){throw Error('診断B：バックアップ暗証の照合に失敗（AES認証）')}
