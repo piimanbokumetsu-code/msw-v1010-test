@@ -875,3 +875,10 @@ F. 更新の都度、本書には次の欄を埋める: 「対象/コミットSH
 - PINが違うか認証情報が破損している場合、英語OperationErrorの代わりに日本語で適切に案内するよう、ブリッジを修正。元のハッシュ・AES-GCM確認と原子的な復元処理は変更せず。
 - JSモック試験：前置チェック6/6、PIN/AESエラー2/2、UIを使用した連動チェック3/3。全6 JS構文/HTML SRI/SW資産の版v05と順序6/6合格。commit bridge `539ed7c9565998156a9d692290937667e9ec6038`、UI最終 `b25f3a03086a2a202faf1589cbc1fdfc5d62e9bf`、HTML `7eef3602b2630bb3ba7c635a5a0572d741e61f74`、SW `c4e02be71a32d147630fb8e5b3fb2f6967e3a074`。統合ブランチ引継ぎ `SPLIT_BACKUP_PREP_NOT_RELEASED.md` commit `8b2d42cd998a3d88497a7616f4e6ee5de02f65cc`。
 - 本番main index/sw SHA不変・旧単体.mswdb関数残存・app.js sha不変を再取得。ユーザーのiPadで追加操作不要。固定98%は最終フル統合隔離実機検証と公開承認の工程を未完了とするため。安全チェックでブロックされたフルapp.jsの別Repo複写は迂回せず。本番の実患者情報、PIN、既存バックアップには一切触れない。
+
+
+### 2026-10-30 未公開統合v06：Safari複数タブからの同時分割操作防止
+- `msw-ipadmini-app/msw-ipadmini-app.github.io`の未公開`integration-kana-split-backup-prep-20261030`のみ更新。Safari複数タブのJavaScript独立`maintenanceAction`では分割書出/復元同士が競合しうるため、`navigator.locks`の同一origin Web Locksで`msw-clinical-split-backup-v1`排他を導入。`ifAvailable:true`で使用中なら中止、API非対応は安全側で中止。
+- 書出UIはパート保存待ちを含む全工程、復元UIはpreflight・PIN確認・コミットまでロック。Safari背景移行で書出中断すると解放。実コードと共有Web Locksを模した2タブ回帰試験 **6/6合格**。iPad Safariでの同時2タブ実機試験ではない。
+- GitHub commits: export UI`097e80b430c1f8ac165160065c60c2838556b860`、import UI`bb460e6f95e05f35bf56357b4517918952be4000`、index SHA-384 SRI/参照v06`3afd9b8ba089d4efaf031434a567d24e38ee0e4b`、SW cache v06`7dcac170c93f2ad3cb6abf2a7786e6c0e106cab9`。6/6静的構文・SRI・SW・順序一致。元app.js/旧単体.mswdb処理残存と本番main index/sw SHA不変を再確認。統合ブランチ引継ぎcommit`66be0ca58b4f6f2f76598a4ad654d2d62567ae95`。
+- **注意:** Web Locks追加で全タブの患者編集/旧バックアップを排他できるわけではない。単一タブでの実務運用を推奨し、未公開フル統合アプリの独立URL/DB実機起動・既存機能共存検証が未完了。GitHub接続が以前ブロックしたapp.jsの外部repo複製は迂回しない。ユーザー承認前に本番公開禁止。推定進捗98％据え置き。
