@@ -38,7 +38,38 @@ async function ensureFakeData(){
  await new Promise((resolve,reject)=>{const t=db.transaction(STORE,'readwrite'),s=t.objectStore(STORE);s.put(meta0,'meta');s.put(data,'data');s.put(photoA,'photo:fake_a_photo');s.put(photoB,'photo:fake_b_photo');t.oncomplete=resolve;t.onerror=()=>reject(t.error)});
  meta=meta0;
 }
-async function unlock(){key=await derive(TEST_PIN,unb64(meta.salt));const test=await decryptObj(meta.check,key);if(test!==true&&test?.ok!==true)throw Error('架空PINの照合に失敗');state=await decryptObj(await idbGet('data'),key);await renderSettings()}
+async function renderPhotoReview(){
+ const panel=document.createElement('section');panel.id='fakePhotoReview';panel.className='panel';
+ const heading=document.createElement('h3');heading.textContent='架空患者・保存済み写真の表示確認';
+ panel.appendChild(heading);
+ const status=document.createElement('p');status.className='note';status.setAttribute('role','status');status.textContent='保存領域から暗号化写真を確認しています…';
+ panel.appendChild(status);
+ ROOT.appendChild(panel);
+ let expected=0,shown=0;
+ try{
+  for(const patient of state.patients||[]){
+   const line=document.createElement('div');line.className='fake-review-patient';
+   const name=document.createElement('h4');name.textContent=patient.name||patient.id;line.appendChild(name);
+   panel.appendChild(line);
+   for(const attachment of patient.attachments||[]){
+    expected++;
+    const raw=await idbGet(photoKey(attachment.id));
+    if(!raw)throw Error('保存済み写真が見つかりません：'+attachment.id);
+    const photo=await decryptObj(raw,key);
+    validateStoredPhoto(photo);
+    const img=document.createElement('img');
+    img.alt=(patient.name||'架空患者')+'の架空試験写真';
+    img.style.cssText='display:block;width:100%;max-width:330px;height:auto;margin:7px 0 14px;border:1px solid #abc9db;border-radius:7px';
+    img.onload=()=>{shown++;status.textContent='患者 '+(state.patients||[]).length+' 名・写真 '+shown+' / '+expected+' 枚を表示'+(shown===expected?'（表示成功）':'')};
+    img.onerror=()=>{status.textContent='写真の画像表示に失敗しました。確認が必要です'};
+    line.appendChild(img);
+    img.src=photo.dataUrl;
+   }
+  }
+  status.textContent='患者 '+(state.patients||[]).length+' 名・保存済み写真 '+expected+' 枚を検証済み。画像を表示しています…';
+ }catch(e){status.textContent='架空写真の確認エラー：'+(e?.message||String(e))}
+}
+async function unlock(){key=await derive(TEST_PIN,unb64(meta.salt));const test=await decryptObj(meta.check,key);if(test!==true&&test?.ok!==true)throw Error('架空PINの照合に失敗');state=await decryptObj(await idbGet('data'),key);await renderSettings();await renderPhotoReview()}
 function renderLock(){ROOT.innerHTML='<section class="panel"><h2>架空試験：復元後のロック状態</h2><p>架空患者データは端末の独立した保存領域にあります。</p><button id="unlockFake" class="btn">固定の架空PINでロック解除</button><p id="unlockInfo" class="note"></p></section>';document.getElementById('unlockFake').onclick=()=>unlock().catch(e=>document.getElementById('unlockInfo').textContent=String(e.message||e))}
 async function renderSettings(){
  if(!state)throw Error('架空患者のロック解除が必要');
