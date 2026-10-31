@@ -239,3 +239,11 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - Screenshot visibly shows BOTH `＋患者（新規登録）` and `フリガナ一括確認（未確認49人）`; inpatient counter 50; patient bed map renders. No real patient names or bed-linked personal information is copied into this GitHub note.
 - Header version suffix remains KANA01 as expected because core `app.js` is unchanged and KANA02 is an add-on. First screenshot-level production UI verification is passed.
 - Still need user confirmation that existing count 50 and bed placement match pre-update; screenshot alone cannot establish absence of lost/changed clinical data. Do not run bulk confirmation or data destructive actions.
+
+## KANA02 production rollout completed
+- GitHub main PR #5 merge completed; production app code verified.
+- User confirmed existing patient count remained 50 and ward bed layout unchanged.
+- User confirmed both new KANA02 action buttons appear in production iPad PWA.
+- User opened the batch furigana review and returned to the patient list using its Back button successfully.
+- Production rollout checks completed; no live patient readings were bulk confirmed as part of deployment.
+- Completion scope: deployment and non-destructive user interface checks. Recovery of all clinical data and pictures is not covered by the medicine master backup; split backup development stays on hold per user's decision.
