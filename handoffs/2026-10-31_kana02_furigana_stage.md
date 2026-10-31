@@ -233,3 +233,9 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - `index.html` includes both KANA02 scripts and SRI; production `sw.js` contains `20261031-kana02-rc1-ready-for-approval` cache key and both offline assets.
 - **GitHub source merge fully verified, but user iPad mini Safari/PWA live application update and patient preservation still need confirmation.** Browser-source tool could not access the GitHub Pages URL (tool limitation). Do not claim actual iPad deployment success until user confirms.
 - Next one action: on iPad mini open existing production application in Safari/PWA without clearing its data; inspect current patient count/bed assignment and check whether the two actions `＋患者（新規登録）` and `フリガナ一括確認` are present. If update is pending, use existing in-app update control only with sheet closed, then check again, one operation at a time. No reinstall, site-data deletion, or new backup request.
+
+## 2026-10-31 KANA02 production iPad PWA screenshot confirms visibility
+- User provided 2026-10-31 iPad mini production PWA screenshot after approved PR #5 merge.
+- Screenshot visibly shows BOTH `＋患者（新規登録）` and `フリガナ一括確認（未確認49人）`; inpatient counter 50; patient bed map renders. No real patient names or bed-linked personal information is copied into this GitHub note.
+- Header version suffix remains KANA01 as expected because core `app.js` is unchanged and KANA02 is an add-on. First screenshot-level production UI verification is passed.
+- Still need user confirmation that existing count 50 and bed placement match pre-update; screenshot alone cannot establish absence of lost/changed clinical data. Do not run bulk confirmation or data destructive actions.
