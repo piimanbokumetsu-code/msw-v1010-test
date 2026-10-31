@@ -293,3 +293,7 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 ## KANA03 alternate-reading selection updates input (iPad verified)
 - User confirmed in iPad mini Safari fake-app batch screen: for fictional 「宇都宮明子」, choosing a different entry in the 「別の読み候補を選ぶ」 menu **updates the furigana input field to that chosen reading**. Candidate display 4/4 and choice list opening had already passed. No Confirm button was pressed yet; storage/persistence is untested.
 - Next single safe test: press Confirm for this fake patient only; check the fake pending count decreases from 4 to 3, then in a later separate step verify saved text persists after opening again. Never use this test on production data; PRs unmerged and production unchanged.
+
+## KANA03 fake confirmed reading excluded after reopening batch
+- User's iPad mini Safari KANA03 full-app fake test: for 「宇都宮明子」 they selected a different furigana candidate, tapped 「確認」, observed status 「済」 and pending count changed 4→3. Then tapped 「← 戻る」 and successfully returned to the five-patient list. Reopening 「フリガナ一括確認」 showed only the other three pending fake patients, excluding 「宇都宮明子」. This establishes that the saved confirmed status is reflected after closing/reopening the modal, NOT yet that the reading persisted across a page reload or remains in the Basic tab. No production changes or real patient names.
+- Next: leave the batch dialog and inspect 「宇都宮明子」 in its Basic tab, then eventually verify page reload persistence. Follow one tap at a time.
