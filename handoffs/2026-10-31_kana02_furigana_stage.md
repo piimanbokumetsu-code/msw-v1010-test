@@ -258,3 +258,10 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - User reports the independent full-app fake stage showed four fake records and all three unconfirmed fake records displayed katakana candidate readings in its batch-review modal on iPad Safari.
 - No confirmed flag or live patient data changed during this test. Full-app fake test scope passes candidate display; production issue #6 (49 empty candidates) remains unresolved, and draft PR #7 is **not merged**.
 - Next is a production read-only observation to distinguish overall name suggestion vs batch-only failure. Do not repeat fake tests or request actual names, PIN, backups, or destructive actions.
+
+## KANA02 production unspaced name and anonymized diagnostics
+- User confirmed production display names are contiguous surname + given name, with no separating space. KANA02 already handles unspaced names for dictionary-recognized combinations; do not claim no-spaces itself caused the failure.
+- Production batch 49/49 blank, one unconfirmed basic tab blank, placeholder displayed. Root cause not proven; no production hotfix merged.
+- Draft-only PR #7 now also includes local, read-only aggregated candidate diagnostics: candidate found, surname candidate known but given unreadable, surname unknown, format ambiguity, empty name. Report only numbers and classification to user, never names, and perform no writes/transmissions.
+- Fake standalone full-app stage `kana02-anon-diagnostic-fake-20261031/` was created with a new fake DB and four invented patients. Diagnostic callback check 9/9 pass; draft PR 4-file static integrity 8/8 pass, including matching SHA384 asset integrity and unchanged app.js/RX047.
+- Next user action: open the new isolated fake diagnostics stage on iPad Safari and confirm four invented records display, then in a separate step test that counts report is 1/1/1. Do not request real names or change production before user approval.
