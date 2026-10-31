@@ -50,6 +50,10 @@ async function decryptObj(v,k=key){
  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(v.iv)},k,fromB64(v.ct));
  return JSON.parse(dec.decode(plain));
 }
+async function encryptPatientIndex(candidate,k=key){
+ const minimal=JSON.parse(JSON.stringify(candidate));
+ return encryptObj(minimal,k);
+}
 function orderedDataWrite(callback){
  const next=dataWriteTail.then(callback);dataWriteTail=next.catch(()=>{});return next;
 }
