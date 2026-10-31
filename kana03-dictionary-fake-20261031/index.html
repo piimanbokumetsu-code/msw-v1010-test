@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';connect-src 'none';object-src 'none';base-uri 'self';form-action 'none'">
+<title>KANA03 大幅辞書拡充・架空氏名テスト</title>
+<style>
+*{box-sizing:border-box}html{background:#edf5f3}body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;color:#183b3b;margin:0;padding:14px}main{max-width:850px;margin:0 auto}h1{font-size:23px;margin:.4em 0}.note{background:#e2f4e9;border:1px solid #9dbca9;border-radius:10px;padding:12px;margin:10px 0}.result{background:#fff;border:2px solid #b8d4d1;border-radius:12px;padding:14px;margin:15px 0;font-size:22px;font-weight:800}.ok{color:#087a54}.fail{color:#ad2424}.entry{border:1px solid #d9e6e2;border-radius:11px;background:#fff;padding:12px;margin:8px 0;display:grid;grid-template-columns:1fr auto;column-gap:12px}.label{font-size:13px;color:#5b7672}.name{font-weight:800}.value{font-weight:600;color:#1c5658}.pick{min-width:160px;max-width:100%;padding:9px;font-size:16px;border:1px solid #a0b9b5;border-radius:8px;background:white}.status{font-weight:bold}.small{font-size:13px;color:#526869}footer{padding-bottom:30px}
+</style>
+<script defer src="../kana02-full-app-fake-20261031/kana02-core.js"></script>
+<script defer src="./kana03-surnames.js"></script>
+<script defer src="./kana03-given-01.js"></script>
+<script defer src="./kana03-given-02.js"></script>
+<script defer src="./kana03-given-03.js"></script>
+<script defer src="./kana03-given-04.js"></script>
+<script defer src="./kana03-given-05.js"></script>
+<script defer src="./kana03-given-06.js"></script>
+<script defer src="./kana03-given-07.js"></script>
+<script defer src="./kana03-given-08.js"></script>
+<script defer src="./kana03-core.js?v=rev2"></script>
+<script defer src="./test.js?v=rev1"></script>
+</head><body><main>
+<h1>KANA03 フリガナ候補・拡充テスト</h1>
+<p class="note">姓・名の間にスペースがなくても候補を探す新しい検証版です。ここには架空の氏名だけが表示されます。実患者データ・暗証番号・バックアップは読み込まず、保存・送信もしません。</p>
+<div id="summary" class="result" role="status">架空氏名の辞書を読み込み中…</div>
+<p class="small">同じ漢字に複数の読みがある場合、下の候補欄から別の読みを選べます。この画面の選択は保存されません。</p>
+<section id="cases"></section>
+<footer class="small">公開辞書は japanese-personal-name-dataset（MIT License）を基に加工。出典・著作権表示：同じフォルダの THIRD_PARTY_NOTICES.txt。候補は確定読みではありません。</footer>
+</main></body></html>
