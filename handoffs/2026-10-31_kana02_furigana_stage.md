@@ -269,3 +269,8 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 ## KANA02 anonymous diagnosis 1-1-1 iPad validation
 - User confirmed read-only fictitious iPad integration test produces 1 candidate available / 1 known surname but unreadable given name / 1 unknown surname, matching predicted outcomes. Fake four-patient stage works on iPad Safari.
 - Production all-blank issue is unresolved. Make diagnostic-only minimal PR separately from core-normalization draft PR #7, and seek explicit user approval before any production release.
+
+## KANA02 diagnostic-only production candidate PR8
+- User verified iPad mini Safari read-only count classification 1/1/1 using 4 invented patients in a fully isolated fake application.
+- Diagnostic-only DRAFT pull request #8 in live production repo changes just addon/HTML/SW; existing core reading dictionary, app.js, RX047 and IndexedDB are unchanged. 10/10 minimal-diff checks; 5/5 isolated direct callback checks. Not merged or installed in production; explicit user authorization is required before deploying.
+- Separate draft PR #7 contains possible name-separator fixes; root cause of the 49 production blanks is still unknown. No actual clinical data or name submitted to GitHub.
