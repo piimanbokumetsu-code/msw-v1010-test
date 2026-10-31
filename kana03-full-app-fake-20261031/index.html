@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';connect-src 'none';img-src 'self' data: blob:;font-src 'self' data:;object-src 'none';base-uri 'self';form-action 'none'">
+<meta name="theme-color" content="#0f766e">
+<title>KANA03 患者管理本体・架空患者専用</title>
+<link rel="stylesheet" href="../kana02-full-app-fake-20261031/styles.css">
+<style>
+#fakeDemoBanner{position:relative;z-index:10;background:#e9f5ed;color:#22543c;border-bottom:2px solid #81b28a;padding:9px 12px;text-align:center;font-size:14px;font-weight:800}
+#fakeDemoBanner small{font-size:12px;font-weight:500;display:block;margin-top:4px}
+</style></head><body>
+<div id="fakeDemoBanner">KANA03 大幅辞書拡充・本体統合テスト（架空患者5人）
+<small>実患者の氏名・職場の暗証番号・実データのバックアップは絶対に入力しないでください。元のアプリと完全に別の架空データ専用保存領域を使用しています。</small>
+<small>未確認の架空患者4人は姓・名のスペースなし。読み候補が複数ある場合は「別の読み候補を選ぶ」で変更できます。確認済み1人の読みを保護します。</small>
+<small>辞書出典：japanese-personal-name-dataset (MIT License)。画面内に実患者の情報はありません。</small>
+</div>
+<div id="app"><p style="padding:20px">KANA03の架空患者テストを起動しています…</p></div>
+<input id="fileInput" type="file" hidden>
+<script src="./app.js"></script>
+<script src="../kana02-full-app-fake-20261031/kana02-core.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-surnames.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-01.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-02.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-03.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-04.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-05.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-06.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-07.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-given-08.js"></script>
+<script src="../kana03-dictionary-fake-20261031/kana03-core.js?v=rev2"></script>
+<script src="./kana03-addon.js?v=alternates1"></script>
+</body></html>
