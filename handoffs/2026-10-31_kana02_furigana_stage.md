@@ -289,3 +289,7 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 
 ## KANA03 iPad alternative-readings picker displayed
 - User reported on iPad mini Safari in the isolated `kana03-full-app-fake-20261031/` test that tapping the 「別の読み候補を選ぶ」 control for invented 「宇都宮明子」 displays multiple katakana choices. This confirms alternate options open, but does NOT yet prove selection updates the preview input or is persisted. Next test: select one different fake reading (not Confirm); verify input text changes. No production update, no personal data.
+
+## KANA03 alternate-reading selection updates input (iPad verified)
+- User confirmed in iPad mini Safari fake-app batch screen: for fictional 「宇都宮明子」, choosing a different entry in the 「別の読み候補を選ぶ」 menu **updates the furigana input field to that chosen reading**. Candidate display 4/4 and choice list opening had already passed. No Confirm button was pressed yet; storage/persistence is untested.
+- Next single safe test: press Confirm for this fake patient only; check the fake pending count decreases from 4 to 3, then in a later separate step verify saved text persists after opening again. Never use this test on production data; PRs unmerged and production unchanged.
