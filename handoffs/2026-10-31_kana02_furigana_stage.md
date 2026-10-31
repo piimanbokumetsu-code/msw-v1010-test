@@ -281,3 +281,8 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - Prototype `kana03-core.js` recognizes concatenated surname+given without space, uses extended offline names as a fallback while respecting KANA02 common-reading priority, shows up to 8 alternatives, preserves confirmed and manually-entered readings, never sends or stores data itself. Fake standalone test 21/21 pass in code.
 - Full isolated fake app `kana03-full-app-fake-20261031/` includes 5 synthetic inpatients (4 pending, one confirmed), alternate-reading dropdown only in batch view, new dedicated fake DB name. Static code/source integration 11/11 pass and all four invented surname+given readings match expected. User iPad mini Safari verification is pending.
 - Next: user to open new full-app fake iPad test, confirm five patients display, then separately verify the four auto suggestions. No production deployment without explicit new authorization.
+
+## KANA03 iPad Safari batch 4-of-4 candidate display
+- iPad mini Safari operator confirmed `kana03-full-app-fake-20261031/` opens with five invented inpatients and the batch review shows automatic katakana candidate suggestions for **all four unconfirmed fake patients**. They had contiguous no-space surnames and given names. This is real-device UI verification, not production/real-patient proof.
+- Prior isolated code checks 21/21 engine and 11/11 integration; next safe check: alternate-reading dropdown for one fake patient only. Do not confirm/save until explicitly testing that step. One confirmed fake patient remains protected.
+- KANA03 has no production merge or deployment approval. Existing 50 patient records/49 pending are untouched. The earlier diagnostic-only PR #8 and normalization-only PR #7 were not merged.
