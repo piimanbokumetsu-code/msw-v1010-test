@@ -286,3 +286,6 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - iPad mini Safari operator confirmed `kana03-full-app-fake-20261031/` opens with five invented inpatients and the batch review shows automatic katakana candidate suggestions for **all four unconfirmed fake patients**. They had contiguous no-space surnames and given names. This is real-device UI verification, not production/real-patient proof.
 - Prior isolated code checks 21/21 engine and 11/11 integration; next safe check: alternate-reading dropdown for one fake patient only. Do not confirm/save until explicitly testing that step. One confirmed fake patient remains protected.
 - KANA03 has no production merge or deployment approval. Existing 50 patient records/49 pending are untouched. The earlier diagnostic-only PR #8 and normalization-only PR #7 were not merged.
+
+## KANA03 iPad alternative-readings picker displayed
+- User reported on iPad mini Safari in the isolated `kana03-full-app-fake-20261031/` test that tapping the 「別の読み候補を選ぶ」 control for invented 「宇都宮明子」 displays multiple katakana choices. This confirms alternate options open, but does NOT yet prove selection updates the preview input or is persisted. Next test: select one different fake reading (not Confirm); verify input text changes. No production update, no personal data.
