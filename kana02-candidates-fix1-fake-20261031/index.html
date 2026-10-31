@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>KANA02 読み候補修正版・架空患者のみ検証</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;background:#f0f6f5;color:#163839;margin:0;padding:18px}main{max-width:880px;margin:auto}h1{font-size:23px;margin:0 0 12px}p{line-height:1.6} .notice{background:#e4f5f0;border:1px solid #85c7b7;border-radius:10px;padding:12px;font-weight:650}.summary{margin:15px 0;padding:16px;border-radius:12px;background:#fff;font-size:21px;font-weight:800;border:1px solid #c8dcd8}.summary.ok{color:#08704f}.summary.err{color:#a22324}.tests{display:grid;gap:8px}.test{background:#fff;border:1px solid #d5e4e0;border-radius:10px;padding:11px;display:grid;grid-template-columns:1fr auto;gap:8px}.test .name{font-weight:700}.test .reading{display:block;color:#315c5b;margin-top:5px;font-size:15px}.test .mark{font-size:15px;font-weight:800;white-space:nowrap}.caption{color:#4d6462;font-size:13px;margin-top:18px}
+</style>
+<script defer src="./kana02-core.js?v=format-fix1"></script>
+<script defer src="./test.js?v=format-fix1"></script>
+</head>
+<body><main>
+<h1>KANA02 フリガナ候補・修正版テスト</h1>
+<p class="notice">架空の氏名のみを使う独立した検証画面です。実際の患者情報や暗証番号は読み込まず、保存・変更もしません。</p>
+<p>通常の氏名・文字の間に見えない区切りがある氏名・確認済みの読みを保護する動作をまとめて確認します。</p>
+<div id="summary" class="summary" role="status">架空の候補を検証しています…</div>
+<div id="tests" class="tests"></div>
+<p class="caption">これは修正版の架空データ検査です。現在の本番アプリへの修正反映ではありません。本番の全患者で候補が出る保証をするものでもありません。</p>
+</main></body></html>
