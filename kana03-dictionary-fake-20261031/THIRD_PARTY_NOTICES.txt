@@ -1,0 +1,47 @@
+KANA03 offline Japanese personal-name readings: data license and provenance
+=============================================
+Data source: shuheilocale/japanese-personal-name-dataset
+Original repository: https://github.com/shuheilocale/japanese-personal-name-dataset
+Original license: MIT (text below).
+Upstream CSVs: last_name_org.csv, first_name_man_org.csv, first_name_woman_org.csv,
+first_name_man_opti.csv, first_name_woman_opti.csv
+Retrieved for the isolated fake-data-only KANA03 prototype on 2026-10-31.
+Original upstream content Git blob IDs:
+last_name_org.csv b3526929dbd92d59f5d104ec0c555cbcb929101e
+first_name_man_org.csv a86d5e1a6cb4e218e5368bf20898cc7f4799db2c
+first_name_woman_org.csv f79457114ddd396ec2ffb21146988ad872bd33e2
+first_name_man_opti.csv 8a98b34c46a3e395e7bd2e99872ad93642cba08a
+first_name_woman_opti.csv 25ea88051e3d6c0ab9c75982541f2de6b143ec5a
+
+Transform: convert hiragana readings into katakana, deduplicate identical
+readings for each spelling, favor the upstream optimized subset when present,
+retain up to eight distinct readings per given-name spelling, and split
+the 70,296 given-name spellings into eight JS files for offline loading.
+No patient record or clinical data was used to create these dictionary files.
+
+This dataset's names may have several valid pronunciations. Software-produced
+readings are suggestions ONLY; verify each reading before confirming/saving.
+This dataset does NOT certify the true reading for any actual person.
+
+MIT License
+
+Copyright (c) 2022 shuheilocale
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
