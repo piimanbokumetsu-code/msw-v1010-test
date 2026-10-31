@@ -15,13 +15,25 @@ renderPatients=function(){
   previousRender();
   const anchor=document.querySelector('#newP');
   if(!anchor||document.querySelector('#kana02OpenBatch')||!key||!state)return;
+  const hero=anchor.closest('.hero');
+  if(!hero||!hero.parentElement)return;
   const pending=activePatients().filter(p=>!kana.isConfirmed(p)).length;
+  const actions=document.createElement('div');
+  actions.id='kana02PatientActions';
+  actions.className='kana02-patient-actions';
+  actions.setAttribute('role','group');
+  actions.setAttribute('aria-label','新規患者登録とフリガナ確認');
+  actions.style.cssText='display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 16px;width:100%';
+  // Move the ORIGINAL new-patient button, preserving its existing click handler.
+  // Keep the two actions separate on narrow iPad screens.
+  anchor.textContent='＋患者（新規登録）';
   const button=document.createElement('button');
   button.type='button';button.id='kana02OpenBatch';
   button.className='btn secondary';
   button.textContent='フリガナ一括確認（未確認 '+pending+'人）';
   button.addEventListener('click',openKanaBatch);
-  anchor.parentNode.insertBefore(button,anchor);
+  actions.append(anchor,button);
+  hero.insertAdjacentElement('afterend',actions);
 };
 function openKanaBatch(){
   if(!key||!state||selectedPatient||document.querySelector('#kana02Batch'))return;
