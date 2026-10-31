@@ -253,3 +253,8 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - A separate full-app fake integration stage was created at `kana02-batch-format-fix-fake-20261031/`, using its own dedicated fake IndexedDB, no SW, and four invented patient records. Browser-test stage code syntax and internal static integrity checks 13/13 passed; iPad real device still pending.
 - Main app clinical DB and GitHub production branch are unchanged by fix work. Draft PR #7 remains unmerged; cause of all blank candidates in production not yet established.
 - Issue #6 updated with details and safe fake validation link.
+
+## KANA02 corrected fake batch preview 3/3 verified on iPad
+- User reports the independent full-app fake stage showed four fake records and all three unconfirmed fake records displayed katakana candidate readings in its batch-review modal on iPad Safari.
+- No confirmed flag or live patient data changed during this test. Full-app fake test scope passes candidate display; production issue #6 (49 empty candidates) remains unresolved, and draft PR #7 is **not merged**.
+- Next is a production read-only observation to distinguish overall name suggestion vs batch-only failure. Do not repeat fake tests or request actual names, PIN, backups, or destructive actions.
