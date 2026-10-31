@@ -265,3 +265,7 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - Draft-only PR #7 now also includes local, read-only aggregated candidate diagnostics: candidate found, surname candidate known but given unreadable, surname unknown, format ambiguity, empty name. Report only numbers and classification to user, never names, and perform no writes/transmissions.
 - Fake standalone full-app stage `kana02-anon-diagnostic-fake-20261031/` was created with a new fake DB and four invented patients. Diagnostic callback check 9/9 pass; draft PR 4-file static integrity 8/8 pass, including matching SHA384 asset integrity and unchanged app.js/RX047.
 - Next user action: open the new isolated fake diagnostics stage on iPad Safari and confirm four invented records display, then in a separate step test that counts report is 1/1/1. Do not request real names or change production before user approval.
+
+## KANA02 anonymous diagnosis 1-1-1 iPad validation
+- User confirmed read-only fictitious iPad integration test produces 1 candidate available / 1 known surname but unreadable given name / 1 unknown surname, matching predicted outcomes. Fake four-patient stage works on iPad Safari.
+- Production all-blank issue is unresolved. Make diagnostic-only minimal PR separately from core-normalization draft PR #7, and seek explicit user approval before any production release.
