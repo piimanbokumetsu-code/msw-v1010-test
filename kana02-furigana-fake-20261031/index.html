@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'">
+<title>KANA02 フリガナ架空患者検証</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#163234;background:#f3f7f7}
+body{margin:0;padding:14px;max-width:900px;margin-inline:auto}h1{font-size:22px;margin:10px 0}h2{font-size:17px;margin:0 0 12px}
+.panel{background:white;border:1px solid #d7e2e2;border-radius:14px;padding:14px;margin-bottom:13px}
+.notice{font-size:13px;line-height:1.65;color:#4b6668}.warning{color:#a34111;font-weight:700}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-top:1px solid #e5eded;padding:11px 0}
+.row:first-child{border:0}.patient{font-weight:800;min-width:116px}.field{min-width:185px;flex:1}
+input{width:100%;min-height:42px;border:1px solid #a8c2c1;border-radius:9px;padding:8px;font-size:16px;box-sizing:border-box}
+button{min-height:42px;padding:8px 14px;border:0;border-radius:9px;color:white;font-weight:800;background:#0f766e}
+button.secondary{background:white;color:#0f766e;border:1px solid #0f766e}
+button:disabled{background:#e5eaea;color:#445;opacity:.8}.status{font-size:12px;min-width:64px}
+#checks{font-weight:800} .ok{color:#087457}.bad{color:#b91c1c}
+</style></head><body>
+<h1>KANA02 フリガナ改善・架空患者テスト</h1>
+<div class="panel"><strong>この画面は架空患者専用です。</strong><p class="notice warning">実患者の氏名・ID・PINは入力しないでください。本番アプリや患者データには接続しません。</p><p class="notice">候補は一般的な読みを推測したものです。読みの正誤は人が確認し、違えば書き直してください。</p><p id="checks" aria-live="polite">自動試験中…</p></div>
+<div class="panel"><h2>① 新規患者の氏名入力を想定</h2><label for="newName">架空の漢字氏名</label><input id="newName" value="小川 明子" autocomplete="off" aria-label="架空の漢字氏名"><p class="notice">自動候補（まだ確定されません）</p><input id="newKana" aria-label="新規患者の読み候補" autocomplete="off"><p id="newStatus" class="notice">未確認</p><button id="newConfirm">この架空患者の読みを確認</button></div>
+<div class="panel"><h2>② 既存患者のフリガナをまとめて確認</h2><p class="notice">架空の患者8人。未確認だけ候補を表示し、1人ずつ修正して「確認」を押せます。保存の代わりにこの画面内でのみ状態が変化します。</p><div id="list"></div><button class="secondary" id="reset">架空データを初期化</button></div>
+<script src="kana02-core.js"></script><script src="kana02-test.js"></script></body></html>
