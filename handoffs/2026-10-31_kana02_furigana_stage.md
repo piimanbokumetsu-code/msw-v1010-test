@@ -191,3 +191,7 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - 元のタブで「小川 明子」「オガワ アキコ」候補→「確認済み」まで成功。別タブの患者一覧に存在したので新規患者の自動保存・端末内共有DBからの読み出しは実機で確認。確認済みフラグの別タブ保持は未検証。
 - 修正：検証版の #fakeDemoBanner z-index 99→10。次は別タブの「小川 明子」の患者カードを1回タップし、フリガナ・確認済み表示と患者ヘッダー（←と保存して閉じる）の可視性を確認。入力済みの元タブは閉じない。
 - 本番main、実患者データ、RX047は変更なし。開発PR #5はドラフト未マージ。
+
+## 2026-10-31 Header buttons shown
+- Latest iPad Safari report confirms both Back and Save/Close buttons visible on the fake KANA02 patient screen; this supersedes a contradictory earlier report.
+- Next verify saved confirmed kana after opening new fake patient in the refreshed tab. Production unchanged.
