@@ -209,3 +209,10 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - 既に候補自動入力→確認済み→別タブでの暗号化保存保持→患者画面の操作ボタン可視化が実機合格。これで新規患者の一連の動作は確認完了。
 - 主要実機検証の推定進捗99%。次は本番公開前の差分・キャッシュ・既存患者データ保護・バックアップ条件などをコード点検し、実患者データや本番更新はユーザーの明示的な判断なしに実施しない。
 - 検証済み項目は繰り返さない。RX047薬情バックアップは全患者バックアップの代替ではない。
+
+## KANA02 release preflight 2026-10-31
+- GitHub production repository `msw-ipadmini-app/msw-ipadmini-app.github.io`: PR #5 remains open, draft, unmerged. `main` versus `feature-kana02-offline-suggestions-20261031` 7 commits ahead, 0 behind.
+- Four changed files only: `index.html`, `kana02-addon.js`, `kana02-core.js`, `sw.js`. The `app.js` blob is identical to production `main`, hash `d47702a132ca2c8f1d609166cda4d72b2d3872fc`.
+- `index.html` references the updated `kana02-addon.js` with SHA-384 SRI; `sw.js` pre-cache asset URL has matching `kana02-20261031-buttons-fix1` version and changed cache name. Source review confirms the original new-patient button handler was preserved by moving the actual button to a separate action row.
+- Full patient data back-up/restore is not equivalent to the completed RX047 `.mswrx` pharmacy backup. Prior splitting work had unresolved integrated full restore issue, so **do not infer a verified current complete clinical backup**.
+- No production deploy/merge was made. Next user decision: prioritize completing robust split all-patient backup before deployment (safest), versus discussing deployment risk and precautions first. Never deploy without explicit authorization.
