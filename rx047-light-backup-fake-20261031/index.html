@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>架空薬情専用・軽量バックアップ検証 RX047</title>
+<style>
+body{margin:0;background:#eef4f3;color:#20383a;font:16px -apple-system,BlinkMacSystemFont,system-ui,sans-serif}
+main{max-width:680px;margin:24px auto;padding:0 16px}
+.panel{border-radius:14px;background:white;padding:20px;margin:18px 0;box-shadow:0 3px 14px #103c2a14}
+h1{font-size:23px;line-height:1.35}h2{font-size:18px}
+p{line-height:1.7}button{font:inherit;border:0;border-radius:10px;padding:12px 14px;background:#0f766e;color:white;margin:5px 4px 5px 0}
+button.secondary{background:#405e62}button:disabled{opacity:.5}
+.good{color:#067545}.bad{color:#a22}.muted{color:#506469}
+#results{padding-left:26px;line-height:1.9}#results li{overflow-wrap:anywhere}
+</style></head>
+<body><main><div class="panel"><h1>架空薬情・軽量バックアップ RX047</h1>
+<p><strong>架空データ専用の独立検証版</strong>です。本番患者アプリとは別URL・別保存領域で、実患者情報は使用しません。</p>
+<p>薬情の先発・後発・規格・薬効・薬価を含む全項目だけを暗号化し、復元できるかをSafariで検査します。</p>
+<button id="run">暗号化・復元テストを開始</button>
+<p id="status" role="status" class="muted">まだテストしていません。</p>
+<ol id="results"></ol>
+</div>
+<div class="panel"><h2>iPadの「ファイル」動作を確認（任意）</h2>
+<p>ここで保存するファイルは<strong>架空薬剤だけ</strong>。実患者名・暗証番号・写真は一切含みません。</p>
+<button class="secondary" id="export" disabled>架空バックアップを書き出す</button>
+<button class="secondary" id="import" disabled>保存した架空ファイルを選ぶ</button>
+<input id="file" type="file" accept=".mswrx,application/octet-stream" hidden>
+<p id="fileStatus" role="status" class="muted">暗号化・復元テスト合格後に操作できます。</p>
+</div><p class="muted">本番アプリのデータやPWAには触れません。独立検証ページだけで完結します。</p>
+</main>
+<script src="./rx047-drug-master-backup.js"></script>
+<script src="./test-rx047.js"></script></body></html>
