@@ -195,3 +195,11 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 ## 2026-10-31 Header buttons shown
 - Latest iPad Safari report confirms both Back and Save/Close buttons visible on the fake KANA02 patient screen; this supersedes a contradictory earlier report.
 - Next verify saved confirmed kana after opening new fake patient in the refreshed tab. Production unchanged.
+
+## 2026-10-31 KANA02 新規患者の確認済みフリガナ保存保持・実機合格
+- iPad mini SafariのKANA02本体・架空隔離検証版で、新規患者「小川 明子」に自動候補「オガワ アキコ」が出て、ユーザーが「確認」を押し「済／確認済み」となった。
+- その後、同じ架空DBを使う修正版の別タブで患者一覧に小川 明子が存在し、患者基本タブに「オガワ アキコ」と「確認済み」が保持されていることをユーザーが確認。
+- 検証ページのバナー表示z-index修正後、患者画面上部の←と「保存して閉じる」が見えることも確認済み。これは本番UIでの問題ではなく、架空検証ページ固有のバナー重なり。
+- 新規患者の自動提案、人手確認、暗号化保存後の別タブでの表示保持は実機合格。既存患者の確認済み読み保護・検索も前段で合格。合格テストの繰り返し不要。
+- 次の1操作は修正版の患者情報画面上部「保存して閉じる」をタップし、患者一覧へ戻ることを確認する。
+- 本番main、実患者データ、RX047は変更なし。KANA02 PR #5は未マージ。
