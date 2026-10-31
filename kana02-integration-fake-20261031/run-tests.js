@@ -14,6 +14,28 @@
  }
  try{
   await bootFake();
+  // Read the already-encrypted IndexedDB record BEFORE this run writes anything.
+  // This checks browser reload persistence separately from the 16 in-session checks.
+  const priorLabel=document.getElementById('lastSession');
+  try{
+    const prior=await getRecord();
+    if(!prior){
+      priorLabel.textContent='前回の暗号化保存：未確認（この端末で初回の実行）';
+      priorLabel.className='notice';
+    }else{
+      const previous=await fakeDecrypt(prior);
+      const saved=previous?.patients?.find(p=>p.id==='k02f01');
+      const success=saved?.data?.['フリガナ']==='サトウ ハナ'
+       &&saved?.furiganaConfirmed===true&&saved?.furiganaConfirmedFor==='佐藤 花子';
+      priorLabel.textContent=success?
+       '前回の暗号化保存を再読込：合格（フリガナと確認済み状態を保持）':
+       '前回の暗号化保存を再読込：不合格（保存内容が期待と異なります）';
+      priorLabel.className=success?'pass':'fail';
+    }
+  }catch(err){
+    priorLabel.textContent='前回の暗号化保存を再読込：不合格（読込エラー）';
+    priorLabel.className='fail';
+  }
   const kana=window.MSWKana02;
   check('本番用KANA02の2部品が読み込めた',!!kana&&typeof furiganaSuggestion==='function'&&furiganaSuggestion('佐藤 花子')==='サトウ ハナコ');
   check('確認済み患者の別読みは保護',state.patients[2].data['フリガナ']==='ヤマサキ イチロウ'&&kana.isConfirmed(state.patients[2]));
