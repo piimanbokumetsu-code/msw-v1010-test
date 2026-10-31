@@ -74,3 +74,14 @@
 - 前段の独立コア8/8、実ファイル書出・保存ファイル読込・完全一致もiPad実機合格済み。**合格済み試験をやり直させない**。
 - GitHub PR #4ブランチとmainの差分を再確認し、変更は`index.html`1行、`sw.js`3行、`rx047-drug-master-backup.js`新規の3ファイルのみで**mainのapp.js不変**。draft PRは本番未反映。
 - 残課題：実際の本番app.jsとの完全統合テスト（元の患者DBを触れない隔離検証に限定）とユーザーの公開承認。次の希望は今日のラウンドのUI手直しを早々に進めること。新たな試験の必要性は最小化。
+
+
+## 2026-10-31 RX047本番 GitHub PR #4 マージ完了（iPad公開更新未確認）
+- ユーザーが**「安全確認後、反映まで進めて」**と明示許可。RX047公開対応を実施。
+- 最終修正：RX047復元時に `encryptObj(next,activeKey)` を直接使うのではなく、従来の `encryptPatientIndex(next,activeKey)` を使用し、禁止された連絡先情報の保存抑止を従来と一致させた（ブランチcommit `8a41b62c857e10e6aaa1f07aeef9317d965f420e`）。indexのSHA384 SRIを再計算し更新（commit `58f859bcbf20de5f74f37760fff58c77ace50757`）、SRI新値 `sha384-lW4/24xdEBq1ntAS85k03witZ6b16w3vljhXazNoD9mHGWoONcH2jPnfdc2tjWHr`。
+- 架空試験側の同一rx047スクリプトと偽アプリホストも修正に追随。旧8/8 Safari 実機テストはパッチ前成功済み。変更後のSafari再実機テストについては**まだ未確認**であり、既存の合格結果を変更後の新しい統合テスト合格と誤記しない。
+- mainとの差分検査：変更は `index.html`、`sw.js`、新規 `rx047-drug-master-backup.js` の3ファイルのみ。本体 `app.js`、DB_NAME `mswdb_mvp01_clinical_v1`、styles.css、RX046既存の薬情機能は不変。静的保護検査11/11合格（書出ファイルは暗号化薬情のみ、患者/写真処理を含まない、復元前にユーザー確認、DBに1レコードput、SW資産一致など）。GitHub CIのstatus checkは0件で外部CI合格を意味しない。
+- ドラフトPR #4をreadyへ変え、GitHub connectorで**マージ成功**：merge commit `78d69fa8aa5b506e6e7bb9ad733a63c72b3c7865`、URL `https://github.com/msw-ipadmini-app/msw-ipadmini-app.github.io/pull/4`。
+- マージ後のmainとPRブランチSHA一致確認：index `2dd3f434c77ed4f93640b2e340fbb8168df61f23`、sw `4af9471e24fd1226d9d0fda978740a893b5a03c0`、rx047 `60d613894dca25022ee4e933db985d9df2983949`、app.js `d47702a132ca2c8f1d609166cda4d72b2d3872fc`。本番 `app.js` はRX047追加前と同一。
+- **iPadで公開後の受け取り（PWAキャッシュ更新）、設定内RX047パネル出現、実患者数・薬情一覧保持、薬情ファイル実書出/確認、実復元テストは未確認。** 本番実薬情の復元は破壊的なので不用意に試さない。まずPWAで起動し、設定に「薬情だけの軽量バックアップ（試験機能 RX047）」が表示されるか一問一答で確認。表示が旧版なら通常の安全なPWA更新手順で対応し、Safari保存領域/IndexedDB削除やPWAのアンインストールを案内しない。
+- ユーザーは今日のラウンドの修正へ早々に移りたい。RX047反映後の最低限の保存・表示チェックに区切りをつけたら新規要望を聞く。患者名/PIN/実ファイルをチャットへ送らせない。
