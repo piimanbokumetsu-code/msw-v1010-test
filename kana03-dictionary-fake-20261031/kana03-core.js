@@ -19,7 +19,16 @@
      .replace(/\s+/g,' ').trim();
  }
  function readingsFor(givenName) {
-   if(own(given,givenName))return given[givenName];
+   if(own(given,givenName)){
+     const recorded=given[givenName];
+     // Prefer KANA02's hand-reviewed common reading when the expanded dataset supports it.
+     // No real patient name is sent or stored for this prior-reading lookup.
+     const legacy=previous.suggest('山田 '+givenName);
+     const knownReading=legacy.startsWith('ヤマダ ')?legacy.slice('ヤマダ '.length):'';
+     return knownReading&&recorded.includes(knownReading)
+       ?[knownReading,...recorded.filter(x=>x!==knownReading)]
+       :recorded;
+   }
    if(/^[ぁ-ゖァ-ヿー]+$/.test(givenName))return [toKata(givenName)];
    return [];
  }
