@@ -247,3 +247,9 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 - User opened the batch furigana review and returned to the patient list using its Back button successfully.
 - Production rollout checks completed; no live patient readings were bulk confirmed as part of deployment.
 - Completion scope: deployment and non-destructive user interface checks. Recovery of all clinical data and pictures is not covered by the medicine master backup; split backup development stays on hold per user's decision.
+
+## KANA02 fix1 isolated real-device candidate check
+- User confirmed iPad Safari 12/12 in isolated static fake-name format-normalization test.
+- A separate full-app fake integration stage was created at `kana02-batch-format-fix-fake-20261031/`, using its own dedicated fake IndexedDB, no SW, and four invented patient records. Browser-test stage code syntax and internal static integrity checks 13/13 passed; iPad real device still pending.
+- Main app clinical DB and GitHub production branch are unchanged by fix work. Draft PR #7 remains unmerged; cause of all blank candidates in production not yet established.
+- Issue #6 updated with details and safe fake validation link.
