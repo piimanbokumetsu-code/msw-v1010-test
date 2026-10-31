@@ -1,0 +1,25 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>RX047 架空アプリの薬情だけ復元・隔離試験</title>
+<style>
+body{margin:0;background:#edf4f2;font:16px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:#163b39}
+main{max-width:680px;margin:25px auto;padding:0 16px}
+.panel{background:#fff;border-radius:14px;padding:18px;margin:16px 0;box-shadow:0 2px 12px #123a2a17}
+h1{font-size:23px}h2,h3{font-size:19px}p{line-height:1.65}
+button{background:#0f766e;color:white;font:inherit;padding:12px;border:0;border-radius:9px;margin:6px 4px 6px 0}button:disabled{background:#9caba7}
+.notice{font-size:14px;line-height:1.5;color:#516964}
+.settings-row{margin:8px 0;padding:8px;border-bottom:1px solid #ddd}
+ol{line-height:1.8;padding-left:25px}li{overflow-wrap:anywhere}
+</style>
+</head><body><main>
+<section class="panel"><h1>RX047 架空アプリ組込テスト</h1>
+<p><strong>本番とは無関係の架空薬情・架空患者だけ</strong>を使用します。実際の本体アプリの保存・復元ボタンの動作を、iPad miniの暗号化・端末保存機能で検証します。</p>
+<p id="status" role="status">検証準備中…</p><ol id="results"></ol>
+<p class="notice">患者名や本物の暗証番号は入力不要です。実際の薬剤・患者データを読み込む機能はありません。テスト専用のIndexedDBだけに架空データを保存します。</p></section>
+<section id="main"></section><p class="notice" id="alerts" role="status"></p>
+</main>
+<script src="./fake-app-host.js"></script>
+<script src="./rx047-drug-master-backup.js"></script>
+<script src="./verify-fake-app.js"></script>
+</body></html>
