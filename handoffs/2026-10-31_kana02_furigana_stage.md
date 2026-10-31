@@ -301,3 +301,6 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 ## KANA03 selected alternate confirmed in Basic tab
 - On iPad mini Safari in the isolated five-fake-patient KANA03 test, the user confirmed that after selecting a different reading for fictitious 「宇都宮明子」 and pressing 「確認」, the patient was removed from the batch pending list (4→3), could be opened in the patient information view, and the **Basic** tab showed the selected reading with confirmation button 「済」.
 - Cross-view linkage on the same live browser session PASSED. **Persistence across browser reload remains untested**; next action is a single Safari reload followed by separate UI checks. Production remains untouched.
+
+## KANA03 fake confirmed flag persists after Safari reload
+- On iPad mini Safari, user reloaded the isolated KANA03 full-app test; all 5 fictitious patients appeared. Opening furigana batch review after reload showed only 3 pending fake patients, with the previously confirmed fictitious 「宇都宮明子」 excluded. **Confirmed flag persists across a real Safari page reload** (pass). This does not yet prove the actual user-selected alternate kana string is preserved; next inspect the fictitious patient's Basic tab for exact reading and 「済」 after reload. Production patient data unchanged.
