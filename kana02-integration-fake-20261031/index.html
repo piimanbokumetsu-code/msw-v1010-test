@@ -14,7 +14,7 @@ body{margin:0 auto;max-width:870px;padding:12px}h1{font-size:21px}.panel{backgro
 </head><body>
 <h1>KANA02 本体連動テスト（架空患者専用）</h1>
 <div class="panel"><strong>実患者・本番データとは完全に別です。</strong><p class="notice">本番用として開発したフリガナ機能を、隔離した架空患者3人・専用IndexedDBで自動テストします。実患者の氏名・PINを入力しないでください。</p>
-<p id="testCount" aria-live="polite">本体連動のテストを実行中…</p><p id="details" class="notice"></p><div id="results"></div></div>
+<p id="testCount" aria-live="polite">本体連動のテストを実行中…</p><p id="lastSession" aria-live="polite" class="notice">前回の暗号化保存を確認中…</p><p id="details" class="notice"></p><div id="results"></div></div>
 <div id="main" class="panel">架空患者を読み込み中…</div>
 <script src="fake-shell.js"></script><script src="kana02-core.js"></script><script src="kana02-addon.js"></script><script src="run-tests.js"></script>
 </body></html>
