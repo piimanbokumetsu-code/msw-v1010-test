@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KANA03 架空患者専用テスト</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;background:#f1f5f9;color:#17313b;margin:0;padding:16px}main{max-width:760px;margin:auto}h1{font-size:24px}header,.panel{background:white;border-radius:14px;padding:16px;margin:12px 0;border:1px solid #dbe5e8}.notice{font-size:15px;color:#7c3300}.patient{display:grid;grid-template-columns: minmax(95px,1fr) minmax(130px,2fr) auto;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid #dbe5e8}.patient input{font-size:16px;padding:9px;min-width:0;border:1px solid #94a3b8;border-radius:8px}.patient button,button{padding:10px 12px;background:#0f766e;color:white;border:0;border-radius:9px;font-size:15px}.patient button:disabled{background:#64748b}.name{font-weight:650}small{color:#475569}#result{font-weight:700;color:#047857}@media(max-width:380px){.patient{grid-template-columns:1fr 1.5fr auto;gap:4px}.patient button{padding:8px}}</style>
+<script src="./kana03-core.js" defer></script>
+<script defer src="./test-ui.js"></script></head>
+<body><main><header><h1>KANA03 自動フリガナ候補</h1><p class="notice">架空患者専用・独立検証版。実名、患者情報、暗証番号は入力しないでください。本番アプリ・保存データには接続しません。</p><small id="version">読み込み中…</small></header>
+<section class="panel"><h2>架空患者の候補</h2><p>氏名から読み候補を表示。手直し後「確認」を押すと、この画面内で「済」に変わります（保存はしません）。</p><div id="rows"></div><p id="result" role="status"></p></section>
+<section class="panel"><h2>確認項目</h2><p id="checks"></p><p><small>これは候補生成の試験です。氏名の正しい読みを保証せず、患者の正式な情報には使いません。</small></p></section></main></body></html>
