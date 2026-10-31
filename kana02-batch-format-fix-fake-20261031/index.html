@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>KANA02 修正版・本体一括確認（架空患者専用）</title>
+<link rel="stylesheet" href="../kana02-full-app-fake-20261031/styles.css">
+<style>
+#fakeDemoBanner{position:relative;z-index:10;background:#fff4db;color:#853f06;border-bottom:2px solid #f9b54a;padding:9px 12px;text-align:center;font-size:14px;font-weight:800}
+#fakeDemoBanner small{font-size:12px;font-weight:500;display:block;margin-top:4px}
+</style></head><body>
+<div id="fakeDemoBanner">KANA02 修正版・架空患者の本体一括確認テスト
+<small>実患者の情報・勤務先のPIN・バックアップは一切入力しないでください。独立した架空データ専用です。</small>
+<small>4人の架空患者を表示。うち1人は確認済みの読みを保護しています。候補は確認ボタンを押すまで保存されません。</small></div>
+<div id="app"><p style="padding:20px">架空データの検証画面を起動しています…</p></div>
+<input id="fileInput" type="file" hidden>
+<script src="./app.js"></script>
+<script src="../kana02-candidates-fix1-fake-20261031/kana02-core.js?v=format-fix1"></script>
+<script src="../kana02-full-app-fake-20261031/kana02-addon.js?v=actions-fix1"></script>
+</body></html>
