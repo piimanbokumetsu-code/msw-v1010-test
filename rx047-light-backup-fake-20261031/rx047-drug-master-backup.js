@@ -148,7 +148,7 @@
       // Save the whole encrypted index in ONE IndexedDB put. No partial writes,
       // and never call the normal save() during the maintenance lock.
       await orderedDataWrite(async()=>{
-        const encrypted=await encryptObj(next,activeKey);
+        const encrypted=await encryptPatientIndex(next,activeKey);
         checkSession(reference);
         await idbSet('data',encrypted);
       });
