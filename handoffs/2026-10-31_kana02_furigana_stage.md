@@ -297,3 +297,7 @@ iPadでテストOKなら本番の別ブランチにKANA02オフラインコア�
 ## KANA03 fake confirmed reading excluded after reopening batch
 - User's iPad mini Safari KANA03 full-app fake test: for 「宇都宮明子」 they selected a different furigana candidate, tapped 「確認」, observed status 「済」 and pending count changed 4→3. Then tapped 「← 戻る」 and successfully returned to the five-patient list. Reopening 「フリガナ一括確認」 showed only the other three pending fake patients, excluding 「宇都宮明子」. This establishes that the saved confirmed status is reflected after closing/reopening the modal, NOT yet that the reading persisted across a page reload or remains in the Basic tab. No production changes or real patient names.
 - Next: leave the batch dialog and inspect 「宇都宮明子」 in its Basic tab, then eventually verify page reload persistence. Follow one tap at a time.
+
+## KANA03 selected alternate confirmed in Basic tab
+- On iPad mini Safari in the isolated five-fake-patient KANA03 test, the user confirmed that after selecting a different reading for fictitious 「宇都宮明子」 and pressing 「確認」, the patient was removed from the batch pending list (4→3), could be opened in the patient information view, and the **Basic** tab showed the selected reading with confirmation button 「済」.
+- Cross-view linkage on the same live browser session PASSED. **Persistence across browser reload remains untested**; next action is a single Safari reload followed by separate UI checks. Production remains untouched.
