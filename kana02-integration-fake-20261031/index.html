@@ -1,0 +1,19 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; object-src 'none'">
+<title>KANA02 本体連動・架空患者検証</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;background:#f1f5f5;color:#153438}
+body{margin:0 auto;max-width:870px;padding:12px}h1{font-size:21px}.panel{background:white;border:1px solid #dae5e3;border-radius:12px;padding:14px;margin:10px 0}
+.btn,button{background:#0f766e;color:white;border:0;border-radius:9px;min-height:42px;padding:8px 11px;font-size:15px;font-weight:650}
+.btn.secondary{background:white;color:#0f766e;border:1px solid #0f766e}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.notice{font-size:13px;color:#3f5859;line-height:1.6}.pass{color:#047857;font-weight:750}.fail{color:#be123c;font-weight:750}
+#results p{margin:6px 0;font-size:13px}
+.modal{position:fixed;inset:0;display:flex;background:#0008;z-index:20}.sheet{margin:auto;background:#f4f7f7;max-width:850px;width:100%;height:92vh;overflow:auto;border-radius:14px}.sheethead{padding:12px;background:white;display:flex;gap:10px;align-items:center}.sheethead h2{font-size:17px}.sheetbody{padding:14px} .count{font-size:13px}
+</style></head><body>
+<h1>KANA02 本体連動テスト（架空患者専用）</h1>
+<div class="panel"><strong>実患者・本番データとは完全に別です。</strong><p class="notice">本番用として開発したフリガナ機能を、隔離した架空患者3人・専用IndexedDBで自動テストします。実患者の氏名・PINを入力しないでください。</p>
+<p id="testCount" aria-live="polite">本体連動のテストを実行中…</p><p id="details" class="notice"></p><div id="results"></div></div>
+<div id="main" class="panel">架空患者を読み込み中…</div>
+<script src="fake-shell.js"></script><script src="kana02-core.js"></script><script src="kana02-addon.js"></script><script src="run-tests.js"></script>
+</body></html>
