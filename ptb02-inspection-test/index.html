@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'">
+<title>PTB02 バックアップ検査テスト（架空患者のみ）</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#183b35;background:#f2f7f5}
+body{max-width:730px;margin:auto;padding:16px;line-height:1.55;font-size:16px}
+h1{font-size:1.35rem}h2{font-size:1.08rem}
+.panel{background:#fff;border:1px solid #cdded7;border-radius:12px;margin:14px 0;padding:16px}
+button{font-size:16px;background:#0f766e;color:#fff;border:1px solid #0f766e;border-radius:8px;padding:11px 16px}
+.btn.secondary{background:white;color:#086559}
+.settings-row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 0}
+.settings-row div{flex:1;min-width:210px}
+.settings-row small{display:block;font-size:14px;color:#4a635a}
+.notice{font-size:14px;line-height:1.7;color:#4b6059}
+pre{font-family:inherit;white-space:pre-wrap;overflow-wrap:anywhere}
+</style></head><body>
+<h1>PTB02 保存済みバックアップの検査</h1>
+<p><strong>架空患者だけの独立テスト画面</strong>です。本番アプリの患者情報・写真・薬情には接続しません。実在する患者情報は入力しないでください。</p>
+<section class="panel">
+<h2>① 自動安全性テスト</h2>
+<p class="notice">架空患者2人を暗号化し、正しいファイル・間違ったパスフレーズ・ファイル改ざんなどを検査します。ファイルアプリへの保存は不要です。</p>
+<button id="runChecks" type="button">検査テストを実行（10項目）</button>
+<pre id="testResult" role="status" class="notice">まだ実行していません。</pre>
+</section>
+<section id="ptb01Panel" class="panel">
+<h2>② PTB02の画面表示テスト</h2>
+<p class="notice">本番の設定画面に追加される検査ボタンの表示も確認できます。実際の患者バックアップは選択しないでください。</p>
+</section>
+<script>
+'use strict';
+// Minimal fake Settings environment. No patient storage, DB or network.
+let screen='settings',key={fake:true},state={patients:[{id:'test-patient'}],drugs:[{name:'test-drug'}]};
+async function renderSettings(){}
+</script>
+<script src="../ptb01-patient-text-test/ptb01-patient-text-backup.js"></script>
+<script src="ptb02-backup-inspector.js"></script>
+<script>
+(function(){
+'use strict';
+const sample=[
+ {id:'FAKE-01',data:{'氏名':'架空　太郎','フリガナ':'カクウ タロウ'},notes:[{text:'架空の記録'}],tasks:[{title:'架空の退院支援'}],medications:[{name:'架空薬'}],attachments:[{id:'FAKE-PHOTO',type:'admission',order:0}]},
+ {id:'FAKE-02',data:{'氏名':'架空　花子'},notes:[],tasks:[],medications:[]}
+];
+let testPass='FakeOnlyPass12345';
+const mkfile=(s,name='MSW_架空患者バックアップ.mswpt')=>new File([s],name,{type:'application/octet-stream'});
+const core=window.MSWPTB01Core,inspector=window.MSWPTB02Core;
+document.getElementById('runChecks').onclick=async()=>{
+ const button=document.getElementById('runChecks'),result=document.getElementById('testResult');
+ button.disabled=true;result.textContent='10項目を検証しています…';
+ const checks=[];
+ async function test(label,job){
+  try{const ok=await job();checks.push({label,ok:!!ok})}
+  catch(e){checks.push({label,ok:false,error:String(e.message||e)})}
+ }
+ async function rejects(job){try{await job();return false}catch(e){return true}}
+ try{
+  const original=JSON.stringify(state);
+  const sealed=await core.seal(sample,testPass,1);
+  const file=mkfile(JSON.stringify(sealed));
+  const verified=await inspector.verifyFile(file,testPass);
+  await test('正常な暗号化ファイルを検査できる',async()=>verified.patientCount===2&&verified.fileBytes===file.size);
+  await test('保存日時と写真除外枚数が一致',async()=>verified.createdAt===sealed.createdAt&&verified.photoCountExcluded===1&&verified.photosIncluded===false);
+  await test('検査結果に患者氏名が含まれない',async()=>!JSON.stringify(verified).includes('架空'));
+  await test('誤ったパスフレーズを拒否',async()=>rejects(()=>inspector.verifyFile(file,'WrongPassphrase123')));
+  await test('患者件数ヘッダーの改ざんを拒否',async()=>rejects(()=>inspector.verifyFile(mkfile(JSON.stringify({...sealed,patientCount:3})),testPass)));
+  await test('暗号化データの改ざんを拒否',async()=>{
+   const altered={...sealed,ciphertext:(sealed.ciphertext[0]==='A'?'B':'A')+sealed.ciphertext.slice(1)};
+   return rejects(()=>inspector.verifyFile(mkfile(JSON.stringify(altered)),testPass));
+  });
+  await test('不正なJSONを拒否',async()=>rejects(()=>inspector.verifyFile(mkfile('not json with sufficient content'.repeat(5)),testPass)));
+  await test('別形式の拡張子を拒否',async()=>rejects(()=>inspector.verifyFile(mkfile(JSON.stringify(sealed),'wrong.mswdb'),testPass)));
+  await test('32MB超のファイルを拒否',async()=>rejects(()=>inspector.verifyFile({name:'too-big.mswpt',size:33*1024*1024,text:async()=>{throw Error('読み込み禁止')}},testPass)));
+  await test('患者データを変更せず画面に検査ボタン表示',async()=>JSON.stringify(state)===original&&!!document.getElementById('ptb02Verify'));
+ }catch(e){checks.push({label:'検証準備中のエラー',ok:false,error:String(e.message||e)})}
+ const passed=checks.filter(x=>x.ok).length;
+ result.textContent=passed+'/10 合格\n'+checks.map(x=>(x.ok?'✅ ':'❌ ')+x.label+(x.error?' ('+x.error+')':'')).join('\n');
+ result.style.color=passed===10?'#08674e':'#a22';
+ button.disabled=false;
+};
+Promise.resolve(renderSettings()).catch(e=>{
+ const result=document.getElementById('testResult');
+ result.textContent='設定表示エラー：'+String(e.message||e);
+});
+})();
+</script></body></html>
