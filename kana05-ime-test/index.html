@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; connect-src 'none'">
+<title>MSW KANA05・新規氏名の読み取得テスト</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#17313a;background:#f5faf9}
+body{max-width:650px;margin:0 auto;padding:16px 14px 55px;font-size:17px}
+h1{font-size:1.4rem;margin:10px 0}p{line-height:1.65}
+.panel{background:white;border:1px solid #cddeda;padding:16px;border-radius:12px;margin:16px 0}
+label{font-weight:bold;display:block;margin:6px 0}
+input{font-size:21px;max-width:100%;width:100%;box-sizing:border-box;border:2px solid #9abdb8;padding:12px;border-radius:8px}
+.reading{font-size:25px;font-weight:750;min-height:38px;overflow-wrap:anywhere;color:#086c62}
+button{font-size:16px;padding:10px 18px;border-radius:9px;border:1px solid #6d928b;background:white}
+.small{font-size:14px;color:#46605e}
+kbd{background:#f0f5f5;border:1px solid #bcc;padding:1px 5px;border-radius:4px}
+#log{white-space:pre-wrap;overflow-wrap:anywhere;max-height:210px;overflow:auto;font-size:13px;background:#f2f7f6;padding:10px;border-radius:8px}
+</style>
+</head>
+<body>
+<h1>新規患者のフリガナ候補・iPad検証 KANA05</h1>
+<p><strong>患者情報とは無関係のテスト専用ページです。</strong> 実名は入力せず、架空の氏名だけを使ってください。入力は保存・送信されません。</p>
+<div class="panel">
+<label for="name">架空の氏名を日本語変換で入力</label>
+<input id="name" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例：山田太郎">
+<p class="small">例：「やまだたろう」→「山田太郎」に漢字変換。続けて確定してください。</p>
+<label>変換前のかなから取得した候補</label>
+<div id="reading" class="reading" aria-live="polite">未検出</div>
+<div id="status" class="small" aria-live="polite">日本語変換で氏名を入力すると判定します。</div>
+</div>
+<div class="panel">
+<p><strong>判定用の記録（架空氏名のみ）</strong></p>
+<div id="stats" class="small">変換開始0回・途中0回・確定0回</div>
+<div id="log"></div>
+<p><button type="button" id="reset">入力を消去してやり直す</button></p>
+</div>
+<p class="small">このページは端末に保存済みの患者情報やPWA、IndexedDB、ローカルストレージにアクセスしません。通信APIも使いません。判定は端末内のみ。実際のSafari／キーボードで読みを取得できるかを調べます。</p>
+<script>
+(function(){
+'use strict';
+const input=document.getElementById('name'), out=document.getElementById('reading'),status=document.getElementById('status'),log=document.getElementById('log'),stats=document.getElementById('stats');
+const kana=/^[ぁ-ゖゔァ-ヿー]+$/;
+const toKata=s=>String(s||'').normalize('NFKC').replace(/[ぁ-ゖゔ]/g,c=>String.fromCharCode(c.charCodeAt(0)+96));
+let best='',initial='',committed='',read='',sequence=0,starts=0,updates=0,ends=0,rows=[];
+function append(s){rows.push(s);if(rows.length>16)rows.shift();log.textContent=rows.join('\n');}
+function counts(){stats.textContent='変換開始'+starts+'回・途中'+updates+'回・確定'+ends+'回';}
+function show(){out.textContent=read||'未検出';}
+input.addEventListener('compositionstart',()=>{
+ starts++;best='';initial=input.value;sequence++;counts();append('開始（入力前の文字数 '+initial.length+'）');
+});
+input.addEventListener('compositionupdate',e=>{
+ updates++;
+ const d=String(e.data||'');
+ if(kana.test(d)&&d.length>=best.length)best=d;
+ counts();
+ append('途中：'+(kana.test(d)?'かな':'漢字等')+' '+d.length+'文字');
+});
+input.addEventListener('compositionend',e=>{
+ ends++;counts();
+ const id=sequence,final=String(e.data||''),candidate=best;
+ append('確定：'+final.length+'文字／変換前かな '+(candidate?candidate.length+'文字':'なし'));
+ setTimeout(()=>{
+  if(sequence!==id)return;
+  const name=input.value;
+  if(!candidate||!final||kana.test(final)){
+   status.textContent=candidate?'かなの確定として認識（漢字変換ではありません）':'この変換ではかなを取得できませんでした。';
+   return;
+  }
+  if(!name.endsWith(final)){
+   status.textContent='入力内容と確定文字が一致せず、誤候補を防ぐため見送りました。';return;
+  }
+  const prefix=name.slice(0,-final.length);
+  if(prefix===committed|| (prefix.startsWith(committed)&&/^[\s　]*$/.test(prefix.slice(committed.length)))){
+   const space=prefix.slice(committed.length)?' ':'';
+   read=(read?read+space:'')+toKata(candidate);
+   committed=name;
+   status.textContent='変換前のかなを取得できました。読みが正しいかは本人確認が必要です。';
+   append('成功：読み候補 '+read.length+'文字');
+  }else{
+   committed=name;read='';
+   status.textContent='途中編集を検出したため候補を消去しました。もう一度先頭から入力してください。';
+  }
+  show();
+ },0);
+});
+input.addEventListener('input',e=>{
+ if(e.isComposing)return;
+ if(committed&&!input.value.startsWith(committed)){committed='';read='';show();status.textContent='文字の修正を検出したため、古い候補を消去しました。';}
+});
+document.getElementById('reset').addEventListener('click',()=>{
+ input.value='';best='';initial='';committed='';read='';sequence++;starts=0;updates=0;ends=0;rows=[];log.textContent='';counts();show();status.textContent='日本語変換で氏名を入力すると判定します。';input.focus();
+});
+})();
+</script>
+</body>
+</html>
