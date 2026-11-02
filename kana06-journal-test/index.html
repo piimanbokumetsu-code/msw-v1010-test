@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'">
+<title>KANA06 日誌からの新規患者登録・フリガナ検証</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#173e3a;background:#f3faf8}
+body{max-width:670px;margin:0 auto;padding:15px;font-size:16px}
+h1{font-size:1.35rem}p{line-height:1.6}
+.panel{background:#fff;border:1px solid #cbded7;padding:16px;border-radius:12px;margin:15px 0}
+label{display:flex;flex-direction:column;font-weight:650;gap:5px;margin:12px 0}
+input{box-sizing:border-box;width:100%;font-size:20px;padding:12px;border:2px solid #acc9bf;border-radius:8px}
+button{font-size:16px;border:1px solid #0d7165;background:#0d7165;color:white;border-radius:9px;padding:12px 15px}
+button:disabled{opacity:.6}
+.secondary{background:white;color:#0a6357}
+.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:15px}
+.hint{font-size:14px;color:#536b66}
+#journalKanaStatus{font-size:13px;font-weight:600;background:#edf5f2;padding:4px;border-radius:5px}
+#result{font-weight:650;min-height:28px;line-height:1.6}
+#journalEntry{margin-top:14px}
+#journalEntry[hidden]{display:none}
+</style>
+</head>
+<body>
+<h1>KANA06 日誌からの患者手入力テスト</h1>
+<p><strong>架空患者専用の独立テスト</strong>です。本番の患者データや日誌には一切連動しません。実際の患者氏名は入力せず、「山田太郎」などの架空氏名を使ってね。</p>
+<section class="panel">
+<h2 style="font-size:1.12rem">日誌・患者情報取り込み</h2>
+<button id="journalEntryToggle" type="button">＋ 患者を手入力</button>
+<div id="journalEntry" hidden>
+<label>氏名<input id="journalNewName" type="text" autocomplete="off" placeholder="例：山田太郎"></label>
+<label>フリガナ <span id="journalKanaStatus">未入力</span><input id="journalNewKana" type="text" autocomplete="off" placeholder="漢字変換時に候補／手入力"></label>
+<label>入院日<input id="journalNewDate" type="date" value="2026-11-02"></label>
+<div class="actions">
+<button id="journalKanaConfirm" type="button" class="secondary">フリガナ確認</button>
+<button id="journalCancel" type="button" class="secondary">キャンセル</button>
+<button id="journalAdd" type="button">一覧に追加</button>
+</div>
+</div>
+</section>
+<section class="panel">
+<div id="result" aria-live="polite">「＋ 患者を手入力」を押してね。</div>
+<p class="hint">入力内容は保存・送信されません。画面内に登録結果を一時表示するだけです。</p>
+<button class="secondary" id="reset" type="button">初めからやり直す</button>
+</section>
+<script src="../kana05-registration-test/kana05-new-patient-ime.js"></script>
+<script>
+(function(){
+ 'use strict';
+ const name=document.getElementById('journalNewName'),kana=document.getElementById('journalNewKana');
+ const status=document.getElementById('journalKanaStatus'),confirmBtn=document.getElementById('journalKanaConfirm');
+ const result=document.getElementById('result'),entry=document.getElementById('journalEntry'),toggle=document.getElementById('journalEntryToggle');
+ let jConfirmedName='',jConfirmedKana='';
+ const review=()=>{
+  const n=name.value.trim(),k=kana.value.trim();
+  const confirmed=!!k&&jConfirmedName===n&&jConfirmedKana===k;
+  status.textContent=confirmed?'確認済み':k?'要確認':'未入力';
+  confirmBtn.textContent=confirmed?'確認済み':'フリガナ確認';
+  confirmBtn.disabled=confirmed||!n||!k;
+ };
+ name.addEventListener('input',review);name.addEventListener('compositionend',review);
+ kana.addEventListener('input',review);kana.addEventListener('compositionend',review);
+ confirmBtn.onclick=()=>{jConfirmedName=name.value.trim();jConfirmedKana=kana.value.trim();review();result.textContent='フリガナの確認ができました。「一覧に追加」を押してください。';};
+ window.MSWKana05IME?.attach(name,kana,{_new:true,data:{}});
+ toggle.onclick=()=>{entry.hidden=!entry.hidden;toggle.textContent=entry.hidden?'＋ 患者を手入力':'− 手入力を閉じる';};
+ document.getElementById('journalCancel').onclick=()=>{entry.hidden=true;toggle.textContent='＋ 患者を手入力';};
+ document.getElementById('journalAdd').onclick=()=>{
+  const n=name.value.trim(),k=kana.value.trim();
+  if(!n){result.textContent='氏名を入力してください。';return}
+  if(k&&(jConfirmedName!==n||jConfirmedKana!==k)){result.textContent='フリガナを確認してから「一覧に追加」を押してください。';return}
+  if(!k&&jConfirmedName&&jConfirmedName!==n){result.textContent='氏名変更後にフリガナが消えました。確認し直してください。';return}
+  result.textContent='架空患者の登録操作に成功！　'+n+'／フリガナ：'+(k||'未入力')+'／'+(k?'確認済み':'未確認')+'（本番保存なし）';
+  entry.hidden=true;toggle.textContent='＋ 患者を手入力';
+ };
+ document.getElementById('reset').onclick=()=>location.reload();
+ review();
+})();
+</script>
+</body>
+</html>
