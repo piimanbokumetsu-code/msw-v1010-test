@@ -1,0 +1,144 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'">
+<title>PTB01 保存後の再起動テスト｜架空患者専用</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#183a35;background:#f3f8f6}
+body{max-width:760px;margin:0 auto;padding:16px;font-size:16px;line-height:1.55}
+h1{font-size:1.4rem}h3{font-size:1.12rem}
+.panel{border:1px solid #cbded6;background:#fff;border-radius:12px;padding:15px;margin:14px 0}
+button{font-size:16px;padding:11px 14px;border-radius:8px;background:#0f766e;color:#fff;border:1px solid #0f766e}
+button.btn.secondary{background:#fff;color:#0f766e}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:13px;padding:11px 0;border-bottom:1px solid #e3ebe7;flex-wrap:wrap}
+.settings-row div{flex:1;min-width:210px}.settings-row small{display:block;color:#4b6259;margin-top:5px}
+.notice{color:#496259;font-size:14px}
+#ptb01Status{white-space:pre-wrap}
+#fakeState{font-weight:650}
+</style></head><body>
+<h1>PTB01 復元後の保持テスト</h1>
+<p><strong>架空患者専用の独立テスト画面</strong>です。本番の患者データ・写真・薬情には一切接続しません。架空患者だけをこのテストページ専用のiPad内の保存領域に保持します。実在する患者情報は入力しないでください。</p>
+<section class="panel"><h3>架空患者の状態</h3>
+<div id="fakeState" aria-live="polite">準備中…</div>
+<p class="notice">初回は架空患者2人（写真参照1件）。「架空患者だけを空にする」→保存済みの .mswpt を読み込み→ページを再読み込みし、復元した2人と「復元済み」が維持されるか確認します。</p>
+<p class="notice" id="stageStatus" style="font-weight:700"></p>
+<button id="clearFake" type="button">架空患者だけを空にする（復元テスト用）</button>
+</section>
+<section class="panel"><h3>自動検証</h3>
+<button id="selfTest" type="button">暗号化・復号・写真除外を検証</button>
+<div id="tests" role="status" class="notice">まだ実行していません。</div>
+</section>
+<section class="panel" id="previousBackupPanel">
+<h3>通常バックアップの位置（テスト用）</h3>
+<button id="backup" type="button" disabled>この画面では使用しません</button>
+</section>
+<input id="inputFile" type="file" accept=".mswpt,application/octet-stream" hidden>
+<script>
+'use strict';
+// Browser-only fake data. Persistent test uses a dedicated fake-only IndexedDB store.
+let key=null,screen='settings',maintenanceAction=null,dataWriteTail=Promise.resolve(),stage='initial',db=null;
+const fakeDrugs=[{薬名:'架空薬剤A'}],fakeMasters={介護度:['要介護2']};
+const samplePatients=[
+ {id:'fake-001',data:{氏名:'山田 太郎',フリガナ:'ヤマダ タロウ',病名:'架空病名A',ベッド番号:'201-1'},
+   notes:[{id:'note-1',text:'架空の経過記録です'}],
+   tasks:[{id:'task-1',title:'架空の退院調整',done:false}],
+   medications:[{name:'架空薬A',dose:'5mg'}],
+   attachments:[{id:'fake-photo-1',type:'admission',order:0}]},
+ {id:'fake-002',data:{氏名:'佐藤 花子',フリガナ:'サトウ ハナコ',病名:'架空病名B',ベッド番号:'202-1'},
+   notes:[],tasks:[],medications:[],dischargeDate:null}
+];
+let state={patients:JSON.parse(JSON.stringify(samplePatients)),drugs:fakeDrugs,masters:fakeMasters,settings:{}};
+const DB_NAME='msw_ptb01_fake_persist_test_20261102';
+function openDB(){return new Promise((res,rej)=>{
+ const req=indexedDB.open(DB_NAME,1);
+ req.onupgradeneeded=()=>req.result.createObjectStore('kv');
+ req.onsuccess=()=>{db=req.result;res(db)};
+ req.onerror=()=>rej(req.error);
+})}
+function idbGet(k){return new Promise((res,rej)=>{
+ const req=db.transaction('kv','readonly').objectStore('kv').get(k);
+ req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);
+})}
+function idbKeys(){return new Promise((res,rej)=>{
+ const req=db.transaction('kv','readonly').objectStore('kv').getAllKeys();
+ req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);
+})}
+function idbSet(k,v){return new Promise((res,rej)=>{
+ const tx=db.transaction('kv','readwrite');
+ tx.objectStore('kv').put(v,k);
+ tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);
+})}
+async function encryptPatientIndex(obj,activeKey){
+ const iv=crypto.getRandomValues(new Uint8Array(12));
+ const bytes=new TextEncoder().encode(JSON.stringify(obj));
+ const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},activeKey,bytes);
+ return {iv:Array.from(iv),ct:Array.from(new Uint8Array(ct))};
+}
+async function decryptObj(data,activeKey){
+ const bytes=await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(data.iv)},activeKey,new Uint8Array(data.ct));
+ return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function orderedDataWrite(f){const job=dataWriteTail.then(f);dataWriteTail=job.catch(()=>{});return job}
+async function beginMaintenance(name){if(maintenanceAction)throw Error('別の処理中です');maintenanceAction=name;await dataWriteTail;}
+function endMaintenance(name){if(maintenanceAction===name)maintenanceAction=null}
+function download(blob,name){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
+function pickFile(types,callback){const x=document.getElementById('inputFile');x.value='';x.accept=types;
+ x.onchange=async()=>{
+  if(!x.files[0])return;
+  const wasEmpty=state.patients.length===0;
+  await callback(x.files[0]);
+  if(wasEmpty&&state.patients.length>0){stage='recovered';await idbSet('stage',stage);render();}
+ };x.click()}
+function renderSettings(){}
+function render(){
+ const n=state.patients.length,photos=state.patients.reduce((a,p)=>a+(p.attachments||[]).length,0);
+ document.getElementById('fakeState').textContent='架空患者 '+n+' 人／写真参照 '+photos+' 件／薬情 '+state.drugs.length+' 件（テスト専用保存領域）';
+ document.getElementById('stageStatus').textContent='状態：'+({initial:'初期サンプル',empty:'空にした状態',recovered:'復元済み（再読み込み後もこの表示なら保持成功）'}[stage]||stage);
+}
+</script>
+<script src="../ptb01-patient-text-test/ptb01-patient-text-backup.js"></script>
+<script>
+(async function(){
+'use strict';
+await openDB();
+// Fixed test-only key: for fictional test data ONLY. No real patient information.
+const seed=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('PTB01-fake-only-session-test-20261102'));
+key=await crypto.subtle.importKey('raw',seed,{name:'AES-GCM'},false,['encrypt','decrypt']);
+const saved=await idbGet('data');
+if(saved){state=await decryptObj(saved,key);stage=await idbGet('stage')||'initial';}
+else{await idbSet('data',await encryptPatientIndex(state,key));await idbSet('stage',stage);}
+await renderSettings();render();
+document.getElementById('clearFake').onclick=async()=>{
+ if(maintenanceAction)return;
+ state={...state,patients:[]};
+ await idbSet('data',await encryptPatientIndex(state,key));
+ stage='empty';await idbSet('stage',stage);
+ render();
+};
+document.getElementById('selfTest').onclick=async()=>{
+ const out=document.getElementById('tests');out.textContent='検証中…';
+ let passed=0;
+ const checks=[];
+ function check(label,condition){checks.push((condition?'✅ ':'❌ ')+label);if(condition)passed++}
+ try{
+  const core=window.MSWPTB01Core,pass='DemoPatient12345';
+  const pack=await core.seal(samplePatients,pass,1);
+  const source=JSON.stringify(pack);
+  check('暗号化ファイルに実データを直接書かない',!source.includes('山田')&&!source.includes('架空病名'));
+  check('写真を含まないと明示',pack.photosIncluded===false&&pack.photoCountExcluded===1);
+  const restored=await core.unseal(pack,pass);
+  check('架空患者2人の文字情報を復元',restored.length===2&&restored[0].notes[0].text==='架空の経過記録です');
+  check('処方薬とタスクも保持',restored[0].medications.length===1&&restored[0].tasks.length===1);
+  check('写真参照は復元しない',restored.every(p=>!Object.prototype.hasOwnProperty.call(p,'attachments')));
+  let wrong=false;try{await core.unseal(pack,'WrongPatient12345')}catch(e){wrong=true}
+  check('パスフレーズ誤りを拒否',wrong);
+  let tamper=false;try{await core.unseal({...pack,patientCount:3},pass)}catch(e){tamper=true}
+  check('患者件数の改ざんを拒否',tamper);
+  let mixed=false;try{await core.unseal({...pack,photosIncluded:true},pass)}catch(e){mixed=true}
+  check('写真混入形式を拒否',mixed);
+ }catch(e){checks.push('❌ 想定外：'+String(e.message||e))}
+ out.textContent=passed+'/8 合格\n'+checks.join('\n');
+ out.style.whiteSpace='pre-wrap';
+};
+})();
+</script></body></html>
