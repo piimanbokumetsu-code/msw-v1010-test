@@ -1,60 +1,123 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8">
+<html lang="ja">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'">
-<title>KANA06 日誌の簡単入力検証（架空患者）</title>
+<title>KANA06 日誌・架空患者の一覧追加テスト</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#193b36;background:#f2f8f6}
-body{max-width:660px;margin:auto;padding:16px;font-size:16px;line-height:1.55}
-h1{font-size:1.3rem}.panel{border-radius:12px;border:1px solid #c4d7d0;background:white;padding:16px;margin:16px 0}
-label{display:flex;flex-direction:column;gap:5px;font-weight:650;margin:10px 0}
-input{border:2px solid #9bbfb5;border-radius:9px;padding:12px;font-size:20px;width:100%;box-sizing:border-box}
-input[readonly]{background:#eef5f2;color:#195e54}
-button{font-size:16px;border:none;background:#0f7567;color:white;border-radius:9px;padding:12px 17px}
-button.secondary{background:white;border:1px solid #8db0a5;color:#176a5d}
-.actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:14px}
-#entry[hidden]{display:none}.note{font-size:14px;color:#526c64}#result{font-weight:600;min-height:24px}
-</style></head><body>
-<h1>KANA06 日誌からの新規登録・簡略化テスト</h1>
-<p><strong>架空患者専用です。</strong> 実在する患者の氏名・情報は入力しないでください。入力内容は保存・送信されません。</p>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#183d3a;background:#f6f8fa}
+*{box-sizing:border-box}
+body{max-width:760px;margin:0 auto;font-size:16px}
+header{background:#0f766e;color:white;padding:13px 17px;display:flex;align-items:center;gap:12px}
+header strong{font-size:18px}header small{font-size:12px;background:rgba(255,255,255,.2);padding:4px 7px;border-radius:6px}
+nav{display:flex;justify-content:space-around;background:#e6f2ef;border-bottom:1px solid #c8dad5;font-size:14px}
+nav span{padding:11px 7px;text-align:center}nav .current{color:#075d51;font-weight:800;border-bottom:3px solid #0f766e}
+main{padding:16px 13px 45px}
+h1{font-size:1.35rem;margin:0 0 6px}
+h2{font-size:1.1rem;margin:0 0 12px}
+p{line-height:1.55}.notice{font-size:14px;color:#526760}
+.panel{background:white;border:1px solid #d3dfdb;border-radius:11px;padding:16px;margin:14px 0}
+button{font-size:16px;background:#0f766e;border:1px solid #0f766e;color:white;border-radius:8px;padding:11px 14px;cursor:pointer}
+button.secondary{background:white;color:#0d665c;border-color:#91b5aa}
+button:disabled{opacity:.55}
+#toggle{margin-top:13px;width:100%}
+#entry{background:#f1f5f9;padding:13px;border-radius:10px;margin-top:12px}
+#entry[hidden]{display:none}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:5px;font-weight:650;font-size:15px}
+input{width:100%;min-width:0;padding:11px;border:1px solid #9fb4ad;border-radius:7px;font-size:19px}
+input[readonly]{background:#eef4f1;color:#16574b}
+.actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:12px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:15px}
+th{background:#f1f5f9;font-weight:650}th,td{padding:9px 8px;border-bottom:1px solid #dce5e1}
+#result{font-weight:650;line-height:1.6;min-height:25px}
+.success{color:#08654e}
+</style>
+</head>
+<body>
+<header><strong>MSW患者管理</strong><small>架空データ専用テスト</small></header>
+<nav aria-label="画面例"><span>患者</span><span class="current">日誌</span><span>今日・要対応</span><span>薬情</span></nav>
+<main>
+<h1>日誌・患者情報取り込み</h1>
+<p class="notice"><strong>架空患者専用</strong>の再現画面です。実際の患者氏名や情報は入力しないでください。入力した内容は保存・送信されず、本番アプリにも反映されません。</p>
 <section class="panel">
-<h2 style="font-size:1.1rem">日誌・患者情報取り込み</h2>
-<button id="toggle" type="button">＋ 患者を手入力</button>
+<h2>① 入院患者一覧　<span id="patientCount">0人</span></h2>
+<p class="notice">一覧に追加すると、ここに架空患者の行が表示されます。</p>
+<div class="tablewrap">
+<table>
+<thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead>
+<tbody id="patientRows"><tr id="emptyRow"><td colspan="4">ベッド配置待ちの患者はいません</td></tr></tbody>
+</table>
+</div>
+<button id="toggle" type="button" class="secondary">＋ 患者を手入力</button>
 <div id="entry" hidden>
-<label>氏名<input id="journalNewName" type="text" autocomplete="off" placeholder="例：山田太郎"></label>
+<h2>新しい患者を手入力</h2>
+<div class="fields">
+<label>氏名<input id="journalNewName" type="text" autocomplete="off" spellcheck="false" placeholder="例：山田太郎"></label>
 <label>フリガナ<input id="journalNewKana" type="text" readonly placeholder="氏名を漢字変換すると候補表示"></label>
-<label>入院日<input id="journalNewDate" type="date" value="2026-11-02"></label>
+<label>入院日<input id="journalNewDate" type="date"></label>
+<label>ベッド配置先<input value="その他・未配置" type="text" readonly></label>
+</div>
 <div class="actions">
-<button id="cancel" class="secondary" type="button">キャンセル</button>
+<button id="cancel" type="button" class="secondary">キャンセル</button>
 <button id="journalAdd" type="button">一覧に追加</button>
 </div>
-</div></section>
-<section class="panel">
-<div id="result" aria-live="polite">「＋ 患者を手入力」を押してね。</div>
-<p class="note">確認ボタンは不要。フリガナ候補は仮の読みとして引き継ぎ、正式な確認は患者情報の「基本」タブで行う想定です。</p>
-<button id="reset" class="secondary" type="button">最初からやり直す</button>
+</div>
 </section>
+<section class="panel">
+<div id="result" role="status" aria-live="polite">まず「＋ 患者を手入力」を押してください。</div>
+<p class="notice">フリガナは確認ボタンなしの仮候補です。正式な読みの確認は、後で患者情報の「基本」タブで行います。</p>
+<button id="reset" type="button" class="secondary">最初からやり直す</button>
+</section>
+</main>
 <script src="../kana05-registration-test/kana05-new-patient-ime.js"></script>
 <script>
 (function(){
 'use strict';
-const name=document.getElementById('journalNewName'),kana=document.getElementById('journalNewKana'),entry=document.getElementById('entry');
-const result=document.getElementById('result'),toggle=document.getElementById('toggle');
-let candidateForName='';
+const name=document.getElementById('journalNewName');
+const kana=document.getElementById('journalNewKana');
+const entry=document.getElementById('entry');
+const result=document.getElementById('result');
+const toggle=document.getElementById('toggle');
+const rows=document.getElementById('patientRows');
+const date=document.getElementById('journalNewDate');
+date.value=new Date().toLocaleDateString('sv-SE');
+let candidateForName='',count=0;
 kana.addEventListener('input',()=>{candidateForName=kana.value?name.value:''});
 name.addEventListener('input',e=>{
  if(e.isComposing)return;
- if(kana.value&&candidateForName&&name.value!==candidateForName){kana.value='';candidateForName='';}
+ if(kana.value&&candidateForName&&name.value!==candidateForName){
+  kana.value='';candidateForName='';
+ }
 });
 window.MSWKana05IME?.attach(name,kana,{_new:true,data:{}});
-toggle.onclick=()=>{entry.hidden=!entry.hidden;toggle.textContent=entry.hidden?'＋ 患者を手入力':'− 手入力を閉じる'};
-document.getElementById('cancel').onclick=()=>{entry.hidden=true;toggle.textContent='＋ 患者を手入力'};
+function setOpen(open){
+ entry.hidden=!open;
+ toggle.textContent=open?'− 手入力を閉じる':'＋ 患者を手入力';
+}
+toggle.onclick=()=>setOpen(entry.hidden);
+document.getElementById('cancel').onclick=()=>setOpen(false);
 document.getElementById('journalAdd').onclick=()=>{
- const n=name.value.trim(),reading=kana.value.trim(),date=document.getElementById('journalNewDate').value;
- if(!n||!date){result.textContent='氏名と入院日を入力してください。';return}
- result.textContent='架空患者の登録操作は成功！ フリガナ候補：'+(reading||'なし')+'（未確認のまま引き継ぎ。実際の保存はしません）';
- entry.hidden=true;toggle.textContent='＋ 患者を手入力';
+ const n=name.value.trim(),reading=kana.value.trim(),d=date.value;
+ if(!n||!d){result.textContent='氏名と入院日を入力してください。';return}
+ const empty=document.getElementById('emptyRow');if(empty)empty.remove();
+ const tr=document.createElement('tr');
+ for(const v of [n,d,'未配置','その他・未配置']){
+  const cell=document.createElement('td');cell.textContent=v;tr.appendChild(cell);
+ }
+ rows.appendChild(tr);
+ count++;
+ document.getElementById('patientCount').textContent=count+'人';
+ result.textContent='一覧に追加できました！ フリガナ候補：'+(reading||'なし')+'（未確認・架空データ）';
+ result.classList.add('success');
+ setOpen(false);
+ document.getElementById('journalAdd').disabled=true;
+ toggle.disabled=true;
 };
 document.getElementById('reset').onclick=()=>location.reload();
 })();
-</script></body></html>
+</script>
+</body>
+</html>
