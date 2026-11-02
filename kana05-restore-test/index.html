@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; form-action 'none'; base-uri 'none'">
+<title>KANA05 保存と再表示の検証（架空患者）</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#183b39;background:#f5faf9}
+body{max-width:640px;margin:auto;padding:16px 14px 60px;font-size:17px}
+h1{font-size:1.35rem;margin:12px 0}p{line-height:1.6}
+.card{background:white;padding:18px;border:1px solid #cadeD8;border-radius:12px;margin:16px 0}
+label{display:block;font-weight:700;margin-top:12px;margin-bottom:6px}
+input{font-size:21px;width:100%;box-sizing:border-box;border:2px solid #a5bdb8;border-radius:8px;padding:12px;background:#f7f9f8;color:#173b37}
+.row{display:flex;gap:8px;align-items:center}.row input{min-width:0}
+button{font-size:16px;border:none;border-radius:8px;padding:12px 18px;background:#0f756b;color:white}
+button:disabled{background:#d4e4e0;color:#536e67}
+.secondary{background:white;border:1px solid #7e9f98;color:#0b6157}
+#furiganaStatus{font-size:14px;font-weight:500;padding:4px 8px;border-radius:6px;background:#eef5f3}
+#furiganaStatus[data-confirmed=yes]{color:#00674e}
+#restoreResult{font-size:17px;font-weight:700;margin:14px 0;min-height:28px}
+.ok{color:#006c54}.muted{color:#526b66}.warning{color:#9a5b00}
+</style></head><body>
+<h1>KANA05 保存・再表示テスト</h1>
+<p>実名の入力は不要です。固定の架空患者「山田太郎」を使い、フリガナの<strong>確認済み状態が再表示後も保持されるか</strong>を試します。通信によるデータ送信はありません。</p>
+<div class="card" id="patientForm">
+ <label>氏名（架空患者）</label><input type="text" data-field="氏名" value="山田太郎" readonly>
+ <label>フリガナ <span id="furiganaStatus">要確認</span></label>
+ <div class="row"><input type="text" data-field="フリガナ" value="ヤマダタロウ" readonly><button type="button" id="furiganaConfirm">確認</button></div>
+ <p class="muted">すでに候補が出ている状態から試します。今回の読みは編集不要です。</p>
+</div>
+<div class="card">
+ <div id="restoreResult" role="status" aria-live="polite">未確認</div>
+ <p><button id="reopen" type="button">保存内容を再表示</button></p>
+ <p><button id="reset" type="button" class="secondary">テスト結果を消去</button></p>
+ <p class="muted">このページだけの架空データをブラウザ内に保存します。本番患者の暗号化保存とは別物です。不要になったら「テスト結果を消去」を押してください。</p>
+</div>
+<script>
+'use strict';
+const STORAGE_KEY='msw-kana05-fake-confirm-restore-v1';
+const FAKE_NAME='山田太郎',FAKE_KANA='ヤマダタロウ';
+function fresh(){return {_new:true,data:{'氏名':FAKE_NAME,'フリガナ':''},furiganaConfirmed:false,furiganaConfirmedFor:''};}
+function loadFake(){
+ try{
+  const obj=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(obj&&obj.furiganaConfirmed===true&&obj.furiganaConfirmedFor===FAKE_NAME&&
+    obj.data?.['氏名']===FAKE_NAME&&obj.data?.['フリガナ']===FAKE_KANA){
+    return {_new:false,data:{'氏名':FAKE_NAME,'フリガナ':FAKE_KANA},furiganaConfirmed:true,furiganaConfirmedFor:FAKE_NAME};
+  }
+ }catch(e){}
+ return fresh();
+}
+let selectedPatient=loadFake(),patientChangeRev=0;
+function schedulePatientAutoSave(){
+ const p=selectedPatient;
+ try{
+  if(p.data['氏名']!==FAKE_NAME||p.data['フリガナ']!==FAKE_KANA||!p.furiganaConfirmed)return;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify({_new:false,data:{'氏名':FAKE_NAME,'フリガナ':FAKE_KANA},furiganaConfirmed:true,furiganaConfirmedFor:FAKE_NAME}));
+  document.getElementById('restoreResult').textContent='架空データ：確認済みの読みを保存しました。';
+ }catch(e){document.getElementById('restoreResult').textContent='ブラウザ内の保存が許可されていません。';}
+}
+function furiganaSuggestion(){return '';}
+function bindBasicFurigana(root){
+ const name=root.querySelector('[data-field="氏名"]');
+ const kana=root.querySelector('[data-field="フリガナ"]');
+ const status=root.querySelector('#furiganaStatus');
+ const confirmButton=root.querySelector('#furiganaConfirm');
+ if(!name||!kana||!status||!confirmButton||!selectedPatient)return;
+ const p=selectedPatient;let typed=false;
+ function refresh(){
+  const currentName=String(name.value||'').trim();
+  const confirmed=!!p.furiganaConfirmed&&p.furiganaConfirmedFor===currentName&&kana.value.trim()===String(p.data?.['フリガナ']||'').trim()&&!typed;
+  kana.dataset.furiganaConfirmed=confirmed?'yes':'no';
+  status.textContent=confirmed?'確認済み':(kana.value.trim()?'要確認':'未入力');
+  status.dataset.confirmed=confirmed?'yes':'no';
+  confirmButton.disabled=confirmed||!kana.value.trim()||!currentName;
+  confirmButton.textContent=confirmed?'済':'確認';
+ }
+ function propose(){
+  if(p.furiganaConfirmed&&p.data?.['フリガナ']){refresh();return;}
+  if(typed){refresh();return;}
+  kana.value=furiganaSuggestion(name.value);refresh();
+ }
+ if(!kana.value.trim())propose();else refresh();
+ name.addEventListener('input',e=>{if(!e.isComposing)propose();});
+ name.addEventListener('compositionend',propose);
+ kana.addEventListener('input',e=>{if(e.isComposing)return;typed=true;refresh();});
+ kana.addEventListener('compositionend',()=>{typed=true;refresh();});
+ confirmButton.onclick=()=>{
+  const reading=kana.value.trim(),patientName=name.value.trim();
+  if(!patientName||!reading)return;
+  p.furiganaConfirmed=true;p.furiganaConfirmedFor=patientName;
+  p.data['氏名']=patientName;p.data['フリガナ']=reading;
+  typed=false;
+  kana.dataset.furiganaConfirmed='yes';
+  kana.dispatchEvent(new Event('change',{bubbles:true}));
+  patientChangeRev++;schedulePatientAutoSave();refresh();
+ };
+}
+</script>
+<script src="../kana05-registration-test/kana05-new-patient-ime.js"></script>
+<script>
+(function(){
+ const root=document.getElementById('patientForm');
+ const name=root.querySelector('[data-field="氏名"]');
+ const kana=root.querySelector('[data-field="フリガナ"]');
+ name.value=FAKE_NAME;
+ kana.value=selectedPatient.furiganaConfirmed?selectedPatient.data['フリガナ']:FAKE_KANA;
+ bindBasicFurigana(root);
+ if(selectedPatient.furiganaConfirmed){
+  document.getElementById('restoreResult').innerHTML='<span class="ok">再表示成功：フリガナと確認済み状態を保持</span>';
+ }else{
+  document.getElementById('restoreResult').textContent='確認を押してから「保存内容を再表示」を押してください。';
+ }
+ document.getElementById('reopen').onclick=()=>location.reload();
+ document.getElementById('reset').onclick=()=>{
+   try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
+   location.reload();
+ };
+})();
+</script>
+</body></html>
