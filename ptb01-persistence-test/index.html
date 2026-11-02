@@ -22,7 +22,10 @@ button.btn.secondary{background:#fff;color:#0f766e}
 <div id="fakeState" aria-live="polite">準備中…</div>
 <p class="notice">初回は架空患者2人（写真参照1件）。「架空患者だけを空にする」→保存済みの .mswpt を読み込み→ページを再読み込みし、復元した2人と「復元済み」が維持されるか確認します。</p>
 <p class="notice" id="stageStatus" style="font-weight:700"></p>
-<button id="clearFake" type="button">架空患者だけを空にする（復元テスト用）</button>
+<button id="persistTest" type="button">復元データの再起動保持を一括検証</button>
+<p class="notice" id="rebootProof" aria-live="polite">再起動後の保持は未確認です。</p>
+<hr>
+<button id="clearFake" type="button">架空患者だけを空にする（手動復元テスト用）</button>
 </section>
 <section class="panel"><h3>自動検証</h3>
 <button id="selfTest" type="button">暗号化・復号・写真除外を検証</button>
@@ -36,7 +39,7 @@ button.btn.secondary{background:#fff;color:#0f766e}
 <script>
 'use strict';
 // Browser-only fake data. Persistent test uses a dedicated fake-only IndexedDB store.
-let key=null,screen='settings',maintenanceAction=null,dataWriteTail=Promise.resolve(),stage='initial',db=null;
+let key=null,screen='settings',maintenanceAction=null,dataWriteTail=Promise.resolve(),stage='initial',db=null,loadedFromSavedState=false;
 const fakeDrugs=[{薬名:'架空薬剤A'}],fakeMasters={介護度:['要介護2']};
 const samplePatients=[
  {id:'fake-001',data:{氏名:'山田 太郎',フリガナ:'ヤマダ タロウ',病名:'架空病名A',ベッド番号:'201-1'},
@@ -105,9 +108,25 @@ await openDB();
 const seed=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('PTB01-fake-only-session-test-20261102'));
 key=await crypto.subtle.importKey('raw',seed,{name:'AES-GCM'},false,['encrypt','decrypt']);
 const saved=await idbGet('data');
-if(saved){state=await decryptObj(saved,key);stage=await idbGet('stage')||'initial';}
+if(saved){state=await decryptObj(saved,key);stage=await idbGet('stage')||'initial';loadedFromSavedState=true;}
 else{await idbSet('data',await encryptPatientIndex(state,key));await idbSet('stage',stage);}
 await renderSettings();render();
+const proof=document.getElementById('rebootProof');
+if(loadedFromSavedState&&stage==='recovered'&&state.patients.length===2&&state.patients.every(p=>!p.attachments)&&state.drugs.length===1&&state.patients[0].notes.length===1&&state.patients[0].medications.length===1){
+ proof.textContent='✅ Safariの再読み込み後も、患者2人・写真参照0件・経過記録・処方薬が保持されました。';
+ proof.style.color='#006b55';
+}
+document.getElementById('persistTest').onclick=async()=>{
+ const btn=document.getElementById('persistTest');btn.disabled=true;proof.textContent='暗号化保存してページを再読み込みしています…';
+ try{
+  const pack=await MSWPTB01Core.seal(samplePatients,'FakeDemoPassword12345',1);
+  const patients=await MSWPTB01Core.unseal(pack,'FakeDemoPassword12345');
+  const next={...state,patients};
+  await idbSet('data',await encryptPatientIndex(next,key));
+  stage='recovered';await idbSet('stage',stage);
+  location.reload();
+ }catch(e){proof.textContent='検証失敗：'+String(e.message||e);btn.disabled=false;}
+};
 document.getElementById('clearFake').onclick=async()=>{
  if(maintenanceAction)return;
  state={...state,patients:[]};
