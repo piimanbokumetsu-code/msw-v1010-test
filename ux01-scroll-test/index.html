@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MSW UX01 架空患者・スクロール復帰テスト</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#173033;background:#f4f7f7}
+*{box-sizing:border-box}body{margin:0;padding-bottom:76px}.topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid #d9e4e4;padding:12px 14px;z-index:5;font-weight:800}.content{max-width:980px;margin:auto;padding:12px}.notice{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:13px;line-height:1.6;margin-bottom:12px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;position:sticky;top:43px;background:#f4f7f7;padding:10px 0;z-index:4}.toolbar input,.toolbar select{font:inherit;min-height:43px;border:1px solid #d9e4e4;border-radius:10px;padding:9px;background:white;max-width:100%}.toolbar input{flex:1;min-width:160px}button{font:inherit;cursor:pointer;min-height:43px;border-radius:10px;border:1px solid #d9e4e4;background:#fff;padding:9px 12px}.primary{background:#0f766e;color:#fff;border-color:#0f766e}.map-section{margin:16px 0 28px}.map-section h2{font-size:20px}.room-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.room-map-item{border:1px solid #d9e4e4;border-radius:13px;background:#fff;padding:10px;min-height:145px}.room-map-item strong{display:block;margin-bottom:6px}.bed{display:block;width:100%;text-align:left;margin:5px 0;padding:10px;font-weight:700}.bed:active{background:#e6fffb}.compact-room-scroll{overflow-x:auto;max-width:100%;border:1px dashed #9baeb0;border-radius:12px;padding:10px;background:white}.compact-room-row{display:flex;gap:12px;min-width:960px}.compact-room-row .room-map-item{min-width:180px;flex:1}.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10;display:flex;justify-content:center}.sheet{background:#f4f7f7;width:min(100%,780px);height:100%;overflow:auto}.sheethead{background:white;position:sticky;top:0;padding:15px;display:flex;align-items:center;gap:8px}.sheetbody{padding:18px}.sheetbody label{display:block;margin-bottom:10px}.sheetbody textarea{width:100%;min-height:125px;font:inherit;padding:12px;border-radius:10px}.test-mark{color:#047857;font-weight:800}.bottomnav{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px;text-align:center;z-index:6;border-top:1px solid #d9e4e4}.bottomnav button{background:#e6fffb}.small{font-size:13px;color:#687b7d}@media(max-width:620px){.room-map{grid-template-columns:1fr}.topbar{font-size:15px}}
+</style>
+</head>
+<body>
+<header class="topbar">MSW UX01｜架空患者だけの操作確認</header>
+<main class="content" id="main"></main>
+<footer class="bottomnav"><button onclick="window.scrollTo(0,0)">画面の先頭へ</button></footer>
+<script>
+'use strict';
+let screen='patients';
+let patientListSearchQuery='',patientListWard='',sanThereseOnly=false;
+const fakePatients=Array.from({length:45},(_,i)=>({id:String(i+1),name:`架空患者 ${String(i+1).padStart(2,'0')}`,bed:i<28?`${201+Math.floor(i/3)}-${i%3+1}`:`ICU${Math.floor((i-28)/6)+1}-${(i-28)%6+1}`,memo:''}));
+function markupPatients(){
+ const q=patientListSearchQuery.toLowerCase(),ward=patientListWard;
+ const rows=fakePatients.filter(p=>(!q||(p.name+p.bed).toLowerCase().includes(q))&&(!ward||p.bed.startsWith(ward))&&(!sanThereseOnly||Number(p.id)%4===0));
+ const standard=rows.filter(p=>!p.bed.startsWith('ICU'));
+ const icu=rows.filter(p=>p.bed.startsWith('ICU'));
+ const bedCard=p=>`<button type="button" class="bed primary" data-id="${p.id}">${p.bed}　${p.name}</button>`;
+ const rooms=groups=>[...new Set(groups.map(p=>p.bed.split('-')[0]))].map(room=>`<div class="room-map-item"><strong>${room}号室</strong>${groups.filter(p=>p.bed.startsWith(room+'-')).map(bedCard).join('')}</div>`).join('');
+ return `<section class="map-section"><h2>一般病棟（架空）</h2><div class="room-map">${rooms(standard)}</div></section><section class="map-section"><h2>208〜213号室：横スクロールの確認</h2><p class="small">この白い枠の中を左右に動かしてから、架空患者をタップしてね。</p><div class="compact-room-scroll"><div class="compact-room-row">${rooms(standard.slice(-12))||'<div>検索該当なし</div>'}</div></div></section><section class="map-section"><h2>ICU（架空）</h2><div class="room-map">${rooms(icu)}</div></section>`;
+}
+function renderPatients(){
+ document.getElementById('main').innerHTML=`<div class="notice"><strong>これは本番アプリではありません。</strong> 本番患者・実名・バックアップを入力しないでください。架空患者を開き、「←」または「保存して閉じる」で戻り、表示位置が保持されるか試します。入力内容は端末に保存されません。</div><h1>入院患者（架空テスト）</h1><p class="small">下へスクロールして下段の患者を開く → 戻ったとき同じ場所に復帰するか確認</p><div class="toolbar"><input id="q" type="search" placeholder="架空患者・ベッド番号で検索" value="${patientListSearchQuery}"><button id="clear" type="button">消去</button><select id="ward"><option value="">全病棟</option><option value="ICU">ICU</option></select><button id="showSanTherese" type="button" aria-pressed="${sanThereseOnly}">${sanThereseOnly?'検討会のみ':'全患者（切替）'}</button></div><div id="patientList">${markupPatients()}</div>`;
+ document.getElementById('ward').value=patientListWard;
+ document.getElementById('q').oninput=e=>{patientListSearchQuery=e.target.value;redrawList()};
+ document.getElementById('ward').onchange=e=>{patientListWard=e.target.value;redrawList()};
+ document.getElementById('clear').onclick=()=>{patientListSearchQuery='';renderPatients()};
+ document.getElementById('showSanTherese').onclick=()=>{sanThereseOnly=!sanThereseOnly;renderPatients()};
+ bindCards();
+}
+function redrawList(){document.getElementById('patientList').innerHTML=markupPatients();bindCards()}
+function bindCards(){document.querySelectorAll('#patientList [data-id]').forEach(el=>el.onclick=()=>{const p=fakePatients.find(p=>p.id===el.dataset.id);if(p)openPatient(p)})}
+function openPatient(p){
+ document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><section class="sheet"><div class="sheethead"><button id="back">←</button><strong>${p.name}（架空）</strong></div><div class="sheetbody"><h2>基本情報（架空テスト）</h2><p>ベッド：${p.bed}</p><label>テスト用メモ（実データを入力しないでください）<textarea id="dummyMemo">${p.memo}</textarea></label><button class="primary" id="saveClose">保存して閉じる</button><p class="small">メモはこの画面だけで管理し、保存先・外部送信はありません。</p></div></section></div>`);
+ const exit=()=>{p.memo=document.getElementById('dummyMemo').value;closePatient()};
+ document.getElementById('back').onclick=exit;document.getElementById('saveClose').onclick=exit;
+}
+function closePatient(){document.getElementById('modal')?.remove();renderPatients();window.scrollTo(0,0)}
+renderPatients();
+</script>
+<script src="ux01-scroll-return.js" integrity="sha384-mpJOU/B42/pVQ00FucLS1ycZIPo/Eql8YDW3K3MBKvkmg3X++Ab0drRX+fk4f5w/" crossorigin="anonymous"></script>
+</body>
+</html>
