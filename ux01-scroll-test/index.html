@@ -17,19 +17,20 @@
 'use strict';
 let screen='patients';
 let patientListSearchQuery='',patientListWard='',sanThereseOnly=false;
-const fakePatients=Array.from({length:45},(_,i)=>({id:String(i+1),name:`架空患者 ${String(i+1).padStart(2,'0')}`,bed:i<28?`${201+Math.floor(i/3)}-${i%3+1}`:`ICU${Math.floor((i-28)/6)+1}-${(i-28)%6+1}`,memo:''}));
+const fakeBeds=[...[201,202,203,205,206,207].flatMap(room=>Array.from({length:room===203?7:6},(_,i)=>`${room}-${i+1}`)),...['208-1','208-2','210-1','210-2','211','212','213'],...[1,2,3].flatMap(room=>Array.from({length:6},(_,i)=>`ICU${room}-${i+1}`))];
+const fakePatients=fakeBeds.map((bed,i)=>({id:String(i+1),name:`架空患者 ${String(i+1).padStart(2,'0')}`,bed,memo:''}));
 function markupPatients(){
  const q=patientListSearchQuery.toLowerCase(),ward=patientListWard;
  const rows=fakePatients.filter(p=>(!q||(p.name+p.bed).toLowerCase().includes(q))&&(!ward||p.bed.startsWith(ward))&&(!sanThereseOnly||Number(p.id)%4===0));
  const standard=rows.filter(p=>!p.bed.startsWith('ICU'));
  const icu=rows.filter(p=>p.bed.startsWith('ICU'));
  const bedCard=p=>`<button type="button" class="bed primary" data-id="${p.id}">${p.bed}　${p.name}</button>`;
- const rooms=groups=>[...new Set(groups.map(p=>p.bed.split('-')[0]))].map(room=>`<div class="room-map-item"><strong>${room}号室</strong>${groups.filter(p=>p.bed.startsWith(room+'-')).map(bedCard).join('')}</div>`).join('');
+ const rooms=groups=>[...new Set(groups.map(p=>p.bed.split('-')[0]))].map(room=>`<div class="room-map-item"><strong>${room}号室</strong>${groups.filter(p=>p.bed===room||p.bed.startsWith(room+'-')).map(bedCard).join('')}</div>`).join('');
  return `<section class="map-section"><h2>一般病棟（架空）</h2><div class="room-map">${rooms(standard)}</div></section><section class="map-section"><h2>208〜213号室：横スクロールの確認</h2><p class="small">この白い枠の中を左右に動かしてから、架空患者をタップしてね。</p><div class="compact-room-scroll"><div class="compact-room-row">${rooms(standard.slice(-12))||'<div>検索該当なし</div>'}</div></div></section><section class="map-section"><h2>ICU（架空）</h2><div class="room-map">${rooms(icu)}</div></section>`;
 }
 function renderPatients(){
- document.getElementById('main').innerHTML=`<div class="notice"><strong>これは本番アプリではありません。</strong> 本番患者・実名・バックアップを入力しないでください。架空患者を開き、「←」または「保存して閉じる」で戻り、表示位置が保持されるか試します。入力内容は端末に保存されません。</div><h1>入院患者（架空テスト）</h1><p class="small">下へスクロールして下段の患者を開く → 戻ったとき同じ場所に復帰するか確認</p><div class="toolbar"><input id="q" type="search" placeholder="架空患者・ベッド番号で検索" value="${patientListSearchQuery}"><button id="clear" type="button">消去</button><select id="ward"><option value="">全病棟</option><option value="ICU">ICU</option></select><button id="showSanTherese" type="button" aria-pressed="${sanThereseOnly}">${sanThereseOnly?'検討会のみ':'全患者（切替）'}</button></div><div id="patientList">${markupPatients()}</div>`;
- document.getElementById('ward').value=patientListWard;
+ document.getElementById('main').innerHTML=`<div class="notice"><strong>これは本番アプリではありません。</strong> 本番患者・実名・バックアップを入力しないでください。架空患者を開き、「←」または「保存して閉じる」で戻り、表示位置が保持されるか試します。入力内容は端末に保存されません。</div><h1>入院患者（架空テスト）</h1><p class="small">下へスクロールして下段の患者を開く → 戻ったとき同じ場所に復帰するか確認</p><div class="toolbar"><input id="q" type="search" placeholder="架空患者・ベッド番号で検索" value=""><button id="clear" type="button">消去</button><select id="ward"><option value="">全病棟</option><option value="ICU">ICU</option></select><button id="showSanTherese" type="button" aria-pressed="${sanThereseOnly}">${sanThereseOnly?'検討会のみ':'全患者（切替）'}</button></div><div id="patientList">${markupPatients()}</div>`;
+ document.getElementById('ward').value=patientListWard;document.getElementById('q').value=patientListSearchQuery;
  document.getElementById('q').oninput=e=>{patientListSearchQuery=e.target.value;redrawList()};
  document.getElementById('ward').onchange=e=>{patientListWard=e.target.value;redrawList()};
  document.getElementById('clear').onclick=()=>{patientListSearchQuery='';renderPatients()};
@@ -39,7 +40,8 @@ function renderPatients(){
 function redrawList(){document.getElementById('patientList').innerHTML=markupPatients();bindCards()}
 function bindCards(){document.querySelectorAll('#patientList [data-id]').forEach(el=>el.onclick=()=>{const p=fakePatients.find(p=>p.id===el.dataset.id);if(p)openPatient(p)})}
 function openPatient(p){
- document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><section class="sheet"><div class="sheethead"><button id="back">←</button><strong>${p.name}（架空）</strong></div><div class="sheetbody"><h2>基本情報（架空テスト）</h2><p>ベッド：${p.bed}</p><label>テスト用メモ（実データを入力しないでください）<textarea id="dummyMemo">${p.memo}</textarea></label><button class="primary" id="saveClose">保存して閉じる</button><p class="small">メモはこの画面だけで管理し、保存先・外部送信はありません。</p></div></section></div>`);
+ document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><section class="sheet"><div class="sheethead"><button id="back">←</button><strong>${p.name}（架空）</strong></div><div class="sheetbody"><h2>基本情報（架空テスト）</h2><p>ベッド：${p.bed}</p><label>テスト用メモ（実データを入力しないでください）<textarea id="dummyMemo"></textarea></label><button class="primary" id="saveClose">保存して閉じる</button><p class="small">メモはこの画面だけで管理し、保存先・外部送信はありません。</p></div></section></div>`);
+ document.getElementById('dummyMemo').value=p.memo;
  const exit=()=>{p.memo=document.getElementById('dummyMemo').value;closePatient()};
  document.getElementById('back').onclick=exit;document.getElementById('saveClose').onclick=exit;
 }
