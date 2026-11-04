@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MSW UX04 患者一覧から連続退院・架空患者テスト</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#173033;background:#f4f7f7}*{box-sizing:border-box}body{margin:0;padding:0 0 50px}.topbar{background:white;position:sticky;top:0;z-index:5;border-bottom:1px solid #d9e4e4;padding:13px;font-weight:800}.content{max-width:900px;margin:14px auto;padding:10px}.notice{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px;line-height:1.6}.panel{background:white;border:1px solid #d9e4e4;border-radius:12px;margin:14px 0;padding:14px}h1{font-size:23px}h2{font-size:19px;margin:0 0 10px}.journal-table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:570px;font-size:14px}td,th{padding:10px;border-bottom:1px solid #d9e4e4;text-align:left}button,input{font:inherit;min-height:42px}button{background:#fff;border:1px solid #aac2c2;border-radius:10px;padding:9px 12px;cursor:pointer}.btn{background:#0f766e;color:white;border-color:#0f766e}.btn.secondary{background:white;color:#173033;border-color:#aac2c2}.journal-actions{display:flex;gap:6px;flex-wrap:wrap}.bed-picker-shade{position:fixed;inset:0;background:rgba(0,0,0,.50);z-index:20;display:flex;align-items:center;justify-content:center}.bed-picker-panel{width:min(96%,550px);max-height:90vh;overflow:auto;background:#f5fafa;border-radius:15px;padding:12px}.bed-picker-head{display:flex;justify-content:space-between;gap:5px;align-items:center;margin-bottom:8px}.bed-picker-scroll{max-height:72vh;overflow:auto}.bed-picker-top{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}.bed-picker-choice{background:white;border:1px solid #80aaaa;border-radius:10px;padding:10px 12px;min-width:100px}.discharge-choice{color:#b91c1c;border-color:#b91c1c;font-weight:800}.bed-picker-room{padding:8px;margin:8px 0;border:1px solid #d9e4e4;border-radius:10px;background:white}.bed-picker-room h3{font-size:17px;margin:0 0 7px}.bed-picker-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.discharge-content{padding:10px}.discharge-content label{display:block;margin:12px 0}.discharge-content input{display:block;padding:9px;width:100%;max-width:270px;border:1px solid #aac2c2;border-radius:8px}.discharge-content .notice{margin:10px 0}.small{font-size:13px;color:#586a6a}#testStatus{border-radius:8px;background:#d1fae5;color:#065f46;padding:10px;margin-top:10px}
+</style><style>
+.test-nav{position:sticky;top:44px;z-index:6;background:#e6f1ef;padding:9px;display:flex;gap:8px;justify-content:center;border-bottom:1px solid #bed3d1}
+.fake-sheet{padding:24px}.fake-rooms{display:flex;gap:12px;min-width:1130px;padding:6px}.compact-room-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:6px;border:1px solid #c7dada;border-radius:12px}.fake-open{width:190px;min-height:146px;background:#f0fdfa;border:2px solid #14b8a6;display:flex;flex-direction:column;align-items:flex-start;gap:14px}.fake-open strong{font-size:17px}.fake-open span{font-weight:bold}.fake-open small{font-size:12px}.fake-ghost{flex:none;width:190px;min-height:146px;border:2px dashed #c0d8d5;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#637b79}.fake-bottom-pad{min-height:540px;padding:32px 8px;text-align:center;color:#54706c}
+</style></head><body>
+<header class="topbar">MSW UX04｜患者一覧で続けて退院（架空患者のみ）</header>
+<nav id="testNav" class="test-nav"><button type="button" class="btn secondary" id="goPatients">患者一覧</button><button type="button" class="btn secondary" id="goJournal">日誌</button></nav><main id="main" class="content"></main>
+<script>
+'use strict';
+let screen='patients';
+let selectedPatient=null;
+let state={patients:[
+ {id:'fake-a',data:{'氏名':'架空患者 A','入院日':'2026-10-20','ベッド番号':'201-1'},journalAdmissionPending:false,dischargeDate:null,summaryPending:false,formerBed:''},
+ {id:'fake-b',data:{'氏名':'架空患者 B','入院日':'2026-10-22','ベッド番号':'208-1'},journalAdmissionPending:false,dischargeDate:null,summaryPending:false,formerBed:''},
+ {id:'fake-c',data:{'氏名':'架空患者 C','入院日':'2026-10-27','ベッド番号':''},journalAdmissionPending:true,dischargeDate:null,summaryPending:false,formerBed:''}
+]};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BED_LAYOUT=[{room:'201',beds:['1','2','3']},{room:'208',beds:['1','2']}],ICU_LAYOUT=[{room:'ICU1',beds:['1','2']}];
+const bedKey=(room,n)=>`${room}-${n}`;
+const normalizeBed=s=>String(s||'');
+const activePatients=()=>state.patients.filter(p=>!p.dischargeDate);
+const nowISO=()=>new Date().toISOString();
+const save=async()=>{}; // Test-only RAM; no persistence or network
+const flushPatientAutoSave=async()=>true;
+// Offline fictional test: in-memory only. No IndexedDB, network storage or patient imports.
+let patientListSearchQuery='', patientListWard='';
+function openPatient(p){
+ if(!p||p.dischargeDate)return;
+ selectedPatient=p;
+ document.body.insertAdjacentHTML('beforeend',`<div class="bed-picker-shade" id="modal"><div class="bed-picker-panel fake-sheet"><div class="bed-picker-head"><strong>${esc(p.data['氏名'])}｜患者情報（架空）</strong><button type="button" class="btn secondary" id="closeM">←</button></div><p>病室：${esc(p.data['ベッド番号'])} ／ 入院日：${esc(p.data['入院日'])}</p><input id="patientBedValue" type="hidden" value="${esc(p.data['ベッド番号'])}"><button type="button" class="btn" id="patientBedPick">部屋選択 ▾</button><p class="small">部屋選択から「退院」を選んでください。</p><button type="button" class="btn secondary" id="saveP">保存して閉じる</button></div></div>`);
+ $('#closeM').onclick=closePatient;
+ $('#saveP').onclick=closePatient;
+ $('#patientBedPick').onclick=()=>showGroupedBedPicker(p.data['ベッド番号'],()=>{},{onDischarge:()=>startDischargeFlow()});
+}
+function closePatient(){selectedPatient=null;$('#modal')?.remove();render()}
+function renderPatients(){
+ const ps=activePatients().filter(p=>p.data['ベッド番号']&&(!patientListSearchQuery||p.data['氏名'].includes(patientListSearchQuery)));
+ $('#main').innerHTML=`<div class="notice"><strong>UX04 架空患者専用テスト</strong>：実名や患者情報を入力しないでください。データはメモリだけで、ページを閉じると消えます。</div><h1>患者一覧（連続退院テスト）</h1><p class="small">架空患者A・Bを順番に退院確定してください。退院処理後もこの患者一覧の位置から次の患者を選べることを確認します。</p><div class="panel"><label>患者検索 <input id="q" type="search" value="${esc(patientListSearchQuery)}" placeholder="A・Bで検索" style="padding:8px;min-width:180px"></label><label>病棟 <select id="ward"><option value="">全病棟</option><option value="一般病棟">一般病棟</option><option value="ICU">ICU</option></select></label><button id="showSanTherese" class="btn secondary" aria-pressed="false" type="button">全患者のベッドマップ</button><div id="patientList"><p class="small">▼ 下の病室カードから退院する患者をタップ</p><div class="compact-room-scroll"><div class="fake-rooms">${ps.map(p=>`<button class="fake-open" data-id="${esc(p.id)}" type="button"><strong>${esc(p.data['ベッド番号'])}</strong><span>${esc(p.data['氏名'])}</span><small>患者情報を開く</small></button>`).join('')||'<p>対象患者はいません。日誌②を確認してください。</p>'}<div class="fake-ghost">空床</div><div class="fake-ghost">空床</div><div class="fake-ghost">空床</div><div class="fake-ghost">空床</div></div></div><p class="small">左右にスクロールできます。退院後、患者一覧のスクロール位置もできる限り維持します。</p></div></div><div class="fake-bottom-pad"><p>この下の余白は縦スクロール復元の確認用です。</p></div><button type="button" class="btn secondary" id="resetFake">架空データを初期化</button>`;
+ $('#q').oninput=()=>{patientListSearchQuery=$('#q').value;renderPatients()};
+ $('#ward').value=patientListWard;$('#ward').onchange=()=>{patientListWard=$('#ward').value};
+ $('.fake-open').forEach(b=>b.onclick=()=>{const p=state.patients.find(x=>x.id===b.dataset.id);if(p)openPatient(p)});
+ $('#resetFake').onclick=()=>location.reload();
+}
+function render(){
+ if(screen==='patients')renderPatients();
+ else renderJournalPreview();
+ $('#goPatients').disabled=screen==='patients';
+ $('#goJournal').disabled=screen==='journal';
+}
+document.getElementById('goPatients').onclick=()=>{screen='patients';render()};
+document.getElementById('goJournal').onclick=()=>{screen='journal';render()};
+function showGroupedBedPicker(current,onChoose,options={}){
+  $('#groupedBedPicker')?.remove();
+  const groups=[...BED_LAYOUT,...ICU_LAYOUT];
+  const panel=`<div class="bed-picker-shade" id="groupedBedPicker" role="dialog" aria-modal="true" aria-label="ベッド配置先を選択"><div class="bed-picker-panel"><div class="bed-picker-head"><strong>ベッド配置先を選択</strong><button type="button" class="btn secondary" id="bedPickerClose">閉じる</button></div><div class="bed-picker-scroll"><div class="bed-picker-top"><button type="button" class="bed-picker-choice ${!current?'chosen':''}" data-bed="">その他・未配置</button>${options.onDischarge?`<button type="button" class="bed-picker-choice discharge-choice" id="pickerDischarge">退院</button>`:''}</div>${groups.map(r=>`<section class="bed-picker-room"><h3>${esc(r.room)}${r.room.startsWith('ICU')?'':'号室'}</h3><div class="bed-picker-grid">${r.beds.map(n=>{const b=bedKey(r.room,n);return `<button type="button" class="bed-picker-choice ${normalizeBed(current)===normalizeBed(b)?'chosen':''}" data-bed="${esc(b)}">${esc(b)}</button>`}).join('')}</div></section>`).join('')}</div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',panel);
+  const root=$('#groupedBedPicker');
+  const close=()=>root.remove();
+  root.addEventListener('click',e=>{if(e.target===root)close()});
+  $('#bedPickerClose').onclick=close;if(options.onDischarge)$('#pickerDischarge').onclick=()=>{close();options.onDischarge()};
+  root.querySelectorAll('[data-bed]').forEach(btn=>btn.onclick=()=>{onChoose(btn.dataset.bed);close()});
+}
+// Direct copy of existing production discharge workflow (app.js), stubbed storage only.
+function startDischargeFlow(p=selectedPatient){
+ const fromPatientList=screen==='patients';
+ if(!p)return;
+ if(selectedPatient&&selectedPatient!==p){alert('別の患者情報が編集中です。退院処理を中止しました。');return;}
+ if(p._new){alert('先に患者情報を保存してください。');return;}
+ const previousBed=$('#patientBedValue')?.value??p.data['ベッド番号']??'';
+ const today=new Date().toLocaleDateString('sv-SE');
+ $('#dischargeFlow')?.remove();
+ document.body.insertAdjacentHTML('beforeend',`<div class="bed-picker-shade" id="dischargeFlow" role="dialog" aria-modal="true" aria-label="退院日を選択"><div class="bed-picker-panel discharge-panel"><div class="bed-picker-head"><strong>退院日を選択</strong><button class="btn secondary" id="dischargeCancel">戻る</button></div><div class="discharge-content"><p><b>${esc(p.data['氏名']||'氏名未入力')}</b></p><label>退院日<input type="date" id="dischargeChosenDate" value="${today}"></label><p class="notice">退院確定後はベッドを空け、日誌の退院患者一覧に残します。サマリー入力完了までは削除されません。</p><button class="btn" id="dischargeReview">確認へ</button><div id="dischargeReviewBody"></div></div></div></div>`);
+ const root=$('#dischargeFlow');$('#dischargeCancel').onclick=()=>root.remove();
+ $('#dischargeReview').onclick=()=>{
+  const date=$('#dischargeChosenDate').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('退院日を入力してください');return;}
+  const admission=p.data['入院日'];if(admission&&/^\d{4}-\d{2}-\d{2}$/.test(admission)&&date<admission){alert('退院日は入院日以降を指定してください');return;}
+  $('#dischargeReviewBody').innerHTML=`<div class="panel"><p><b>退院処理を確定しますか？</b></p><p>${esc(p.data['氏名']||'氏名未入力')} ／ 退院日：${esc(date)} ／ 退院前：${esc(previousBed||'その他・未配置')}</p><button class="btn" id="dischargeCommit">${fromPatientList?'退院を確定して患者一覧へ戻る':'確定して退院一覧へ'}</button></div>`;
+  $('#dischargeCommit').onclick=async()=>{
+   const b=$('#dischargeCommit');b.disabled=true;
+   if(selectedPatient===p&&!await flushPatientAutoSave()){b.disabled=false;alert('患者情報の自動保存に失敗しました。退院処理を中止しました。');return;}
+   const old={date:p.dischargeDate,pending:p.summaryPending,bed:p.data['ベッド番号'],former:p.formerBed};
+   try{p.formerBed=previousBed;p.dischargeDate=date;p.summaryPending=true;p.data['ベッド番号']='';p.updatedAt=nowISO();await save();root.remove();$('#duplicateModal')?.remove();const hadPatientSheet=selectedPatient===p;if(hadPatientSheet)closePatient();if(fromPatientList){screen='patients';if(!hadPatientSheet)render()}else{screen='journal';render()}}
+   catch(e){p.dischargeDate=old.date;p.summaryPending=old.pending;p.data['ベッド番号']=old.bed;p.formerBed=old.former;alert('保存できませんでした：'+e.message);b.disabled=false}
+  };
+ };
+}
+function renderPendingDischarges(){
+ const pending=state.patients.filter(p=>p.summaryPending&&p.dischargeDate);
+ return `<div class="panel"><h2>② 退院患者一覧　${pending.length}名</h2><p class="notice">電子カルテに退院サマリーを入力した後、「退院」を押してください。完了まで一覧に残ります。</p><div class="journal-table-wrap"><table class="journal-table"><thead><tr><th>氏名</th><th>退院日</th><th>退院前の病室</th><th>処理</th></tr></thead><tbody>${pending.map(p=>`<tr><td>${esc(p.data['氏名']||'氏名未入力')}</td><td>${esc(p.dischargeDate||'')}</td><td>${esc(p.formerBed||'未配置')}</td><td><div class="journal-actions"><button type="button" class="btn secondary pending-cancel" data-id="${esc(p.id)}">退院取消</button><button type="button" class="btn secondary pending-complete" data-id="${esc(p.id)}">退院</button></div></td></tr>`).join('')||'<tr><td colspan="4">サマリー未完了の退院患者はいません</td></tr>'}</tbody></table></div></div>`;
+}
+function renderJournalPreview(){
+ const admissions=state.patients.filter(p=>!p.dischargeDate&&p.journalAdmissionPending&&!p.data['ベッド番号']);
+ $('#main').innerHTML=`<div class="notice"><b>これは架空患者だけのUX04テストです。</b> 本番患者・実名・写真・バックアップは絶対に入力しないでください。架空データは画面を閉じれば消えます。</div><h1>日誌・患者情報取り込み（架空テスト）</h1><div class="panel"><h2>① 入院患者一覧　${admissions.length}名</h2><p class="small">「部屋選択」に退院ボタンが追加されることを確認。退院日を確定すると②に移動します。</p><div class="journal-table-wrap"><table><thead><tr><th>氏名</th><th>入院日</th><th>現在地</th><th>配置先</th></tr></thead><tbody>${admissions.map(p=>`<tr><td>${esc(p.data['氏名'])}</td><td>${esc(p.data['入院日'])}</td><td>未配置</td><td><button type="button" class="btn secondary journal-bed-btn" data-id="${esc(p.id)}">部屋選択</button></td></tr>`).join('')||'<tr><td colspan="4">ベッド配置待ちの患者はいません</td></tr>'}</tbody></table></div><p class="small">比較用：新規登録前の「部屋選択」には退院ボタンは出ません。</p><button type="button" class="btn secondary" id="journalNewBedPick">新規患者の部屋選択（比較用）</button></div>${renderPendingDischarges()}<button class="btn secondary" id="resetFake" type="button">架空データを初期化</button>`;
+ $$('.journal-bed-btn').forEach(btn=>btn.onclick=()=>{
+  const p=state.patients.find(x=>x.id===btn.dataset.id);if(!p||p.dischargeDate)return;
+  showGroupedBedPicker(p.data['ベッド番号']||'',async value=>{
+   const oldBed=p.data['ベッド番号'],oldPending=p.journalAdmissionPending;
+   if(value){const occupied=activePatients().filter(x=>x.id!==p.id&&normalizeBed(x.data['ベッド番号'])===normalizeBed(value));if(occupied.length&&!confirm(`このベッドにはすでに${occupied.length}名登録されています。重複配置しますか？`))return;}
+   if(!confirm(`${p.data['氏名']||'患者'}さんを ${value||'その他・未配置'} に配置しますか？`))return;
+   p.data['ベッド番号']=value;p.journalAdmissionPending=!value;p.updatedAt=nowISO();
+   try{await save();renderJournalPreview()}catch(e){p.data['ベッド番号']=oldBed;p.journalAdmissionPending=oldPending;alert('保存できませんでした：'+e.message)}
+  });
+ });
+ $('#journalNewBedPick').onclick=()=>showGroupedBedPicker('',()=>{});
+ $$('.pending-complete').forEach(b=>b.onclick=async()=>{const p=state.patients.find(p=>p.id===b.dataset.id);if(!p||!p.summaryPending)return;if(!confirm('電子カルテへのサマリー入力を完了しましたか？（架空テスト）'))return;p.summaryPending=false;p.summaryCompletedAt=nowISO();await save();renderJournalPreview()});
+ $$('.pending-cancel').forEach(b=>b.onclick=async()=>{const p=state.patients.find(p=>p.id===b.dataset.id);if(!p)return;p.dischargeDate=null;p.summaryPending=false;p.journalAdmissionPending=true;await save();renderJournalPreview()});
+ $('#resetFake').onclick=()=>location.reload();
+}
+render();
+</script>
+<script>
+/* UX01 (2026-11-04): restore the patient-list viewport after closing a patient.
+ * UI-only, session-only; never reads, writes, exports, or stores patient records.
+ */
+(function(){
+  'use strict';
+  if(window.__MSW_UX01_SCROLL_RETURN_INSTALLED__)return;
+  if(typeof window.openPatient!=='function'||typeof window.closePatient!=='function')return;
+  const openOriginal=window.openPatient,closeOriginal=window.closePatient;
+  let returnPosition=null;
+  function listVisible(){
+    return typeof screen!=='undefined'&&screen==='patients'&&
+      !!document.getElementById('patientList')&&!document.getElementById('modal');
+  }
+  function capture(){
+    const scrolling=document.scrollingElement||document.documentElement;
+    return {
+      top:Math.max(0,Number(window.scrollY||scrolling?.scrollTop||0)),
+      horizontal:[...document.querySelectorAll('#patientList .compact-room-scroll')].map(el=>el.scrollLeft),
+      query:document.getElementById('q')?.value||'',
+      ward:document.getElementById('ward')?.value||'',
+      saint:document.getElementById('showSanTherese')?.getAttribute('aria-pressed')||''
+    };
+  }
+  function restore(saved){
+    function apply(){
+      if(!listVisible())return;
+      if((document.getElementById('q')?.value||'')!==saved.query||
+        (document.getElementById('ward')?.value||'')!==saved.ward||
+        (document.getElementById('showSanTherese')?.getAttribute('aria-pressed')||'')!==saved.saint)return;
+      const scrolling=document.scrollingElement||document.documentElement;
+      const maxTop=Math.max(0,scrolling.scrollHeight-window.innerHeight);
+      window.scrollTo(0,Math.min(saved.top,maxTop));
+      document.querySelectorAll('#patientList .compact-room-scroll').forEach((el,i)=>{
+        el.scrollLeft=saved.horizontal[i]||0;
+      });
+    }
+    apply();
+    window.requestAnimationFrame(apply);
+  }
+  window.openPatient=function(...args){
+    returnPosition=listVisible()?capture():null;
+    return openOriginal.apply(this,args);
+  };
+  window.closePatient=function(...args){
+    const saved=returnPosition;
+    returnPosition=null;
+    const result=closeOriginal.apply(this,args);
+    if(saved&&listVisible())restore(saved);
+    return result;
+  };
+  window.__MSW_UX01_SCROLL_RETURN_INSTALLED__=true;
+})();
+
+</script>
+<script>
+/* UX02 (2026-11-04): Allow discharge from the Journal admission queue bed picker.
+ * Only adds a UI entry point to the existing, confirmed discharge workflow.
+ * Does not read/write storage or alter patient data itself.
+ */
+(function(){
+  'use strict';
+  if(window.__MSW_UX02_JOURNAL_DISCHARGE_INSTALLED__)return;
+  if(typeof window.renderJournalPreview!=='function'||typeof window.startDischargeFlow!=='function')return;
+  const originalRenderJournal=window.renderJournalPreview;
+  function attachJournalButtons(){
+    document.querySelectorAll('#main .journal-bed-btn').forEach(button=>{
+      if(button.dataset.ux02Bound)return;
+      button.dataset.ux02Bound='1';
+      button.addEventListener('click',()=>{
+        if(typeof screen==='undefined'||screen!=='journal')return;
+        const patient=state?.patients?.find(p=>p.id===button.dataset.id);
+        if(!patient||patient.dischargeDate||!patient.journalAdmissionPending)return;
+        const picker=document.getElementById('groupedBedPicker');
+        if(!picker||picker.querySelector('#pickerDischarge'))return;
+        const choiceBar=picker.querySelector('.bed-picker-top');
+        if(!choiceBar)return;
+        const dischargeButton=document.createElement('button');
+        dischargeButton.type='button';
+        dischargeButton.id='pickerDischarge';
+        dischargeButton.className='bed-picker-choice discharge-choice';
+        dischargeButton.textContent='退院';
+        dischargeButton.addEventListener('click',()=>{
+          // Recheck identity and eligibility before invoking the original flow.
+          if(!state?.patients?.some(p=>p===patient&&!p.dischargeDate&&p.journalAdmissionPending))return;
+          picker.remove();
+          window.startDischargeFlow(patient);
+        });
+        choiceBar.appendChild(dischargeButton);
+      });
+    });
+  }
+  window.renderJournalPreview=function(...args){
+    const result=originalRenderJournal.apply(this,args);
+    attachJournalButtons();
+    return result;
+  };
+  attachJournalButtons(); // Handles a journal screen already rendered on load.
+  window.__MSW_UX02_JOURNAL_DISCHARGE_INSTALLED__=true;
+})();
+
+</script>
+</body></html>
