@@ -92,9 +92,9 @@ function commitEdit(){
  if(editIndex<0)return;
  const drug=state.drugs[editIndex];
  const f=$('#rx036Editor'),form=f.querySelector('form');
- const next={...drug,'薬名':form.elements.name.value.trim(),
-  '薬価':form.elements.price.value.trim(),
-  '後発品':form.elements.generic.value.trim(),'薬効':form.elements.effect.value.trim()};
+ const next={...drug,'薬名':form.elements.namedItem('name').value.trim(),
+  '薬価':form.elements.namedItem('price').value.trim(),
+  '後発品':form.elements.namedItem('generic').value.trim(),'薬効':form.elements.namedItem('effect').value.trim()};
  if(!next['薬名']){f.querySelector('#rx036FormStatus').textContent='薬名が必要です';return;}
  const modified=['薬名','薬価','後発品','薬効'].some(k=>next[k]!==drug[k]);
  const reviewedChanged=window.RX05?.changed(f,drug);
