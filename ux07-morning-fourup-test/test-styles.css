@@ -1,0 +1,21 @@
+*{box-sizing:border-box}body{margin:0;background:#f4f7f8;color:#142b30;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',sans-serif}header{padding:20px;background:#14595d;color:white}header h1{font-size:21px;margin:0 0 8px}header p{font-size:14px}main{margin:16px auto;padding:12px;max-width:760px}h2{font-size:21px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.btn{padding:10px 12px;min-height:45px;font-size:15px;font-weight:bold;background:#116d70;border:0;border-radius:9px;color:white}.btn.secondary{background:#e6f0ef;border:1px solid #8da5a5;color:#193d43}.notice{color:#47636c;font-size:14px}.morning-print{display:none}
+@media print{
+ @page{size:A4 portrait;margin:4.5mm 5mm}
+ html,body{margin:0!important;padding:0!important;background:#fff!important}
+ body>*:not(.morning-print){display:none!important}
+ .morning-print{display:block!important;color:#000;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif}
+ .morning-page{display:block;width:100%;height:auto!important;min-height:0!important;overflow:visible!important;break-after:page;page-break-after:always}
+ .morning-page:last-child{break-after:auto;page-break-after:auto}
+ .morning-head{height:7mm;display:flex;align-items:flex-start;justify-content:space-between;gap:4mm;white-space:nowrap}
+ .morning-head h1{font-size:13pt;line-height:1;margin:0;font-weight:800}
+ .morning-head div{font-size:7pt;line-height:1.2}
+ .morning-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:5.8pt;line-height:1}
+ .morning-table th,.morning-table td{border:.35pt solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;white-space:nowrap;overflow:hidden;text-overflow:clip}
+ .morning-table th{height:8mm;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:5.5pt;font-weight:700}
+ .morning-table td{height:7.5mm}.morning-table tr{break-inside:avoid;page-break-inside:avoid}
+ .morning-table .c-bed{width:5.1%}.morning-table .c-id{width:6.1%}.morning-table .c-name{width:9.7%}.morning-table .c-admit{width:5.6%}.morning-table .c-doc{width:5.1%}.morning-table .c-address{width:4.6%}.morning-table .c-disease{width:14.9%}.morning-table .c-care{width:5.1%}.morning-table .c-facility{width:12.8%}.morning-table .c-memo{width:23%}.morning-table .c-family{width:4.0%}.morning-table .c-days{width:4.0%}
+ .morning-table tbody tr.room-gap{height:2mm!important;break-inside:avoid!important;page-break-inside:avoid!important}
+ .morning-table tbody tr.room-gap td{height:2mm!important;border:0!important;padding:0!important;line-height:0!important;background:#fff!important}
+ .morning-table tbody td.disease-cell,.morning-table tbody td.facility-cell{white-space:normal!important;overflow:hidden!important;padding:0 .25mm!important;text-align:left!important;vertical-align:middle!important}
+ .morning-table .disease-text,.morning-table .facility-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;max-height:6.5mm;line-height:1.09;font-size:5.4pt;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-align:left}
+}
