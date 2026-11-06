@@ -10,7 +10,7 @@ const bedsFor=room=>room==='206'?[1,2,3,4,5,6].map(n=>room+'-'+n):room.startsWit
 const roomForBed=bed=>String(bed||'').match(/ICU[1-3]|\d{3}/)?.[0]||'';
 function renderPatients(){
  document.getElementById('app').innerHTML='<header><h1>UX08 検索解除・位置復元テスト</h1><p>架空患者だけ／本番データは使いません／端末内保存なし</p></header><main>'+
- '<div class="test-guide"><p>① 206号室が見える位置まで下へスクロール</p><p>② 検索に「架空太郎」と入力</p><p>③ 架空太郎を開き、ICU1-1 → 206-3へ変更して「保存して戻る」</p><p>④ 検索が消え、206号室付近へ戻るか確認</p></div>'+
+ '<div class="test-guide"><p>① 206号室が見える位置まで下へスクロール</p><p>② 検索に「架空」と入力</p><p>③ 架空太郎を開き、ICU1-1 → 206-3へ変更して「保存して戻る」</p><p>④ 検索が消え、206号室付近へ戻るか確認</p></div>'+
  '<div class="toolbar"><input id="q" type="search" autocomplete="off" placeholder="架空患者名で検索" value="'+patientListSearchQuery+'"><button id="clearPatientSearch">消去</button><select id="ward"><option value="">全病棟</option></select><button type="button" id="print" hidden>印刷</button></div>'+
  '<div id="patientList"></div></main>';
  document.getElementById('q').oninput=()=>{patientListSearchQuery=document.getElementById('q').value;drawPatientList()};
