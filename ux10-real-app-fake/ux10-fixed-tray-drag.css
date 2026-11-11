@@ -1,6 +1,6 @@
 /* UX10 stage-only: isolated touch handle and fixed unplaced tray */
-body.ux10-active .shell{padding-bottom:calc(218px + env(safe-area-inset-bottom,0px))}
-#ux10Tray{position:fixed;left:0;right:0;bottom:calc(57px + env(safe-area-inset-bottom,0px));z-index:38;max-height:160px;background:#e8f5ef;border-top:3px solid #0f766e;box-shadow:0 -3px 12px #16383933;color:#173a36}
+body.ux10-active .shell{padding-bottom:calc(244px + env(safe-area-inset-bottom,0px))}
+#ux10Tray{position:fixed;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:38;max-height:160px;background:#e8f5ef;border-top:3px solid #0f766e;box-shadow:0 -3px 12px #16383933;color:#173a36}
 #ux10Tray.ux10-folded{max-height:48px}
 #ux10Tray.ux10-drop-hover{background:#fff2d3;border-color:#e39b27}
 #ux10Tray .ux10-head{display:flex;align-items:center;gap:7px;padding:6px 10px;min-height:43px}
