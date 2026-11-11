@@ -132,7 +132,7 @@
     };
     document.querySelectorAll('[data-toggle-tray]').forEach(el=>el.onclick=e=>{e.stopPropagation();folded=!folded;render()});
     document.querySelectorAll('[data-open-duplicate]').forEach(el=>el.onclick=e=>{
-      e.stopPropagation();if(Date.now()<ignoreClickUntil)return;showDuplicates(el.dataset.openDuplicate);
+      e.stopPropagation();if(Date.now()<ignoreClickUntil)return; if(selected)initConfirmation(selected,el.dataset.openDuplicate);else showDuplicates(el.dataset.openDuplicate);
     });
     document.querySelectorAll('[data-target-bed]').forEach(el=>el.addEventListener('click',e=>{
       if(e.target.closest('[data-drag-id], [data-open-duplicate]'))return;
