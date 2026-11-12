@@ -8,12 +8,32 @@ const style=document.createElement('style');
 style.textContent=`body.ux12-tray-hidden #ux10Tray{display:none!important}
 body.ux10-active.ux12-tray-hidden .shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
 body.ux10-active:not(.ux12-tray-hidden) #patientList{scroll-padding-bottom:180px}
-/* Search: tray belongs to document flow above results, never covers rooms. */
-body.ux10-active.ux12-searching #ux10Tray{position:relative;inset:auto;left:auto;right:auto;bottom:auto;max-height:none;margin:12px 0 16px;width:100%;box-shadow:0 2px 8px #16383922;border:2px solid #0f766e;border-radius:10px}
+/* UX12 v6: keep the destination tray pinned immediately BELOW the sticky search toolbar.
+ * The tray still occupies its own layout row and cannot obscure the bottom rooms. */
+body.ux10-active.ux12-searching #ux10Tray{position:sticky;top:var(--ux12-tray-top,140px);z-index:28;left:auto;right:auto;bottom:auto;max-height:160px;margin:4px 0 12px;width:100%;box-shadow:0 2px 8px #16383922;border:2px solid #0f766e;border-radius:10px}
 body.ux10-active.ux12-searching .shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
 @media print{body.ux10-active.ux12-tray-hidden .shell{padding-bottom:0!important}}`;
 document.head.appendChild(style);
 let queued=false,searchToken=0,hadMoveConfirm=false;
+function updateTrayStickyTop(){
+  const bar=document.querySelector('.patient-search-toolbar');
+  const topbar=document.querySelector('.topbar');
+  if(!bar)return;
+  // Use the *actual* search toolbar height (it may wrap on iPad mini).
+  const top=Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--patient-search-top'))||
+    Math.ceil(topbar?.getBoundingClientRect().height||70);
+  const next=Math.ceil(top+bar.getBoundingClientRect().height+4)+'px';
+  const tray=document.getElementById('ux10Tray');
+  if(tray&&tray.style.getPropertyValue('--ux12-tray-top')!==next)
+    tray.style.setProperty('--ux12-tray-top',next);
+}
+window.addEventListener('resize',updateTrayStickyTop,{passive:true});
+if(typeof ResizeObserver!=='undefined'){
+  const resizeObserver=new ResizeObserver(updateTrayStickyTop);
+  const watch=()=>{const bar=document.querySelector('.patient-search-toolbar');if(bar)resizeObserver.observe(bar)};
+  document.addEventListener('focusin',watch,true);
+  requestAnimationFrame(watch);
+}
 function refresh(){
   const tray=document.getElementById('ux10Tray');
   document.body.classList.toggle('ux12-searching',!!document.getElementById('q')?.value.trim());
@@ -32,6 +52,7 @@ function refresh(){
   }else if(tray.parentNode!==document.body){
     document.body.appendChild(tray);
   }
+  if(inSearch)updateTrayStickyTop();
   // UX10 refreshes the count and the cards independently. Read the patient count
   // and any currently rendered cards; after an actual redraw both must be empty.
   // UX10 clears its internal selection when opening a move confirmation,
@@ -63,7 +84,7 @@ function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queu
 const observer=new MutationObserver(schedule);
 observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
 schedule();
-// With the tray in normal flow, search results can never sit behind it.
+// UX12 v6: the sticky tray stays below the search bar; beds scroll below both.
 function revealSearchHit(){refresh();}
 document.addEventListener('input',e=>{
   if(e.target?.id!=='q')return;
