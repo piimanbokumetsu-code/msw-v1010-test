@@ -12,6 +12,8 @@ body.ux10-active:not(.ux12-tray-hidden) #patientList{scroll-padding-bottom:180px
  * The tray still occupies its own layout row and cannot obscure the bottom rooms. */
 body.ux10-active.ux12-searching #ux10Tray{position:sticky;top:var(--ux12-tray-top,140px);z-index:28;left:auto;right:auto;bottom:auto;max-height:160px;margin:4px 0 12px;width:100%;box-shadow:0 2px 8px #16383922;border:2px solid #0f766e;border-radius:10px}
 body.ux10-active.ux12-searching .shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
+/* UX13: keep the closed/open tray adjacent to the actual bottom navigation height. */
+body.ux10-active:not(.ux12-searching) #ux10Tray{bottom:calc(var(--ux13-bottom-nav-height, 64px) + 2px)}
 @media print{body.ux10-active.ux12-tray-hidden .shell{padding-bottom:0!important}}`;
 document.head.appendChild(style);
 let queued=false,searchToken=0,hadMoveConfirm=false;
@@ -27,7 +29,19 @@ function updateTrayStickyTop(){
   if(tray&&tray.style.getPropertyValue('--ux12-tray-top')!==next)
     tray.style.setProperty('--ux12-tray-top',next);
 }
-window.addEventListener('resize',updateTrayStickyTop,{passive:true});
+function updateBottomNavOffset(){
+  const tray=document.getElementById('ux10Tray');
+  const nav=document.querySelector('.bottomnav');
+  if(!tray||!nav)return;
+  // Its bounding height includes iPad safe area. Avoid hardcoded 80px gaps.
+  const height=Math.ceil(nav.getBoundingClientRect().height);
+  if(height>0){
+    const value=height+'px';
+    if(tray.style.getPropertyValue('--ux13-bottom-nav-height')!==value)
+      tray.style.setProperty('--ux13-bottom-nav-height',value);
+  }
+}
+window.addEventListener('resize',()=>{updateTrayStickyTop();updateBottomNavOffset();},{passive:true});
 if(typeof ResizeObserver!=='undefined'){
   const resizeObserver=new ResizeObserver(updateTrayStickyTop);
   const watch=()=>{const bar=document.querySelector('.patient-search-toolbar');if(bar)resizeObserver.observe(bar)};
@@ -53,6 +67,7 @@ function refresh(){
     document.body.appendChild(tray);
   }
   if(inSearch)updateTrayStickyTop();
+  else updateBottomNavOffset();
   // UX10 refreshes the count and the cards independently. Read the patient count
   // and any currently rendered cards; after an actual redraw both must be empty.
   // UX10 clears its internal selection when opening a move confirmation,
@@ -75,10 +90,7 @@ function refresh(){
   // Apply display directly as well, and remove it as soon as moving starts.
   if(hide)tray.style.setProperty('display','none','important');
   else tray.style.removeProperty('display');
-  // Never hide existing unplaced patients behind a collapsed row.
-  if(occupied&&tray.classList.contains('ux10-folded')){
-    tray.querySelector('.ux10-toggle')?.click();
-  }
+  // UX13: respect the user's explicit 閉じる/開く toggle; no forced reopening.
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()});}
 const observer=new MutationObserver(schedule);
