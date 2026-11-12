@@ -8,7 +8,9 @@ const style=document.createElement('style');
 style.textContent=`body.ux12-tray-hidden #ux10Tray{display:none!important}
 body.ux10-active.ux12-tray-hidden .shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
 body.ux10-active:not(.ux12-tray-hidden) #patientList{scroll-padding-bottom:180px}
-body.ux10-active.ux12-searching:not(.ux12-tray-hidden) .shell{padding-bottom:calc(350px + env(safe-area-inset-bottom,0px))}
+/* Search: tray belongs to document flow above results, never covers rooms. */
+body.ux10-active.ux12-searching #ux10Tray{position:relative;inset:auto;left:auto;right:auto;bottom:auto;max-height:none;margin:12px 0 16px;width:100%;box-shadow:0 2px 8px #16383922;border:2px solid #0f766e;border-radius:10px}
+body.ux10-active.ux12-searching .shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
 @media print{body.ux10-active.ux12-tray-hidden .shell{padding-bottom:0!important}}`;
 document.head.appendChild(style);
 let queued=false,searchToken=0,hadMoveConfirm=false;
@@ -17,6 +19,18 @@ function refresh(){
   document.body.classList.toggle('ux12-searching',!!document.getElementById('q')?.value.trim());
   if(!tray||!document.body.classList.contains('ux10-active')){
     document.body.classList.remove('ux12-tray-hidden');return;
+  }
+  // While searching, move the tray into document flow just ABOVE the results.
+  // A fixed footer otherwise covers the last room even with scroll padding.
+  // When search ends, restore UX10's original fixed body-level placement.
+  const searchList=document.getElementById('patientList');
+  const inSearch=!!document.getElementById('q')?.value.trim()&&!!searchList;
+  if(inSearch){
+    const targetParent=searchList.parentNode;
+    if(tray.parentNode!==targetParent||tray.nextSibling!==searchList)
+      targetParent.insertBefore(tray,searchList);
+  }else if(tray.parentNode!==document.body){
+    document.body.appendChild(tray);
   }
   // UX10 refreshes the count and the cards independently. Read the patient count
   // and any currently rendered cards; after an actual redraw both must be empty.
@@ -49,26 +63,8 @@ function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queu
 const observer=new MutationObserver(schedule);
 observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
 schedule();
-function revealSearchHit(){
-  const q=document.getElementById('q');
-  const tray=document.getElementById('ux10Tray');
-  const list=document.getElementById('patientList');
-  if(!q?.value.trim()||!list||!document.body.classList.contains('ux10-active'))return;
-  // The app shows complete rooms, not just the matching beds. Check the LAST
-  // displayed room (e.g. 207 after 201/202/205) instead of the first match.
-  const rooms=[...list.querySelectorAll('.search-room-map .standard-room, .icu-map .room-block')];
-  const last=rooms[rooms.length-1];
-  if(!last)return;
-  const trayVisible=tray&&getComputedStyle(tray).display!=='none';
-  const lower=trayVisible?tray.getBoundingClientRect().top-14:window.innerHeight-94;
-  const rect=last.getBoundingClientRect();
-  if(rect.bottom<=lower)return;
-  const scroller=document.scrollingElement||document.documentElement;
-  const max=Math.max(0,scroller.scrollHeight-window.innerHeight);
-  const available=Math.max(0,max-scroller.scrollTop);
-  const delta=Math.min(available,Math.max(0,rect.bottom-lower+12));
-  if(delta>0)window.scrollTo(0,scroller.scrollTop+delta);
-}
+// With the tray in normal flow, search results can never sit behind it.
+function revealSearchHit(){refresh();}
 document.addEventListener('input',e=>{
   if(e.target?.id!=='q')return;
   const token=++searchToken;
