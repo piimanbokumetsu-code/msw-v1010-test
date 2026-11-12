@@ -16,10 +16,19 @@ function refresh(){
   if(!tray||!document.body.classList.contains('ux10-active')){
     document.body.classList.remove('ux12-tray-hidden');return;
   }
-  const occupied=tray.querySelectorAll('.ux10-person').length>0;
+  // UX10 refreshes the count and the cards independently. Read the patient count
+  // and any currently rendered cards; after an actual redraw both must be empty.
+  const countText=tray.querySelector('.ux10-count')?.textContent?.trim()||'';
+  const countMatch=countText.match(/^(\d+)人/);
+  const cardCount=tray.querySelectorAll('.ux10-person').length;
+  const occupied=(countMatch?Number(countMatch[1]):cardCount)>0||cardCount>0;
   const moving=!!document.querySelector('#ux10Ghost,#patientList .ux10-selected,.ux10-person.ux10-selected');
-  // Keep an empty tray visible while a patient is being moved into it.
-  document.body.classList.toggle('ux12-tray-hidden',!occupied&&!moving);
+  const hide=!occupied&&!moving;
+  document.body.classList.toggle('ux12-tray-hidden',hide);
+  // Safari sometimes retains the fixed layer after a class/style recalculation.
+  // Apply display directly as well, and remove it as soon as moving starts.
+  if(hide)tray.style.setProperty('display','none','important');
+  else tray.style.removeProperty('display');
   // Never hide existing unplaced patients behind a collapsed row.
   if(occupied&&tray.classList.contains('ux10-folded')){
     tray.querySelector('.ux10-toggle')?.click();
