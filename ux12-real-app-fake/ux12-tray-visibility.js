@@ -10,7 +10,7 @@ body.ux10-active.ux12-tray-hidden .shell{padding-bottom:calc(94px + env(safe-are
 body.ux10-active:not(.ux12-tray-hidden) #patientList{scroll-padding-bottom:180px}
 @media print{body.ux10-active.ux12-tray-hidden .shell{padding-bottom:0!important}}`;
 document.head.appendChild(style);
-let queued=false,searchToken=0;
+let queued=false,searchToken=0,hadMoveConfirm=false;
 function refresh(){
   const tray=document.getElementById('ux10Tray');
   if(!tray||!document.body.classList.contains('ux10-active')){
@@ -18,6 +18,15 @@ function refresh(){
   }
   // UX10 refreshes the count and the cards independently. Read the patient count
   // and any currently rendered cards; after an actual redraw both must be empty.
+  // UX10 clears its internal selection when opening a move confirmation,
+  // but the old .ux10-selected marker can remain after 'やめる'.
+  // Only clear that stale marker after the confirmation dialog closes.
+  const confirmOpen=!!document.getElementById('ux10Confirm');
+  if(confirmOpen)hadMoveConfirm=true;
+  else if(hadMoveConfirm){
+    hadMoveConfirm=false;
+    document.querySelectorAll('.ux10-selected').forEach(node=>node.classList.remove('ux10-selected'));
+  }
   const countText=tray.querySelector('.ux10-count')?.textContent?.trim()||'';
   const countMatch=countText.match(/^(\d+)人/);
   const cardCount=tray.querySelectorAll('.ux10-person').length;
