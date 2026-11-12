@@ -8,11 +8,13 @@ const style=document.createElement('style');
 style.textContent=`body.ux12-tray-hidden #ux10Tray{display:none!important}
 body.ux10-active.ux12-tray-hidden .shell{padding-bottom:calc(94px + env(safe-area-inset-bottom,0px))}
 body.ux10-active:not(.ux12-tray-hidden) #patientList{scroll-padding-bottom:180px}
+body.ux10-active.ux12-searching:not(.ux12-tray-hidden) .shell{padding-bottom:calc(350px + env(safe-area-inset-bottom,0px))}
 @media print{body.ux10-active.ux12-tray-hidden .shell{padding-bottom:0!important}}`;
 document.head.appendChild(style);
 let queued=false,searchToken=0,hadMoveConfirm=false;
 function refresh(){
   const tray=document.getElementById('ux10Tray');
+  document.body.classList.toggle('ux12-searching',!!document.getElementById('q')?.value.trim());
   if(!tray||!document.body.classList.contains('ux10-active')){
     document.body.classList.remove('ux12-tray-hidden');return;
   }
@@ -50,17 +52,22 @@ schedule();
 function revealSearchHit(){
   const q=document.getElementById('q');
   const tray=document.getElementById('ux10Tray');
-  if(!q?.value.trim()||!document.getElementById('patientList')||!document.body.classList.contains('ux10-active'))return;
-  const matches=[...document.querySelectorAll('#patientList .occupied-bed[data-id]')].filter(node=>{
-    const p=(typeof state!=='undefined'&&state?.patients||[]).find(p=>String(p.id)===node.dataset.id);
-    return p&&typeof patientMatches==='function'&&patientMatches(p,q.value.trim().toLowerCase());
-  });
-  const node=matches[0];if(!node)return;
-  const rect=node.getBoundingClientRect();
-  const lower=tray&&getComputedStyle(tray).display!=='none'?tray.getBoundingClientRect().top-12:window.innerHeight-94;
-  if(rect.bottom>lower&&rect.top>64){
-    window.scrollBy({top:Math.min(rect.top-68,rect.bottom-lower+12),behavior:'instant'});
-  }
+  const list=document.getElementById('patientList');
+  if(!q?.value.trim()||!list||!document.body.classList.contains('ux10-active'))return;
+  // The app shows complete rooms, not just the matching beds. Check the LAST
+  // displayed room (e.g. 207 after 201/202/205) instead of the first match.
+  const rooms=[...list.querySelectorAll('.search-room-map .standard-room, .icu-map .room-block')];
+  const last=rooms[rooms.length-1];
+  if(!last)return;
+  const trayVisible=tray&&getComputedStyle(tray).display!=='none';
+  const lower=trayVisible?tray.getBoundingClientRect().top-14:window.innerHeight-94;
+  const rect=last.getBoundingClientRect();
+  if(rect.bottom<=lower)return;
+  const scroller=document.scrollingElement||document.documentElement;
+  const max=Math.max(0,scroller.scrollHeight-window.innerHeight);
+  const available=Math.max(0,max-scroller.scrollTop);
+  const delta=Math.min(available,Math.max(0,rect.bottom-lower+12));
+  if(delta>0)window.scrollTo(0,scroller.scrollTop+delta);
 }
 document.addEventListener('input',e=>{
   if(e.target?.id!=='q')return;
