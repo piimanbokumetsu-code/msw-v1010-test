@@ -31,6 +31,7 @@
       '#rx036Editor .rx048CategoryPicker{display:block;margin:9px 0}',
       '#rx036Editor .rx048CategoryPicker select{width:100%;min-height:42px;font-size:16px}',
       '#rx036Editor .rx048CategoryOther{display:block;margin:8px 0}',
+      '#rx036Editor .rx048CategoryOther[hidden]{display:none!important}',
       '#rx036Editor .rx048CategoryOther input{width:100%;font-size:16px}'
     ].join('\n');
     document.head.appendChild(el);
