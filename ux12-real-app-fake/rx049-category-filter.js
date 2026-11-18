@@ -11,6 +11,15 @@
   window.__RX049_CATEGORY_FILTER__=true;
   const OTHER='__rx048_custom__';
   const MAX_VISIBLE=12;
+  // Display-only test fixtures: used ONLY in the isolated fake stage when
+  // its drug master has no category values. Never copy to production.
+  const DEMO_CATEGORIES=Object.freeze([
+    '循環器用薬（架空候補）','消化器用薬（架空候補）','精神神経用薬（架空候補）',
+    '呼吸器用薬（架空候補）','アレルギー用薬（架空候補）',
+    '糖尿病用薬（架空候補）','抗菌薬（架空候補）'
+  ]);
+  const hasStoredCategories=()=>Array.isArray(state?.drugs)&&
+    state.drugs.some(drug=>String(drug?.['医薬品分類']??'').trim());
   const normalize=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ja').trim();
   function categories(){
     const found=[],keys=new Set();
@@ -19,7 +28,8 @@
       if(!name||!key||keys.has(key))continue;
       keys.add(key);found.push(name);
     }
-    return found.sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
+    return (found.length?found:DEMO_CATEGORIES.slice())
+      .sort((a,b)=>a.localeCompare(b,'ja',{numeric:true}));
   }
   function option(select,value,label){
     const node=document.createElement('option');node.value=value;node.textContent=label;
@@ -62,6 +72,11 @@
     results.setAttribute('aria-label','絞り込んだ医薬品分類');
     results.hidden=true;
     notes.insertBefore(results,picker);
+    const sampleNotice=document.createElement('p');
+    sampleNotice.className='notice';
+    sampleNotice.textContent='【架空テスト専用】実際の薬情マスターがないため、検索操作を確かめるための架空分類を表示しています。本番の分類ではありません。';
+    sampleNotice.hidden=true;
+    notes.insertBefore(sampleNotice,picker);
     const feedback=document.createElement('span');
     feedback.id='rx049CategoryCount';feedback.className='notice rx049CategoryCount';
     feedback.setAttribute('role','status');
@@ -69,6 +84,7 @@
     let all=[];
     function update(){
       const query=normalize(search.value);
+      sampleNotice.hidden=hasStoredCategories();
       const original=editor.querySelector('input[name="category"]');
       const current=String(original?.value??'').trim();
       const filtered=query?all.filter(name=>normalize(name).includes(query)):all;
@@ -83,7 +99,9 @@
       option(select,OTHER,'＋ その他（手入力）');
       select.value=(selected||current)?(selected||OTHER):'';
       if(!query){
-        feedback.textContent=all.length+'件の登録済み分類から選択できます';
+        feedback.textContent=hasStoredCategories()
+          ?all.length+'件の登録済み分類から選択できます'
+          :all.length+'件の架空分類で検索操作を試せます（保存不要）';
         results.replaceChildren();results.hidden=true;
         return;
       }
