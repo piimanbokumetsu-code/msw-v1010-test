@@ -57,6 +57,15 @@
     if(!line||!glance||!editor||!title)return;
     const [amount,timing]=displayValues(row);
 
+    // Keep the original medical classification notice's font size, but
+    // move status and demo labels out of the concise primary view.
+    const classification=title.querySelector(':scope > .notice');
+    if(classification){
+      const original=classification.textContent||'';
+      const category=original.split('　・　')[0].trim();
+      if(category)classification.textContent=category;
+    }
+
     const heading=document.createElement('div');
     heading.className='ux17-med-compact-head';
     // Keep the original name and category's font styles.
