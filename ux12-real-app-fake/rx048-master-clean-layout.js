@@ -2,6 +2,8 @@
  * 1. Hide explanatory prose immediately beneath original-brand header.
  * 2. Collapse originator #1 strength/quantity/price inputs (native details).
  * 3. Show existing master categories in a select; permit explicit custom entry.
+ * 4. Collapse EVERY generic brand's quantity/unit/price controls, leaving
+ *    drug name visible even for the first generic brand.
  *
  * Data-safe: preserve the ORIGINAL RX036 category input and RX037 price rows,
  * attach only view controls, and do not touch state/save/DB/master metadata.
@@ -28,6 +30,10 @@
       '#rx036Editor .rx048PrimaryPriceDisclosure{margin:6px 0 12px;border:1px solid var(--line,#cbd5d1);border-radius:9px;background:transparent}',
       '#rx036Editor .rx048PrimaryPriceDisclosure>summary{cursor:pointer;padding:11px 12px;font-weight:700;color:var(--brand,#0f766e);list-style:revert}',
       '#rx036Editor .rx048PrimaryPriceContent{padding:0 10px 12px}',
+      '#rx036Editor .rx048GenericPriceDisclosure{margin:8px 0 10px;border:1px solid var(--line,#cbd5d1);border-radius:9px}',
+      '#rx036Editor .rx048GenericPriceDisclosure>summary{cursor:pointer;padding:10px 12px;font-weight:700;color:var(--brand,#0f766e)}',
+      '#rx036Editor .rx048GenericPriceDisclosure>[data-rx037-price-list]{padding:4px 10px 8px}',
+      '#rx036Editor .rx048GenericPriceDisclosure>[data-rx037-action="add-generic-price"]{margin:0 10px 10px}',
       '#rx036Editor .rx048CategoryPicker{display:block;margin:9px 0}',
       '#rx036Editor .rx048CategoryPicker select{width:100%;min-height:42px;font-size:16px}',
       '#rx036Editor .rx048CategoryOther{display:block;margin:8px 0}',
@@ -100,6 +106,70 @@
     // RX037 adds/removes rows in a delegated click handler installed earlier.
     editor.querySelector('#rx036Form')?.addEventListener('click',event=>{
       if(event.target.closest('[data-rx037-action]'))refresh();
+    });
+  }
+
+
+  function countGenericPrices(list){
+    return Array.from(list?.querySelectorAll('[data-rx037-amount]')||[])
+      .filter(amount=>String(amount.value||'').trim()).length;
+  }
+  function refreshGenericSummary(card){
+    const detail=card.querySelector(':scope > details.rx048GenericPriceDisclosure');
+    const list=detail?.querySelector('[data-rx037-price-list]');
+    const summary=detail?.querySelector('summary');
+    if(!summary||!list)return;
+    const count=countGenericPrices(list);
+    summary.textContent=count
+      ?'量・単位・薬価を表示・編集（'+count+'規格）'
+      :'量・単位・薬価を入力する';
+  }
+  function foldAllGenericPrices(editor,close=false){
+    // RX042 folds generics #2+, but deliberately keeps generic #1 open.
+    // Preserve its existing brand input and attach the SAME RX037 price
+    // list and add-row button to a disclosure for EVERY generic, including #1.
+    const cards=editor.querySelectorAll('#rx037GenericList > [data-rx037-generic]');
+    for(const card of cards){
+      const list=card.querySelector('[data-rx037-price-list]');
+      const add=card.querySelector('[data-rx037-action="add-generic-price"]');
+      if(!list||!add)continue;
+      let detail=card.querySelector(':scope > details.rx048GenericPriceDisclosure');
+      if(!detail){
+        // For the first brand do NOT add RX042's rx042BrandDetails class:
+        // RX042.restoreFirstGeneric would otherwise undo the disclosure
+        // on every add/remove click. For #2+, reuse its existing disclosure.
+        detail=card.querySelector(':scope > details.rx042BrandDetails');
+        if(!detail){
+          detail=document.createElement('details');
+          const summary=document.createElement('summary');
+          detail.appendChild(summary);
+          card.appendChild(detail);
+        }
+        detail.classList.add('rx048GenericPriceDisclosure');
+      }
+      // Moving the original controls retains delegated RX037 handlers,
+      // unsaved inputs, existing price rows and encrypted save semantics.
+      if(!detail.contains(list))detail.appendChild(list);
+      if(!detail.contains(add))detail.appendChild(add);
+      refreshGenericSummary(card);
+      if(close)detail.open=false;
+    }
+  }
+  function installGeneric(editor){
+    const form=editor.querySelector('#rx036Form');
+    if(!form)return;
+    form.addEventListener('click',event=>{
+      // RX037 and RX042 handle these buttons before RX048.
+      if(event.target.closest('[data-rx037-action],[data-rx038-action]'))
+        foldAllGenericPrices(editor);
+    });
+    form.addEventListener('input',event=>{
+      if(event.target.closest('#rx037GenericList'))
+        refreshGenericSummary(event.target.closest('[data-rx037-generic]')||editor);
+    });
+    form.addEventListener('change',event=>{
+      if(event.target.closest('#rx037GenericList'))
+        refreshGenericSummary(event.target.closest('[data-rx037-generic]')||editor);
     });
   }
 
@@ -197,6 +267,7 @@
     suppressHelp(editor);
     installPrice(editor);
     installCategory(editor);
+    installGeneric(editor);
     const marker=document.createElement('span');
     marker.id='rx048MasterCleanMarker';marker.hidden=true;
     editor.querySelector('#rx036Form')?.appendChild(marker);
@@ -209,6 +280,7 @@
     if(detail)detail.open=false;
     updatePriceSummary(editor);
     refreshCategory(editor);
+    foldAllGenericPrices(editor,true);
   }
   window.RX043={...prior,install,open};
 })();
