@@ -175,7 +175,7 @@
     message.setAttribute('role','status');
     const buttons=make('div');buttons.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
     buttons.append(
-      action('薬剤名に戻る',()=>begin(identity,demo,identity?.kind==='generic'?'generic':'original')),
+      action('薬剤名に戻る',()=>begin(identity,demo,demo&&resolved.label.startsWith('後発品')?'generic':'original')),
       action(demo?'登録結果をプレビュー（保存なし）':'確認して一覧に登録',async()=>{
         if(submitting)return;
         const strength=(strengthSelect.value==='__manual__'?strengthManual.value:strengthSelect.value).trim().normalize('NFKC');
@@ -226,7 +226,9 @@
         }
         if(!confirm('「'+record.drug['薬名']+'」 '+strength+' ／ 1回'+qtyText+unit+
           ' ／ '+time+' ／ '+mode+' を患者の一覧に登録しますか？\n処方内容と一致することを確認してください。'))return;
+        if(patientMedicationBusy){message.textContent='別の薬剤の保存中です。完了後に操作してください。';return;}
         submitting=true;
+        patientMedicationBusy=true;
         message.textContent='暗号化保存しています…';
         patient.medications=[...prev,record];
         try{
@@ -244,7 +246,7 @@
             drawPatientMedicationList();
             message.textContent='保存できませんでした。登録は元に戻しました：'+String(err?.message||err).slice(0,100);
           }
-        }finally{submitting=false;}
+        }finally{submitting=false;patientMedicationBusy=false;}
       },'')
     );panel.append(buttons);
   }
