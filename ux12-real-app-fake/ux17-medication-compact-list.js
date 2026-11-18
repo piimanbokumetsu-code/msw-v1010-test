@@ -43,6 +43,16 @@
   function displayValues(row){
     const sampleId=row.getAttribute('data-ux17-sample');
     if(sampleId!==null && sampleDose[Number(sampleId)])return sampleDose[Number(sampleId)];
+    // UX17 fields are explicit: per-dose quantity and administration time.
+    // Legacy records have no timing and must remain visibly "未設定".
+    const identifier=row.querySelector('.patient-med-del')?.dataset.id;
+    const stored=identifier?medRows(selectedPatient).find(r=>r.id===identifier):null;
+    const schedule=stored?.ux17Schedule;
+    if(schedule&&typeof schedule==='object'&&
+       /^\d{1,4}(?:\.\d{1,3})?$/.test(String(schedule.doseQuantity||''))&&
+       String(schedule.doseUnit||'')&&String(schedule.timing||'')){
+      return ['1回'+schedule.doseQuantity+schedule.doseUnit,String(schedule.timing)];
+    }
     const editor=row.querySelector('.patient-med-editor');
     const quantity=editor?.querySelector('.patient-med-daily')?.value?.trim()||'';
     const unit=editor?.querySelector('.patient-med-unit')?.value?.trim()||'';
