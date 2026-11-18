@@ -1,4 +1,4 @@
-/* UX17 fake stage: compact medication list ("drug / amount / when").
+/* UX17 fake stage: compact medication list ("drug / strength / amount / when").
  * Presentation-only. Patient records do not yet store administration times:
  * never infer times or per-dose quantities from a daily total.
  * Existing drug actions, price editor and master references remain in DOM.
@@ -21,7 +21,7 @@
     const style=document.createElement('style');
     style.id='ux17-med-compact-style';
     style.textContent=[
-      '#modal .ux17-med-compact-head{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.95fr) minmax(0,1.2fr);column-gap:10px;align-items:start}',
+      '#modal .ux17-med-compact-head{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,.8fr) minmax(0,.95fr) minmax(0,1.2fr);column-gap:8px;align-items:start}',
       '#modal .ux17-med-compact-head>div{min-width:0;overflow-wrap:anywhere}',
       '#modal .ux17-med-compact-head strong{font-size:inherit}',
       '#modal .ux17-med-compact-head .notice{margin-top:3px}',
@@ -32,7 +32,7 @@
       '#modal .ux17-med-more>.patient-med-glance{margin-top:0}',
       '#modal .ux17-med-more>.patient-med-editor{margin-top:2px}',
       '#modal .ux17-med-more>.patient-med-del,#modal .ux17-med-more>.btn.danger{margin-top:10px}',
-      '@media(max-width:530px){#modal .ux17-med-compact-head{grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr) minmax(0,1.2fr);column-gap:6px}#modal .ux17-med-compact-val{font-size:13px}}'
+      '@media(max-width:530px){#modal .ux17-med-compact-head{grid-template-columns:minmax(0,1.45fr) minmax(0,.75fr) minmax(0,.9fr) minmax(0,1.15fr);column-gap:5px}#modal .ux17-med-compact-val{font-size:13px}}'
     ].join('\n');
     document.head.appendChild(style);
   }
@@ -56,6 +56,11 @@
     const title=line?.firstElementChild;
     if(!line||!glance||!editor||!title)return;
     const [amount,timing]=displayValues(row);
+    // Read only the record's explicitly configured strength (5mg, 10mg, etc.).
+    // Sample preview uses a disabled first editor input; do not fabricate doses.
+    const strengthField=editor.querySelector('.patient-med-strength')
+      ||(row.hasAttribute('data-ux17-sample')?editor.querySelector('.patient-med-fields input'):null);
+    const strength=strengthField?.value?.trim()||'未設定';
 
     // Keep the original medical classification notice's font size, but
     // move status and demo labels out of the concise primary view.
@@ -70,7 +75,7 @@
     heading.className='ux17-med-compact-head';
     // Keep the original name and category's font styles.
     heading.appendChild(title);
-    for(const [label,value] of [['量',amount],['いつ',timing]]){
+    for(const [label,value] of [['規格',strength],['量',amount],['いつ',timing]]){
       const col=document.createElement('div');
       col.className='ux17-med-compact-val';
       const key=document.createElement('span');
