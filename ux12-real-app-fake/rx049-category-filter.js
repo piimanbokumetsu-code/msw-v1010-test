@@ -81,7 +81,7 @@
         option(select,selected,'現在の分類：'+selected);
       for(const cat of filtered)option(select,cat,cat);
       option(select,OTHER,'＋ その他（手入力）');
-      select.value=selected||current?selected||OTHER:'';
+      select.value=(selected||current)?(selected||OTHER):'';
       if(!query){
         feedback.textContent=all.length+'件の登録済み分類から選択できます';
         results.replaceChildren();results.hidden=true;
@@ -100,7 +100,6 @@
           // RX036 input, using the usual validation and save path.
           search.value='';
           all=categories();
-          const originalNow=editor.querySelector('input[name="category"]');
           select.replaceChildren();
           option(select,'','選択してください');
           for(const item of all)option(select,item,item);
