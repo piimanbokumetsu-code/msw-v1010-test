@@ -1,0 +1,8 @@
+/* UX17 fake-stage presentation adjustment, 2026-11-18.
+   Hide only the legacy RX035 "薬情マスターと別照合" panel in patient
+   medication UI. The section, its saved patient reference fields,
+   read/search logic, and encrypted database remain completely untouched.
+   Reversible: remove this stylesheet link to show the panel again. */
+#modal #tabbody .patient-med-page #rx035Panel {
+  display: none !important;
+}
