@@ -60,6 +60,11 @@
       button.textContent=identity?'この後発品を選ぶ':'表示例（登録なし）';
       if(!identity){button.disabled=true;}
       else{
+        // UX17 workflow intercepts this button and asks for strength, amount
+        // and timing BEFORE the medication is saved to the fake patient.
+        button.dataset.ux17Index=String(identity.index);
+        button.dataset.ux17Kind=identity.kind;
+        button.dataset.ux17Brand=String(identity.brandIndex);
         button.onclick=()=>void changePatientMedication('add-brand',identity);
       }
       row.append(info,button);
