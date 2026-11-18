@@ -22,6 +22,9 @@
     style.id='ux17-med-compact-style';
     style.textContent=[
       '#modal .ux17-med-compact-head{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,.8fr) minmax(0,.95fr) minmax(0,1.2fr);column-gap:8px;align-items:start}',
+      '#modal .ux17-med-compact-topline{display:flex;align-items:flex-start;gap:8px}',
+      '#modal .ux17-med-compact-topline .ux17-med-compact-head{flex:1;min-width:0}',
+      '#modal .ux17-med-compact-topline>.btn.danger{flex:0 0 78px;max-width:78px;font-size:11px;padding:6px 5px;line-height:1.3;white-space:normal;text-align:center}',
       '#modal .ux17-med-compact-head>div{min-width:0;overflow-wrap:anywhere}',
       '#modal .ux17-med-compact-head strong{font-size:inherit}',
       '#modal .ux17-med-compact-head .notice{margin-top:3px}',
@@ -95,9 +98,14 @@
     more.appendChild(glance);
     more.appendChild(editor);
     const deleteButton=line.querySelector('button');
-    if(deleteButton)more.appendChild(deleteButton);
+    const topLine=document.createElement('div');
+    topLine.className='ux17-med-compact-topline';
+    topLine.appendChild(heading);
+    // Restore the existing remove button at the right of the visible drug row.
+    // Move the original node so its confirmation and delete handler stay intact.
+    if(deleteButton)topLine.appendChild(deleteButton);
     line.remove();
-    row.prepend(heading);
+    row.prepend(topLine);
     row.appendChild(more);
   }
 
