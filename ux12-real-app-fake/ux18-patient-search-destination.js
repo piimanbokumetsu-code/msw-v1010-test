@@ -1,6 +1,7 @@
 /* UX18 FAKE STAGE 2026-11-19:
  * (1) Show ONLY matching patients in room search, no extra roommates/empty beds.
- * (2) Select destination first -> search patient -> existing UX10 confirmation.
+ * (2) Tap an empty bed -> immediately search patient -> existing UX10 confirmation.
+ *     Also retain the manual destination-first picker as a fallback.
  *
  * Display-only until UX10's already approved transfer handler is invoked.
  * Uses the preserved original UX10 move validation, occupancy warning,
@@ -166,14 +167,16 @@ function showDestinationFirst(){
  input.addEventListener('input',update);
  input.focus({preventScroll:true});
 }
-function showPatientChoice(destination){
+function showPatientChoice(destination,fromEmptyBed=false){
  if(!viewActive()||typeof officialBeds!=='function'||!officialBeds().includes(destination)){
    closeOverlay();return;
  }
- const panel=displayOverlay('② 移動する患者を検索');
+ const panel=displayOverlay(fromEmptyBed?'移動する患者を検索':'② 移動する患者を検索');
  panel.appendChild(element('div','ux18-destination','移動先：'+destination));
- const back=element('button','btn secondary','← 移動先を選び直す');
- back.type='button';back.onclick=showDestinationFirst;panel.appendChild(back);
+ const back=element('button','btn secondary',
+   fromEmptyBed?'← ベッド配置に戻る':'← 移動先を選び直す');
+ back.type='button';back.onclick=fromEmptyBed?closeOverlay:showDestinationFirst;
+ panel.appendChild(back);
  panel.appendChild(element('label','ux18-label','患者の氏名・フリガナ・現在のベッド・IDで検索'));
  const input=element('input','ux18-input');
  input.type='search';input.autocomplete='off';input.placeholder='氏名などを入力';
@@ -208,11 +211,33 @@ function showPatientChoice(destination){
  input.focus({preventScroll:true});
 }
 
+function attachEmptyBedSearch(){
+ // Existing app binds empty-bed clicks to NEW PATIENT registration.
+ // Change ONLY the explicit empty-bed click on the all-patient map.
+ // The top-level "+患者" button remains the original new-entry route.
+ if(!viewActive()||searchActive())return;
+ document.querySelectorAll('#patientList .empty-bed[data-new-bed]').forEach(card=>{
+   const dest=String(card.dataset.newBed||'');
+   if(typeof officialBeds!=='function'||!officialBeds().includes(dest))return;
+   card.setAttribute('aria-label',dest+'へ移動する患者を検索');
+   const caption=card.querySelector('small');
+   if(caption)caption.textContent='タップして患者検索';
+   card.onclick=()=>{
+     // An active UX10 long-press drag selection still owns the next tap,
+     // and UX10's capture listener will open its existing move dialog.
+     if(!viewActive()||document.getElementById('ux10Confirm')||
+       document.getElementById('ux10Ghost')||
+       document.querySelector('.ux10-selected'))return;
+     showPatientChoice(dest,true);
+   };
+ });
+}
 window.drawPatientList=function(...args){
  const result=priorDraw.apply(this,args);
  attachLauncher();
  compactTray();
+ attachEmptyBedSearch();
  return result;
 };
-requestAnimationFrame(attachLauncher);
+requestAnimationFrame(()=>{attachLauncher();attachEmptyBedSearch()});
 })();
