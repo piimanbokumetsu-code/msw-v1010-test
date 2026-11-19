@@ -31,8 +31,9 @@ style.id='ux18Style';
 style.textContent=[
  '#patientList .general-room-map .room-map-item .room-block.ux18-hits-only .bed-grid,',
  '#patientList .icu-map>.room-block.ux18-hits-only .bed-grid{',
- 'display:grid!important;grid-template-columns:repeat(auto-fit,minmax(135px,1fr))!important;',
- 'grid-auto-columns:auto!important;grid-auto-flow:row!important;gap:8px!important}',
+ 'display:grid!important;grid-template-columns:repeat(auto-fill,minmax(150px,190px))!important;',
+ 'grid-auto-columns:190px!important;grid-auto-flow:row!important;justify-content:start!important;',
+ 'gap:8px!important;width:100%!important;overflow:visible!important}',
  '.ux18-action-bar{display:flex;justify-content:flex-end;margin:8px 0 10px}',
  '.ux18-action-bar .btn{width:100%;min-height:42px;font-size:14px;font-weight:700}',
  '.ux18-search-hide-extra{display:none!important}',
