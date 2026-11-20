@@ -119,83 +119,59 @@
     }
     const patient=selectedPatient;
     const panel=renderFrame();if(!panel)return;
-    panel.append(make('h4','','② 選択した薬剤を確認'));
-    panel.append(make('strong','',resolved.drug['薬名']));
-    info(panel,'notice',resolved.label+' ／ '+(resolved.drug['医薬品分類']||'分類未設定'));
-    info(panel,'safety','実際に服用している銘柄名と一致しているか、処方箋・電子カルテで確認してください。別の銘柄への代替を判定するものではありません。');
-    if(demo)info(panel,'demo','この銘柄は架空の表示例です。実際の患者には保存されません。');
-    const controls=make('div');controls.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
-    controls.append(
-      action('戻る',()=>demo?demoChoice():clearWizard()),
-      action('この薬剤名で進む',()=>configure(panel,resolved,identity,demo,patient),'')
-    );panel.append(controls);
+    // Selecting an explicit brand proceeds directly; final confirmation remains.
+    configure(panel,resolved,identity,demo,patient);
   }
 
   function configure(panel,resolved,identity,demo,patient){
-    panel.replaceChildren(make('h4','','③ 規格・数量・用法を設定'));
+    panel.replaceChildren(make('h4','','② 規格・数量・用法を設定'));
     info(panel,'notice','選択した薬剤：'+resolved.drug['薬名']+'（'+resolved.label+'）');
+    info(panel,'safety','選択した銘柄名を電子カルテと照合してください。規格は手入力です。');
+    if(demo)info(panel,'demo','架空の表示例です。患者・薬情マスターには保存しません。');
     const form=make('div','ux17-wizard-inputs');
     form.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0';
-    const choices=listStrengths(identity,resolved,demo);
-    const strengthSelect=select([
-      ['','規格を選択'],
-      ...choices.map(c=>[c.strength,c.strength]),
-      ['__manual__','規格を手入力']
-    ]);
-    field(form,'規格（mgなど）',strengthSelect);
-    const strengthManual=input('text','例：5mg',60);
-    strengthManual.style.display='none';
-    strengthSelect.onchange=()=>{
-      strengthManual.style.display=strengthSelect.value==='__manual__'?'block':'none';
-    };
-    field(form,'手入力の規格',strengthManual);
-    const qty=input('text','例：1、0.5',12);qty.inputMode='decimal';
-    field(form,'1回の服用量',qty);
+    const strengthManual=input('text','例：10mg',60);
+    field(form,'規格（手入力）',strengthManual);
     const unitSelect=select([
       ['','単位を選択'],
-      ...['錠','カプセル','包','g','mL','本','枚','回','その他'].map(s=>[s,s])
+      ...['錠','カプセル','包','g','mL','本','枚','回','その他'].map(x=>[x,x])
     ]);
-    field(form,'服用量の単位',unitSelect);
-    const timeSelect=select([
-      ['','飲むタイミングを選択'],
-      ...TIME.map(([label])=>[label,label])
-    ]);
-    field(form,'いつ飲む',timeSelect);
-    const timeManual=input('text','例：月・木の朝',50);
-    timeManual.style.display='none';
-    timeSelect.onchange=()=>{
-      timeManual.style.display=timeSelect.value==='その他'?'block':'none';
-    };
-    field(form,'その他のタイミング',timeManual);
-    const statusSelect=select([['','区分を選択'],['定期','定期薬'],['頓服','頓服薬']]);
-    field(form,'服用区分',statusSelect);
+    field(form,'数量の単位',unitSelect);
     const timeEditor=window.UX19DoseSchedule.buildEditor(null,()=>unitSelect.value);
-    panel.append(form,timeEditor.panel);
-    const syncMode=()=>{
-      const prn=statusSelect.value==='頓服';
-      for(const el of [qty,timeSelect,timeManual])el.parentElement.style.display=prn?'':'none';
-      timeManual.parentElement.style.display=prn&&timeSelect.value==='その他'?'':'none';
-      timeEditor.panel.style.display=prn?'none':'';
+    const prnForm=make('div','ux19-prn-fields');
+    prnForm.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:8px 0';
+    const qty=input('text','例：1、0.5',12);qty.inputMode='decimal';
+    field(prnForm,'頓服の1回量',qty);
+    const timeSelect=select([
+      ['','服用する条件を選択'],
+      ...TIME.map(([name])=>[name,name])
+    ]);
+    field(prnForm,'頓服の用法',timeSelect);
+    const timeManual=input('text','例：発熱時、月・木の朝',50);
+    field(prnForm,'その他の服用条件',timeManual);
+    panel.append(form,timeEditor.panel,prnForm);
+    const syncMode=prn=>{
+      prnForm.style.display=prn?'grid':'none';
+      timeManual.parentElement.style.display=prn&&timeSelect.value==='その他'?'flex':'none';
     };
-    statusSelect.addEventListener('change',syncMode);
+    timeEditor.onModeChange(syncMode);
     unitSelect.addEventListener('change',timeEditor.refresh);
-    timeSelect.addEventListener('change',syncMode);
-    syncMode();
+    timeSelect.addEventListener('change',()=>syncMode(timeEditor.isPRN()));
     info(panel,'safety','薬価は自動設定しません。定期薬の参考日額は、単価を別途確認・保存してから計算します。');
     const message=info(panel,'status','');
     message.setAttribute('role','status');
     const buttons=make('div');buttons.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
     buttons.append(
-      action('薬剤名に戻る',()=>begin(identity,demo,demo&&resolved.label.startsWith('後発品')?'generic':'original')),
+      action('薬剤選択に戻る',()=>demo?demoChoice():clearWizard()),
       action(demo?'登録結果をプレビュー（保存なし）':'確認して一覧に登録',async()=>{
         if(submitting)return;
-        const strength=(strengthSelect.value==='__manual__'?strengthManual.value:strengthSelect.value).trim().normalize('NFKC');
+        const strength=strengthManual.value.trim().normalize('NFKC');
         const qtyText=qty.value.trim().normalize('NFKC');
         const unit=unitSelect.value;
-        const mode=statusSelect.value;
+        const mode=timeEditor.isPRN()?'頓服':'定期';
         const time=timeSelect.value==='その他'?timeManual.value.trim():timeSelect.value;
         if(!strength||strength.length>60||!unit||!mode){
-          message.textContent='規格・単位・服用区分を選択してください。';return;
+          message.textContent='規格と数量の単位を入力してください。';return;
         }
         const structured=mode==='定期'?timeEditor.read(strength,unit,mode):null;
         if(structured?.error){message.textContent=structured.error;return;}
