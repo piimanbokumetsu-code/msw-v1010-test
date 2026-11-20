@@ -150,11 +150,13 @@
       return;
     }
     if(!data.entries.length){alert('印刷できる現在の処方薬がありません。');return;}
-    if(!confirm('電子カルテの最新の内服処方と、変更・中止・頓服をすべて照合しましたか？'+
-      '\n一致を確認した場合のみ、情報提供用A4を印刷します。薬価は掲載しません。'))return;
+    // Fake-stage-only confirmation: do not ask the operator to attest to
+    // nonexistent electronic medical record details for fictional patients.
+    if(!confirm('UX19 架空患者の印刷テストです。登録した架空薬の内容をA4見本で表示します。'+
+      '\n実際の患者・処方への使用はできません。印刷見本を開きますか？'))return;
     const name=text(patient.data?.['氏名'])||'未記入';
     const id=text(patient.data?.['ＩＤ'])||'';
-    openPrint(data.entries,name,id,true,false);
+    openPrint(data.entries,name,id,false,true);
   }
 
   function showDemo(){
