@@ -35,7 +35,7 @@
     return {doses,total:cleanNumber(total),unit:s.unit,
       description:names.join('－')+(s.relation==='時間帯のみ'?'':'（'+s.relation+'）')};
   }
-  function buildEditor(oldSchedule,getUnit){
+  function buildEditor(oldSchedule,getUnit,initialPrn=false){
     const panel=document.createElement('div');
     panel.className='ux19-time-editor';
     panel.style.cssText='border:1px solid #cbd5e1;border-radius:9px;padding:9px;background:#f8fafc;margin:8px 0';
@@ -66,6 +66,14 @@
       inputs[key]={check,amount};
     }
     panel.append(fields);
+    const prnRow=document.createElement('label');
+    prnRow.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 4px;font-weight:700';
+    const prnCheck=document.createElement('input');
+    prnCheck.type='checkbox';
+    prnCheck.checked=Boolean(initialPrn);
+    prnCheck.setAttribute('aria-label','頓服として登録');
+    prnRow.append(prnCheck,document.createTextNode('頓服（必要時）'));
+    panel.append(prnRow);
     const relationRow=document.createElement('label');
     relationRow.style.cssText='display:flex;flex-direction:column;gap:4px';
     relationRow.append(document.createTextNode('服用条件（例：食後）'));
@@ -89,8 +97,20 @@
         '1日合計：'+cleanNumber(count)+(getUnit?.()||'')+(selected?'（自動計算）':'（時間帯未選択）');
     }
     relation.addEventListener('change',refresh);
-    refresh();
+    const modeListeners=[];
+    function syncMode(){
+      const prn=prnCheck.checked;
+      fields.style.display=prn?'none':'grid';
+      relationRow.style.display=prn?'none':'flex';
+      totalLabel.style.display=prn?'none':'';
+      headline.textContent=prn?'頓服の用法を設定':'時間帯ごとの数量（1日分）';
+      if(!prn)refresh();
+      for(const callback of modeListeners)callback(prn);
+    }
+    prnCheck.addEventListener('change',syncMode);
+    syncMode();
     function read(strength,unit,status){
+      if(prnCheck.checked)return {error:'頓服の1回量・服用時点を確認してください。'};
       const doses={};let total=0;let selected=0;
       for(const [key,label] of slots){
         const {check,amount}=inputs[key];
@@ -107,7 +127,10 @@
       return {schedule:{version:1,slots:doses,relation:relation.value,
         strength,unit,status:'定期',dailyQuantity:cleanNumber(total)}};
     }
-    return {panel,read,refresh};
+    return {panel,read,refresh,
+      isPRN:()=>prnCheck.checked,
+      onModeChange:fn=>{if(typeof fn==='function'){modeListeners.push(fn);fn(prnCheck.checked);}}
+    };
   }
   window.UX19DoseSchedule=Object.freeze({slots,relations,qty,resolve,buildEditor,cleanNumber});
 })();
