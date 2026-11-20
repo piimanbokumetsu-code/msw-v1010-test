@@ -26,19 +26,26 @@
   // Print ONLY the explicit prescribed fields from UX17. Never print master
   // drug effect, generic list, reference pricing, unit price or totals.
   function printableRow(record){
-    const dose=record?.ux17Schedule,pricing=record?.pricing||{};
+    const pricing=record?.pricing||{};
     const name=text(record?.drug?.['薬名']);
     const strength=text(pricing.strength);
+    if(!name||name.length>180||!strength||strength.length>60)return null;
+    if(pricing.status==='定期'){
+      // Old UX17 one-dose records cannot safely become a daily breakdown.
+      const verified=window.UX19DoseSchedule?.resolve(record);
+      if(!verified)return null;
+      return {name,strength,dose:verified.total+verified.unit+'／日',
+        when:verified.description,status:'定期'};
+    }
+    const dose=record?.ux17Schedule;
     const quantity=text(dose?.doseQuantity);
     const unit=text(dose?.doseUnit);
     const when=text(dose?.timing);
-    const status=text(dose?.status||pricing.status);
-    if(!name||name.length>180||!strength||strength.length>60||
-       !dose||!qtyOK(quantity)||!allowedUnits.has(unit)||
-       !when||when.length>50||!statuses.has(status)||dose.status!==status){
-      return null;
-    }
-    return {name,strength,dose:'1回'+quantity+unit,when,status};
+    if(pricing.status!=='頓服'||!dose||dose.status!=='頓服'||
+       String(dose.strength||'')!==String(pricing.strength||'')||
+       String(dose.doseUnit||'')!==String(pricing.unit||'')||
+       !qtyOK(quantity)||!allowedUnits.has(unit)||!when||when.length>50)return null;
+    return {name,strength,dose:'1回'+quantity+unit,when,status:'頓服'};
   }
   function readPatientRows(patient){
     const all=medRows(patient);
@@ -58,8 +65,8 @@
   function demoRows(){
     // All names and prescription instructions below are explicitly FICTIONAL.
     return [
-      {name:'架空降圧薬A',strength:'5mg',dose:'1回1錠',when:'朝・夕食後',status:'定期'},
-      {name:'架空胃薬B',strength:'10mg',dose:'1回1錠',when:'朝食後',status:'定期'},
+      {name:'架空降圧薬A',strength:'5mg',dose:'2錠／日',when:'朝:1－夜:1（食後）',status:'定期'},
+      {name:'架空胃薬B',strength:'10mg',dose:'3錠／日',when:'朝:1－昼:1－夜:1（食後）',status:'定期'},
       {name:'架空ビタミン薬C',strength:'規格未設定',dose:'未設定',when:'未設定',status:'定期'},
       {name:'架空頓服薬D',strength:'200mg',dose:'1回1錠',when:'疼痛時',status:'頓服'}
     ];
@@ -108,7 +115,7 @@
       '<p class="note">電子カルテの最新処方と照合済みの情報のみ、情報提供用として使用してください。</p>'+
       '<table><colgroup><col style="width:5%"><col style="width:29%"><col style="width:14%">'+
       '<col style="width:16%"><col style="width:24%"><col style="width:12%"></colgroup>'+
-      '<thead><tr><th>No.</th><th>薬剤名</th><th>規格</th><th>1回量</th><th>服用時点</th><th>区分</th></tr></thead>'+
+      '<thead><tr><th>No.</th><th>薬剤名</th><th>規格</th><th>数量</th><th>用法</th><th>区分</th></tr></thead>'+
       '<tbody>'+output+'</tbody></table>'+
       '<p class="footer">※正式な処方箋ではありません。薬剤の中止・変更・頓服の状況も、最新の電子カルテ等で確認してください。'+
       (demo?'　※この用紙は架空の表示見本です。':'')+'</p>'+
@@ -140,7 +147,7 @@
     const data=readPatientRows(patient);
     if(!data.total){alert('処方薬が登録されていません。');return;}
     if(data.incomplete){
-      alert('規格・1回量・服用時点などが未設定の薬剤が'+data.incomplete+'件あります。'+
+      alert('数量・用法が未確認（旧形式を含む）の薬剤が'+data.incomplete+'件あります。'+
         '\n印刷前に登録内容を確認・入力してください。未確認の処方薬を省略して印刷しないよう、今回は中止します。');
       return;
     }
