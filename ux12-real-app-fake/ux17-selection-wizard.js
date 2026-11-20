@@ -132,7 +132,7 @@
   }
 
   function configure(panel,resolved,identity,demo,patient){
-    panel.replaceChildren(make('h4','','③ 規格・量・いつを設定'));
+    panel.replaceChildren(make('h4','','③ 規格・数量・用法を設定'));
     info(panel,'notice','選択した薬剤：'+resolved.drug['薬名']+'（'+resolved.label+'）');
     const form=make('div','ux17-wizard-inputs');
     form.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:10px 0';
@@ -169,7 +169,18 @@
     field(form,'その他のタイミング',timeManual);
     const statusSelect=select([['','区分を選択'],['定期','定期薬'],['頓服','頓服薬']]);
     field(form,'服用区分',statusSelect);
-    panel.append(form);
+    const timeEditor=window.UX19DoseSchedule.buildEditor(null,()=>unitSelect.value);
+    panel.append(form,timeEditor.panel);
+    const syncMode=()=>{
+      const prn=statusSelect.value==='頓服';
+      for(const el of [qty,timeSelect,timeManual])el.parentElement.style.display=prn?'':'none';
+      timeManual.parentElement.style.display=prn&&timeSelect.value==='その他'?'':'none';
+      timeEditor.panel.style.display=prn?'none':'';
+    };
+    statusSelect.addEventListener('change',syncMode);
+    unitSelect.addEventListener('change',timeEditor.refresh);
+    timeSelect.addEventListener('change',syncMode);
+    syncMode();
     info(panel,'safety','薬価は自動設定しません。定期薬の参考日額は、単価を別途確認・保存してから計算します。');
     const message=info(panel,'status','');
     message.setAttribute('role','status');
@@ -183,32 +194,36 @@
         const unit=unitSelect.value;
         const mode=statusSelect.value;
         const time=timeSelect.value==='その他'?timeManual.value.trim():timeSelect.value;
-        if(!strength||strength.length>60||!qtyText||!unit||!time||!mode||
-           time.length>50||! /^\d{1,4}(?:\.\d{1,3})?$/.test(qtyText)||
-           Number(qtyText)<=0||Number(qtyText)>1000){
-          message.textContent='規格・1回量・単位・服用タイミング・区分を正しく入力してください。';
-          return;
+        if(!strength||strength.length>60||!unit||!mode){
+          message.textContent='規格・単位・服用区分を選択してください。';return;
         }
-        if(time==='疼痛時'&&mode!=='頓服'){
-          message.textContent='「疼痛時」は頓服として登録してください。';return;
+        const structured=mode==='定期'?timeEditor.read(strength,unit,mode):null;
+        if(structured?.error){message.textContent=structured.error;return;}
+        if(mode==='頓服'&&(
+           !/^\d{1,4}(?:\.\d{1,3})?$/.test(qtyText)||
+           Number(qtyText)<=0||Number(qtyText)>1000||
+           !time||time.length>50)){
+          message.textContent='頓服の1回量・単位・用法を確認してください。';return;
         }
-        const count=TIME.find(([name])=>name===time)?.[1]??null;
-        const daily=mode==='定期'&&count!==null
-          ?String(Math.round(Number(qtyText)*count*1000)/1000):'';
-        if(daily&&Number(daily)>1000){
-          message.textContent='1日の合計数量が上限を超えます。';return;
+        if(mode!=='定期'&&mode!=='頓服'){
+          message.textContent='定期薬か頓服薬か選択してください。';return;
         }
+        const daily=structured?.schedule?.dailyQuantity||'';
         const record={
           id:typeof uid==='function'?uid():String(Date.now()),
           drug:resolved.drug,
           addedAt:typeof nowISO==='function'?nowISO():new Date().toISOString(),
           ...(resolved.origin?{rx045Origin:resolved.origin}:{}),
           pricing:{strength,unitPrice:'',unit,dailyQuantity:daily,status:mode},
-          ux17Schedule:{doseQuantity:qtyText,doseUnit:unit,timing:time,status:mode}
+          ux17Schedule:mode==='頓服'?{strength,doseQuantity:qtyText,doseUnit:unit,timing:time,status:mode}:null,
+          ...(structured?.schedule?{ux19Schedule:structured.schedule}:{})
         };
+        const description=mode==='定期'
+          ?'数量'+daily+unit+'／'+window.UX19DoseSchedule.resolve(record).description
+          :'1回'+qtyText+unit+'／'+time;
         if(demo){
           panel.replaceChildren(make('h4','','④ 登録後の表示イメージ（保存なし）'));
-          panel.append(make('strong','',record.drug['薬名']+'　'+strength+'　1回'+qtyText+unit+'　'+time));
+          panel.append(make('strong','',record.drug['薬名']+'　'+strength+'　'+description));
           info(panel,'demo','架空テスト用のプレビューです。薬情・患者データは変更していません。');
           panel.append(action('別の銘柄も試す',demoChoice));
           return;
@@ -224,8 +239,8 @@
         if(prev.some(r=>medSignature(r?.drug)===medSignature(record.drug))){
           message.textContent='同じ薬剤はすでに登録されています。';return;
         }
-        if(!confirm('「'+record.drug['薬名']+'」 '+strength+' ／ 1回'+qtyText+unit+
-          ' ／ '+time+' ／ '+mode+' を患者の一覧に登録しますか？\n処方内容と一致することを確認してください。'))return;
+        if(!confirm('「'+record.drug['薬名']+'」 '+strength+' ／ '+description+
+          ' ／ '+mode+' を患者の一覧に登録しますか？\n処方内容と一致することを確認してください。'))return;
         if(patientMedicationBusy){message.textContent='別の薬剤の保存中です。完了後に操作してください。';return;}
         submitting=true;
         patientMedicationBusy=true;
@@ -237,7 +252,7 @@
           if(patient===selectedPatient){
             drawPatientMedicationList();
             panel.replaceChildren(make('h4','','④ 登録完了'));
-            info(panel,'success','選択した薬剤と規格・量・タイミングを保存しました。');
+            info(panel,'success','選択した薬剤と数量・用法を保存しました。');
             panel.append(action('閉じる',clearWizard));
           }
         }catch(err){
