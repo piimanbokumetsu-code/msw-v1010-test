@@ -10,8 +10,8 @@
   window.__MSW_UX17_MEDICATION_COMPACT_INSTALLED__=true;
 
   const sampleDose=[
-    ['1回1錠','朝・夕食後'],
-    ['1回1錠','朝食後'],
+    ['合計2錠/日','朝:1－夜:1（食後）'],
+    ['合計1錠/日','朝:1（食後）'],
     ['未設定','未設定'],
     ['1回1錠','疼痛時']
   ];
@@ -47,6 +47,9 @@
     // Legacy records have no timing and must remain visibly "未設定".
     const identifier=row.querySelector('.patient-med-del')?.dataset.id;
     const stored=identifier?medRows(selectedPatient).find(r=>r.id===identifier):null;
+    const verified=window.UX19DoseSchedule?.resolve(stored);
+    if(verified)return ['合計'+verified.total+verified.unit+'/日',verified.description];
+    if(stored?.ux19Schedule)return ['要確認','要確認'];
     const schedule=stored?.ux17Schedule;
     if(schedule&&typeof schedule==='object'&&
        /^\d{1,4}(?:\.\d{1,3})?$/.test(String(schedule.doseQuantity||''))&&
@@ -88,7 +91,7 @@
     heading.className='ux17-med-compact-head';
     // Keep the original name and category's font styles.
     heading.appendChild(title);
-    for(const [label,value] of [['規格',strength],['量',amount],['いつ',timing]]){
+    for(const [label,value] of [['規格',strength],['数量',amount],['用法',timing]]){
       const col=document.createElement('div');
       col.className='ux17-med-compact-val';
       const key=document.createElement('span');
