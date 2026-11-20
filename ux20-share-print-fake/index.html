@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="印刷テスト">
+<meta name="theme-color" content="#0f766e">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; connect-src 'none'; img-src 'self' data:; base-uri 'self'">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>UX20 検証｜架空PDFのiPad共有印刷</title>
+<style>
+  :root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#143338;background:#f2f8f8}
+  body{margin:0;padding:20px 16px 64px}
+  main{max-width:630px;margin:auto}
+  h1{font-size:23px;margin:0 0 12px}
+  p{line-height:1.7;margin:10px 0}
+  .tag{display:inline-block;background:#ffe9bf;border-radius:8px;padding:6px 10px;font-weight:700;font-size:13px}
+  .box{border:1px solid #a5c5c5;background:white;border-radius:12px;padding:14px;margin-top:14px}
+  .button{display:block;width:100%;box-sizing:border-box;border:0;border-radius:10px;background:#0f766e;color:white;font-weight:700;font-size:18px;padding:16px;margin:14px 0;min-height:50px}
+  .muted{color:#355; font-size:14px}
+  #status{font-weight:700;overflow-wrap:anywhere}
+  #log{white-space:pre-wrap;line-height:1.6;font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>UX20 架空PDF 印刷テスト</h1>
+<div class="tag">患者データなし・本番アプリとは別</div>
+<p>iPadの共有メニューから印刷できるか、<strong>架空の1枚</strong>だけを使って調べます。実名・病名・処方情報は一切扱いません。</p>
+<div class="box">
+  <p id="mode">起動方法を確認中</p>
+  <button class="button" type="button" id="share">架空PDFを共有して印刷を試す</button>
+  <p class="muted">共有メニューで「プリント」があれば選び、印刷プレビューが出るか確認してください。紙への印刷は不要です。「プリント」がなければ、何も共有せず閉じてください。</p>
+</div>
+<div class="box">
+  <strong>画面を離れたかの記録</strong>
+  <p id="status">まだ操作していません。</p>
+  <div id="log" class="muted">記録はこの画面内だけに表示し、送信・保存しません。</div>
+</div>
+<p class="muted">この診断画面は患者管理ソフトの実データを読み込みません。Safari/ホーム画面アプリでの動作の違いも確認できます。</p>
+</main>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const standalone=!!navigator.standalone||window.matchMedia('(display-mode: standalone)').matches;
+  $('mode').textContent='起動方式：'+(standalone?'ホーム画面アプリ（standalone）':'Safariブラウザ表示');
+  let hidden=0,pagehide=0;
+  const events=[];
+  function log(s){
+    events.push(s);
+    $('log').textContent=events.slice(-9).join('\n');
+    $('status').textContent='非表示になった回数：'+hidden+'回／ページ離脱：'+pagehide+'回';
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'){hidden++;log('画面が裏側へ移動しました（実アプリでは自動ロック対象）');}
+    else log('画面へ戻りました');
+  });
+  window.addEventListener('pagehide',()=>{pagehide++;log('pagehide が発生しました')});
+  window.addEventListener('pageshow',()=>{log('ページ表示')});
+  function fakePdf(){
+    // Entire content is explicitly fictional and ASCII: no patient/medical data.
+    const lines=[
+      'BT /F1 24 Tf 70 748 Td (FAKE MSW PRINT TEST) Tj ET',
+      'BT /F1 14 Tf 70 706 Td (NO PATIENT INFORMATION) Tj ET',
+      'BT /F1 12 Tf 70 681 Td (UX20 AirPrint share-sheet experiment.) Tj ET'
+    ];
+    const stream=lines.join('\n')+'\n';
+    const objects=[
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+      '<< /Length '+stream.length+' >>\nstream\n'+stream+'endstream'
+    ];
+    let pdf='%PDF-1.4\n';
+    const offsets=[0];
+    objects.forEach((obj,i)=>{offsets.push(pdf.length);pdf+=(i+1)+' 0 obj\n'+obj+'\nendobj\n'});
+    const xref=pdf.length;
+    pdf+='xref\n0 '+(objects.length+1)+'\n0000000000 65535 f \n';
+    for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+    pdf+='trailer\n<< /Root 1 0 R /Size '+(objects.length+1)+' >>\nstartxref\n'+xref+'\n%%EOF\n';
+    return new File([pdf],'FAKE-MSW-PRINT-TEST.pdf',{type:'application/pdf'});
+  }
+  $('share').addEventListener('click',async()=>{
+    if(typeof navigator.share!=='function'){log('この起動方式では共有APIを利用できません');return}
+    const file=fakePdf();
+    const payload={files:[file]};
+    if(typeof navigator.canShare==='function'&&!navigator.canShare(payload)){
+      log('この起動方式ではPDFファイルの共有に対応していません');return;
+    }
+    log('共有メニューを開く操作を実行しました');
+    try{
+      await navigator.share(payload);
+      log('共有メニューの操作が完了しました');
+    }catch(e){
+      if(e?.name==='AbortError')log('共有メニューをキャンセルしました');
+      else log('共有に失敗：'+String(e?.name||'不明'));
+    }
+  });
+})();
+</script>
+</body>
+</html>
