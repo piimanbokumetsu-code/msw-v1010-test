@@ -52,6 +52,8 @@
       const w=window.open('','_blank');
       if(!w){alert('Safariで別画面を開けませんでした。');return;}
       w.document.open();w.document.write(html);w.document.close();
+      w.document.getElementById('ux17PrintNow')?.addEventListener('click',()=>w.print());
+      w.document.getElementById('ux17PrintClose')?.addEventListener('click',()=>w.close());
     };
     const actions=make('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:8px 0';
     actions.append(button,paper);
