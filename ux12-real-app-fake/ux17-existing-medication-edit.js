@@ -60,31 +60,30 @@
     const cols=control('div');
     cols.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:10px 0';
 
-    const strength=field(cols,'規格',txt(pricing.strength,60,'例：5mg'));
-    const qty=field(cols,'1回の服用量',txt(schedule.doseQuantity,12,'例：1、0.5'));
+    const strength=field(cols,'規格（手入力）',txt(pricing.strength,60,'例：10mg'));
+    const unit=field(cols,'数量の単位',pick([['','選択してください'],...units.map(x=>[x,x])],schedule.doseUnit||pricing.unit));
+    const timeEditor=window.UX19DoseSchedule.buildEditor(
+      record.ux19Schedule,()=>unit.value,pricing.status==='頓服'||schedule.status==='頓服');
+    const prnCols=control('div');
+    prnCols.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:10px 0';
+    const qty=field(prnCols,'頓服の1回量',txt(schedule.doseQuantity,12,'例：1、0.5'));
     qty.inputMode='decimal';
-    const unit=field(cols,'単位',pick([['','選択してください'],...units.map(x=>[x,x])],schedule.doseUnit||pricing.unit));
-    const mode=field(cols,'区分',pick([['','選択してください'],['定期','定期薬'],['頓服','頓服薬']],schedule.status||(['定期','頓服'].includes(pricing.status)?pricing.status:'')));
     const knownTime=times.some(([value])=>value===schedule.timing);
-    const timing=field(cols,'いつ',pick([['','選択してください'],...times.map(([v])=>[v,v])],knownTime?schedule.timing:schedule.timing?'その他':''));
-    const other=field(cols,'その他の服用時点',txt(knownTime?'':schedule.timing,50,'例：月・木の朝'));
-    other.parentElement.style.display=timing.value==='その他'?'flex':'none';
-    timing.onchange=()=>{other.parentElement.style.display=timing.value==='その他'?'flex':'none';};
-    const timeEditor=window.UX19DoseSchedule.buildEditor(record.ux19Schedule,()=>unit.value);
-    panel.append(cols,timeEditor.panel);
+    const timing=field(prnCols,'頓服の用法',
+      pick([['','選択してください'],...times.map(([v])=>[v,v])],
+        knownTime?schedule.timing:schedule.timing?'その他':''));
+    const other=field(prnCols,'その他の服用条件',txt(knownTime?'':schedule.timing,50,'例：発熱時'));
+    panel.append(cols,timeEditor.panel,prnCols);
     const legacyLabel=control('p','従来の「1回量・毎食後」から時間帯別の数量は推測しません。電子カルテと照合して入力してください。');
     legacyLabel.className='notice';
     if(!record.ux19Schedule&&pricing.status==='定期')panel.append(legacyLabel);
-    const syncMode=()=>{
-      const prn=mode.value==='頓服';
-      for(const item of [qty,timing,other])item.parentElement.style.display=prn?'':'none';
-      other.parentElement.style.display=prn&&timing.value==='その他'?'':'none';
-      timeEditor.panel.style.display=prn?'none':'';
+    const syncMode=prn=>{
+      prnCols.style.display=prn?'grid':'none';
+      other.parentElement.style.display=prn&&timing.value==='その他'?'flex':'none';
     };
-    mode.addEventListener('change',syncMode);
-    timing.addEventListener('change',syncMode);
+    timeEditor.onModeChange(syncMode);
+    timing.addEventListener('change',()=>syncMode(timeEditor.isPRN()));
     unit.addEventListener('change',timeEditor.refresh);
-    syncMode();
     const notice=control('p','規格・服用内容を実際の処方と照合して保存します。規格・単位を変更した場合、以前の参考単価はクリアします。');
     notice.className='notice';panel.append(notice);
     const message=control('p');message.className='notice';message.setAttribute('role','status');panel.append(message);
@@ -107,9 +106,9 @@
       const current=readRecord(id);
       if(!current){message.textContent='該当する薬剤が見つかりません。';return;}
       const st=strength.value.trim().normalize('NFKC'),q=qty.value.trim().normalize('NFKC');
-      const u=unit.value,when=timing.value==='その他'?other.value.trim():timing.value,m=mode.value;
+      const u=unit.value,when=timing.value==='その他'?other.value.trim():timing.value,m=timeEditor.isPRN()?'頓服':'定期';
       if(!st||st.length>60||!units.includes(u)||!['定期','頓服'].includes(m)){
-        message.textContent='規格・単位・服用区分を確認してください。';return;
+        message.textContent='規格と数量の単位を確認してください。';return;
       }
       const structured=m==='定期'?timeEditor.read(st,u,m):null;
       if(structured?.error){message.textContent=structured.error;return;}
