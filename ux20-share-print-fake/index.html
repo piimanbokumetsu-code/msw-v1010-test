@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0f766e">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; object-src 'none'; connect-src 'none'; img-src 'self' data:; base-uri 'self'">
 <link rel="manifest" href="./manifest.webmanifest">
-<title>UX20 検証｜架空PDFのiPad共有印刷</title>
+<title>UX20 検証｜日本語A4架空処方薬PDF</title>
 <style>
   :root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#143338;background:#f2f8f8}
   body{margin:0;padding:20px 16px 64px}
@@ -26,11 +26,14 @@
 <body>
 <main>
 <h1>UX20 架空PDF 印刷テスト</h1>
+<p><strong>第2段階：日本語・A4・5列の処方薬一覧でも、別タブを開かずに共有印刷できるか確認します。</strong></p>
 <div class="tag">患者データなし・本番アプリとは別</div>
 <p>iPadの共有メニューから印刷できるか、<strong>架空の1枚</strong>だけを使って調べます。実名・病名・処方情報は一切扱いません。</p>
 <div class="box">
   <p id="mode">起動方法を確認中</p>
-  <button class="button" type="button" id="share">架空PDFを共有して印刷を試す</button>
+  <button class="button" type="button" id="shareJapanese" disabled>日本語A4処方薬PDFを準備中…</button>
+  <p id="japaneseStatus" class="muted">架空の薬剤名・規格・数量・用法をA4・5列で生成します。</p>
+  <button class="button" style="background:#64748b" type="button" id="share">前回の英数字PDFを再確認する（任意）</button>
   <p class="muted">共有メニューで「プリント」があれば選び、印刷プレビューが出るか確認してください。紙への印刷は不要です。「プリント」がなければ、何も共有せず閉じてください。</p>
 </div>
 <div class="box">
@@ -83,6 +86,149 @@
     pdf+='trailer\n<< /Root 1 0 R /Size '+(objects.length+1)+' >>\nstartxref\n'+xref+'\n%%EOF\n';
     return new File([pdf],'FAKE-MSW-PRINT-TEST.pdf',{type:'application/pdf'});
   }
+
+  // Phase 2: fully fictional Japanese A4 prescription. No patient state or
+  // IndexedDB access. Render Japanese glyphs through iPad's installed system
+  // fonts into JPEG, then embed in a single-page PDF. No external library.
+  let japaneseFile=null;
+  function renderJapaneseA4(){
+    const W=595.28,H=841.89,scale=2;
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.round(W*scale);
+    canvas.height=Math.round(H*scale);
+    const ctx=canvas.getContext('2d',{alpha:false});
+    if(!ctx)throw new Error('Canvasが利用できません');
+    ctx.setTransform(scale,0,0,scale,0,0);
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+    ctx.textBaseline='top';
+    const jpFont='"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif';
+    function font(size,bold){
+      ctx.font=(bold?'700 ':'400 ')+size+'px '+jpFont;
+    }
+    function text(str,x,y,size=12,bold=false,color='#111'){
+      font(size,bold);ctx.fillStyle=color;ctx.fillText(str,x,y);
+    }
+    function line(x1,y1,x2,y2,color='#555'){
+      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=.7;
+      ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    }
+    function wrapped(str,width,size=12){
+      font(size,false);
+      const result=[];let cur='';
+      for(const ch of Array.from(String(str))){
+        if(cur && ctx.measureText(cur+ch).width>width){
+          result.push(cur);cur=ch;
+        }else cur+=ch;
+      }
+      if(cur)result.push(cur);
+      return result;
+    }
+    text('架空テスト・実患者には使用不可',42,31,15,true,'#a32929');
+    line(42,59,W-42,59,'#a32929');
+    text('現在の内服処方一覧（情報提供用）',42,76,18,true);
+    text('氏名：架空 花子',42,118,12,true);
+    text('患者ID：FX-01',285,118,12);
+    text('薬剤数：3剤（すべて架空）',42,141,11);
+    const cols=[35,166,69,80,161],left=42,tableW=cols.reduce((a,b)=>a+b,0);
+    if(tableW>W-left*2+1)throw new Error('表がA4の幅に収まりません');
+    const headers=['No.','薬剤名','規格','数量','用法'];
+    const rows=[
+      ['1','架空UX20先発薬','10mg','4錠／日','朝1・昼1・夜2（食後）'],
+      ['2','架空UX20先発薬','1mg','1錠／日','朝1（食後）'],
+      ['3','架空UX20後発薬','10mg','1回1錠','疼痛時（頓服）']
+    ];
+    let y=174;
+    ctx.fillStyle='#edf2f2';ctx.fillRect(left,y,tableW,36);
+    let xx=left;
+    headers.forEach((h,i)=>{text(h,xx+6,y+10,11,true);xx+=cols[i]});
+    line(left,y,left+tableW,y);line(left,y+36,left+tableW,y+36);
+    y+=36;
+    for(const row of rows){
+      const lines=row.map((cell,i)=>wrapped(cell,cols[i]-12,11.5));
+      const rh=Math.max(45,...lines.map(lines=>lines.length*17+14));
+      if(y+rh>H-90)throw new Error('A4の高さを超えました');
+      xx=left;
+      lines.forEach((strings,i)=>{
+        strings.forEach((segment,j)=>text(segment,xx+6,y+8+j*17,11.5));
+        xx+=cols[i];
+      });
+      line(left,y+rh,left+tableW,y+rh);
+      y+=rh;
+    }
+    xx=left;line(left,174,left,y);for(const w of cols){xx+=w;line(xx,174,xx,y);}
+    text('この用紙は印刷機能の検証専用です。実際の処方ではありません。',42,Math.min(y+27,H-70),11,true,'#9a3412');
+    text('UX20 共有印刷検証・端末内で生成・保存なし',42,H-43,9,false,'#64748b');
+    return canvas;
+  }
+  function japanesePdf(canvas){
+    const uri=canvas.toDataURL('image/jpeg',0.9);
+    if(!uri.startsWith('data:image/jpeg;base64,'))throw new Error('JPEG生成に失敗しました');
+    const binary=atob(uri.slice(uri.indexOf(',')+1));
+    const jpg=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++)jpg[i]=binary.charCodeAt(i);
+    const enc=new TextEncoder();
+    const pieces=[];let total=0;
+    const offsets=[0];
+    function putBytes(bytes){pieces.push(bytes);total+=bytes.byteLength}
+    function put(str){putBytes(enc.encode(str))}
+    function openObj(id){offsets[id]=total;put(id+' 0 obj\n')}
+    function closeObj(){put('\nendobj\n')}
+    put('%PDF-1.4\n%FAKE\n');
+    openObj(1);put('<< /Type /Catalog /Pages 2 0 R >>');closeObj();
+    openObj(2);put('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');closeObj();
+    openObj(3);
+    put('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] '+
+      '/Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+    closeObj();
+    openObj(4);
+    put('<< /Type /XObject /Subtype /Image /Width '+canvas.width+
+      ' /Height '+canvas.height+' /ColorSpace /DeviceRGB /BitsPerComponent 8 '+
+      '/Filter /DCTDecode /Length '+jpg.byteLength+' >>\nstream\n');
+    putBytes(jpg);put('\nendstream');closeObj();
+    const content='q\n595.28 0 0 841.89 0 0 cm\n/Im0 Do\nQ\n';
+    openObj(5);
+    put('<< /Length '+enc.encode(content).byteLength+' >>\nstream\n'+content+'endstream');
+    closeObj();
+    const xref=total;
+    put('xref\n0 6\n0000000000 65535 f \n');
+    for(let id=1;id<=5;id++)put(String(offsets[id]).padStart(10,'0')+' 00000 n \n');
+    put('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF\n');
+    return new File(pieces,'FAKE-UX20-JAPANESE-A4.pdf',{type:'application/pdf'});
+  }
+  function prepareJapanese(){
+    try{
+      const canvas=renderJapaneseA4();
+      japaneseFile=japanesePdf(canvas);
+      canvas.width=0;canvas.height=0;
+      $('shareJapanese').disabled=false;
+      $('shareJapanese').textContent='日本語A4・架空処方薬PDFを共有して印刷';
+      $('japaneseStatus').textContent=
+        'A4縦・5列（No.／薬剤名／規格／数量／用法）・架空3剤。PDF約'+
+        Math.max(1,Math.round(japaneseFile.size/1024))+'KB。';
+    }catch(e){
+      $('shareJapanese').textContent='日本語PDFの生成に失敗しました';
+      $('japaneseStatus').textContent=String(e?.message||e);
+      log('日本語PDF生成エラー');
+    }
+  }
+  // Prepare before click: on iPad Safari, navigator.share() must run while
+  // the original user gesture is still active.
+  Promise.resolve(document.fonts?.ready).then(prepareJapanese).catch(prepareJapanese);
+  $('shareJapanese').addEventListener('click',()=>{
+    if(!japaneseFile){log('PDFの準備がまだ完了していません');return}
+    if(typeof navigator.share!=='function'){log('この起動方式では共有APIが使えません');return}
+    const payload={files:[japaneseFile]};
+    if(typeof navigator.canShare==='function'&&!navigator.canShare(payload)){
+      log('日本語PDFのファイル共有に対応していません');return;
+    }
+    log('日本語A4の共有メニューを開きます');
+    navigator.share(payload).then(
+      ()=>log('日本語A4の共有操作を完了しました'),
+      e=>log(e?.name==='AbortError'?'共有操作をキャンセルしました':
+        '共有に失敗：'+String(e?.name||'不明'))
+    );
+  });
+
   $('share').addEventListener('click',async()=>{
     if(typeof navigator.share!=='function'){log('この起動方式では共有APIを利用できません');return}
     const file=fakePdf();
