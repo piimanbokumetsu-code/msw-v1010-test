@@ -14,6 +14,23 @@
     ['朝・夕食後',2],['毎食前',3],['毎食後',3],['就寝前',1],
     ['疼痛時',null],['その他',null]
   ];
+  // A brand may appear more than once when the *strength differs*.
+  // Never collapse 0.5mg and 1mg into one prescription entry.
+  // Unspecified legacy strengths are ambiguous, so require review first.
+  const keyPart=value=>String(value??'').trim().normalize('NFKC')
+    .replace(/[\s\u3000]+/g,'').toLocaleLowerCase('ja');
+  function prescriptionConflict(rows,incoming){
+    const name=keyPart(incoming?.drug?.['薬名']);
+    const strength=keyPart(incoming?.pricing?.strength);
+    if(!name||!strength)return 'invalid';
+    for(const old of rows){
+      if(keyPart(old?.drug?.['薬名'])!==name)continue;
+      const previousStrength=keyPart(old?.pricing?.strength);
+      if(!previousStrength)return 'unknown';
+      if(previousStrength===strength)return 'same';
+    }
+    return '';
+  }
   let submitting=false;
   const make=(tag,klass,text)=>{
     const node=document.createElement(tag);
@@ -229,8 +246,12 @@
         }
         const prev=medRows(patient).slice();
         if(prev.length>=100){message.textContent='一人の患者には100件まで登録できます。';return;}
-        if(prev.some(r=>medSignature(r?.drug)===medSignature(record.drug))){
-          message.textContent='同じ薬剤はすでに登録されています。';return;
+        const conflict=prescriptionConflict(prev,record);
+        if(conflict){
+          message.textContent=conflict==='unknown'
+            ?'同じ薬剤名の既存薬で規格が未設定です。既存薬の規格を確認してから追加してください。'
+            :'同じ薬剤名・同じ規格はすでに登録されています。既存薬の修正をご利用ください。';
+          return;
         }
         if(!confirm('「'+record.drug['薬名']+'」 '+strength+' ／ '+description+
           ' ／ '+mode+' を患者の一覧に登録しますか？\n処方内容と一致することを確認してください。'))return;
