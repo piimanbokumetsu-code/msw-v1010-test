@@ -78,8 +78,7 @@
       '<td class="drug">'+safe(item.name)+'</td>'+
       '<td>'+safe(item.strength)+'</td>'+
       '<td>'+safe(item.dose)+'</td>'+
-      '<td>'+safe(item.when)+'</td>'+
-      '<td>'+safe(item.status)+'</td></tr>').join('');
+      '<td>'+safe(item.when)+'</td></tr>').join('');
     const banner=demo?'<div class="fake">架空印刷見本・実患者には使用不可</div>':'';
     return '<!doctype html><html lang="ja"><head><meta charset="utf-8">'+
       '<meta name="viewport" content="width=device-width, initial-scale=1">'+
@@ -98,8 +97,7 @@
       'th,td{border:1px solid #555;padding:7px 5px;text-align:left;vertical-align:top;overflow-wrap:anywhere}'+
       'th{background:#eee;font-size:9pt}td{font-size:10pt}'+
       'tr{break-inside:avoid;page-break-inside:avoid}'+
-      '.num{width:5%;text-align:center}.drug{width:28%}'+
-      '.footer{border-top:1px solid #999;margin-top:6mm;padding-top:3mm;font-size:9pt}'+
+      '.num{width:5%;text-align:center}.drug{width:29%}'+
       '.controls{margin:0 0 18px;display:flex;gap:8px}'+
       '.controls button{background:#0f766e;color:white;font-size:16px;padding:10px 18px;border:0;border-radius:8px}'+
       '@media print{body{padding:0}.controls{display:none!important}.fake{color:#111;border-color:#111}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
@@ -114,11 +112,9 @@
       '<p><strong>薬剤数：</strong>'+rows.length+'剤</p></div>'+
       '<p class="note">電子カルテの最新処方と照合済みの情報のみ、情報提供用として使用してください。</p>'+
       '<table><colgroup><col style="width:5%"><col style="width:29%"><col style="width:14%">'+
-      '<col style="width:16%"><col style="width:24%"><col style="width:12%"></colgroup>'+
-      '<thead><tr><th>No.</th><th>薬剤名</th><th>規格</th><th>数量</th><th>用法</th><th>区分</th></tr></thead>'+
+      '<col style="width:15%"><col style="width:37%"></colgroup>'+
+      '<thead><tr><th>No.</th><th>薬剤名</th><th>規格</th><th>数量</th><th>用法</th></tr></thead>'+
       '<tbody>'+output+'</tbody></table>'+
-      '<p class="footer">※正式な処方箋ではありません。薬剤の中止・変更・頓服の状況も、最新の電子カルテ等で確認してください。'+
-      (demo?'　※この用紙は架空の表示見本です。':'')+'</p>'+
       '</body></html>';
   }
   function openPrint(rows,name,id,autoPrint,demo){
