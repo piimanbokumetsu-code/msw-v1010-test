@@ -104,8 +104,8 @@
       '.controls button{background:#0f766e;color:white;font-size:16px;padding:10px 18px;border:0;border-radius:8px}'+
       '@media print{body{padding:0}.controls{display:none!important}.fake{color:#111;border-color:#111}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
       '</style></head><body>'+
-      '<div class="controls"><button type="button" onclick="window.print()">A4で印刷</button>'+
-      '<button type="button" onclick="window.close()">閉じる</button></div>'+
+      '<div class="controls"><button type="button" id="ux17PrintNow">A4で印刷</button>'+
+      '<button type="button" id="ux17PrintClose">閉じる</button></div>'+
       banner+
       '<h1>現在の内服処方一覧（情報提供用）</h1>'+
       '<div class="meta"><p><strong>氏名：</strong>'+safe(patientName)+'</p>'+
@@ -132,6 +132,8 @@
       tab.document.open();
       tab.document.write(printHTML(rows,name,id,demo));
       tab.document.close();
+      tab.document.getElementById('ux17PrintNow')?.addEventListener('click',()=>tab.print());
+      tab.document.getElementById('ux17PrintClose')?.addEventListener('click',()=>tab.close());
       tab.focus();
       // New tab includes a manual print button if Safari skips auto printing.
       if(autoPrint)tab.setTimeout(()=>tab.print(),240);
