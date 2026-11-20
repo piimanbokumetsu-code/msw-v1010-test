@@ -93,9 +93,25 @@
     if(!container)return null;
     const panel=make('section','ux17-wizard','');
     panel.id='ux17Wizard';
-    panel.style.cssText='border:2px solid #4f8d88;border-radius:12px;padding:12px;margin:12px 0;background:#f7fbfa';
-    container.appendChild(panel);
+    panel.setAttribute('tabindex','-1');
+    panel.style.cssText='border:2px solid #4f8d88;border-radius:12px;padding:12px;margin:12px 0;background:#f7fbfa;scroll-margin-top:12px';
+    // Insert ABOVE search results, instead of after them where iPad mini
+    // users may not see the editor after tapping a master search candidate.
+    const results=document.querySelector('#tabbody #patientDrugResults');
+    if(results?.parentElement===container)container.insertBefore(panel,results);
+    else container.appendChild(panel);
     return panel;
+  }
+  function revealFrame(panel){
+    if(!panel)return;
+    const reveal=()=>{
+      if(document.querySelector('#tabbody #ux17Wizard')!==panel)return;
+      try{panel.scrollIntoView({block:'start',behavior:'auto'});}catch(_){}
+      try{panel.focus({preventScroll:true});}catch(_){}
+    };
+    // Run immediately and again after layout; Safari can be mid-scroll.
+    reveal();
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(reveal);
   }
   function demoChoice(){
     const panel=renderFrame();if(!panel)return;
@@ -121,6 +137,7 @@
     const panel=renderFrame();if(!panel)return;
     // Selecting an explicit brand proceeds directly; final confirmation remains.
     configure(panel,resolved,identity,demo,patient);
+    revealFrame(panel);
   }
 
   function configure(panel,resolved,identity,demo,patient){
@@ -245,7 +262,11 @@
   // Intercept existing RX045/UX17 candidate actions before old handlers run.
   // Existing search rendering, search input and master database are untouched.
   document.addEventListener('click',event=>{
-    const btn=event.target?.closest?.('button.rx045Choose, .ux17-generic-candidate button[data-ux17-kind]');
+    // In addition to the button, accept tapping the candidate name/card.
+    // Only use a genuine search result with explicit master brand identity.
+    const row=event.target?.closest?.('.rx045Candidate, .ux17-generic-candidate');
+    const btn=event.target?.closest?.('button.rx045Choose, .ux17-generic-candidate button[data-ux17-kind]')||
+      row?.querySelector('button.rx045Choose, button[data-ux17-kind]');
     if(!btn||btn.disabled||!document.querySelector('#tabbody')?.contains(btn))return;
     if(!document.querySelector('#tabbody .patient-med-page'))return;
     const raw=btn.classList.contains('rx045Choose')
