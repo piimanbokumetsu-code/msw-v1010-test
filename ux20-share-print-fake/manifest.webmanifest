@@ -1,0 +1,9 @@
+{
+  "name": "UX20 架空PDF共有印刷テスト",
+  "short_name": "印刷テスト",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f8f8",
+  "theme_color": "#0f766e"
+}
