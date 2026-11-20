@@ -64,6 +64,27 @@
       }`;
     document.head.appendChild(css);
   }
+  // Restore the independently proven UX19 iPad Safari print path.
+  // A separate tab may trigger the existing security auto-lock in the app.
+  function openProvenPrint(rows,name,id){
+    const tab=window.open('','_blank');
+    if(!tab){
+      alert('印刷用の画面を開けませんでした。Safariのポップアップ設定をご確認ください。');
+      return;
+    }
+    try{
+      tab.document.open();
+      tab.document.write(api.printHTML(rows,name,id,true));
+      tab.document.close();
+      tab.document.getElementById('ux17PrintNow')?.addEventListener('click',()=>tab.print());
+      tab.document.getElementById('ux17PrintClose')?.addEventListener('click',()=>tab.close());
+      tab.focus();
+      tab.setTimeout(()=>tab.print(),240);
+    }catch(e){
+      try{tab.close();}catch(_){}
+      alert('印刷画面の表示に失敗しました。');
+    }
+  }
   function displayInline(rows,name,id){
     closePreview();
     addStyle();
@@ -80,7 +101,7 @@
       btn.textContent=text;btn.addEventListener('click',click);return btn;
     }
     toolbar.append(
-      button('A4で印刷',()=>window.print()),
+      button('A4で印刷（従来の別タブ方式）',()=>openProvenPrint(rows,name,id)),
       button('← 処方薬画面に戻る',closePreview)
     );
     const sheet=document.createElement('div');sheet.className='ux20-sheet';
