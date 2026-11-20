@@ -19,6 +19,8 @@
     if(document.visibilityState!=='visible')closePreview();
   },true);
   window.addEventListener('pagehide',closePreview,true);
+  // Preview styling must never install global printing rules.
+  // The separate UX19 print tab owns its own page stylesheet.
   function addStyle(){
     if(document.getElementById('ux20-inline-print-style'))return;
     const css=document.createElement('style');
@@ -50,18 +52,7 @@
       #ux20PrintPreview .ux20-sheet th{background:#eee;font-size:9pt}
       #ux20PrintPreview .ux20-sheet tr{break-inside:avoid;page-break-inside:avoid}
       .msw-private #ux20PrintPreview{display:none!important}
-      @page{size:A4 portrait;margin:15mm}
-      @media print{
-        body>*:not(#ux20PrintPreview){display:none!important}
-        html,body{margin:0!important;padding:0!important;background:#fff!important}
-        #ux20PrintPreview{position:static!important;inset:auto!important;
-          overflow:visible!important;padding:0!important;margin:0!important;
-          background:#fff!important;box-shadow:none!important}
-        #ux20PrintPreview .ux20-toolbar{display:none!important}
-        #ux20PrintPreview .ux20-sheet{max-width:none!important;padding:0!important;
-          box-shadow:none!important}
-        #ux20PrintPreview .ux20-sheet th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      }`;
+`;
     document.head.appendChild(css);
   }
   // Restore the independently proven UX19 iPad Safari print path.
