@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta name="theme-color" content="#0f766e">
+<title>UX21 架空テスト｜起動・回転時の表示倍率</title>
+<link rel="stylesheet" href="test.css">
+</head>
+<body>
+<div id="testNotice">UX21｜架空画面テスト（患者情報・実際のPIN・保存処理なし）</div>
+<div id="app">
+  <section id="lockScene" class="lockwrap" aria-label="架空のロック画面">
+    <div class="lockcard">
+      <h1>MSW患者管理</h1>
+      <div class="version">架空テスト UX21｜表示倍率確認</div>
+      <p>実際の暗証番号は入力しないでください。</p>
+      <label for="dummyPin">ダミー入力欄（入力は不要です）</label>
+      <input id="dummyPin" type="text" placeholder="ここには実際の暗証を入力しない" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn primary" id="unlockDemo" type="button">架空患者一覧を表示</button>
+      <p class="small">患者情報は一切読み込まず、保存もしません。起動時の大きさと縦横回転を確認する専用画面です。</p>
+    </div>
+  </section>
+  <section id="patientScene" class="shell hidden" aria-label="架空の患者一覧">
+    <header class="topbar">
+      <strong class="brand">MSW患者管理</strong>
+      <span class="versionpill">架空テスト UX21｜PIN画面・画面回転の拡大防止｜実務試用版の横幅確認用</span>
+      <span class="pill">通信あり</span>
+      <button type="button" id="backLock" class="iconbtn">🔒</button>
+    </header>
+    <main class="content">
+      <div class="hero">
+        <h2>入院患者</h2>
+        <p>架空患者だけを表示しています。実データには接続しません。</p>
+      </div>
+      <div class="actions"><button class="btn primary" type="button">＋患者（ダミー）</button><button class="btn secondary" type="button">フリガナ一括確認（架空）</button></div>
+      <div class="kpis">
+        <article class="kpi"><b>3</b><small>架空患者</small></article>
+        <article class="kpi"><b>0</b><small>要対応あり</small></article>
+        <article class="kpi"><b>0</b><small>施設調整中</small></article>
+        <article class="kpi"><b>0</b><small>退院先決定</small></article>
+      </div>
+      <div class="actions"><button class="btn outline" type="button">🏥 全患者のベッドマップ</button><button class="btn secondary" type="button">🟠 検討会 0人</button></div>
+      <div class="toolbar"><input placeholder="漢字・フリガナ・ベッド番号で検索（架空）" aria-label="ダミー検索"><button class="btn secondary" type="button">消去</button><button class="btn secondary" type="button">全病棟</button><button class="btn secondary" type="button">朝一患者一覧を印刷（ダミー）</button></div>
+      <div class="guide">📍 移動先ベッドを先に指定して患者を探す</div>
+      <h3>一般病棟 <small>病室・ベッドマップ</small></h3>
+      <div class="room"><b>201号室</b><div class="beds">
+        <div class="bed"><small>201-1</small><strong>架空 患者A</strong><small>11/21　8日目</small></div>
+        <div class="bed"><small>201-2</small><strong>架空 患者B</strong><small>11/21　3日目</small></div>
+        <div class="bed"><small>201-3</small><strong>架空 患者C</strong><small>11/21　1日目</small></div>
+      </div></div>
+      <p class="small">画面を縦にしてから横に戻し、右側が見切れないかを確認してください。</p>
+    </main>
+    <nav class="bottomnav"><span>🏥 患者</span><span>📄 日誌</span><span>✅ 今日・要対応</span><span>💊 薬情</span><span>⚙️ 設定</span></nav>
+  </section>
+</div>
+<aside id="diagnostics" role="status" aria-live="polite">
+  <strong id="result">表示確認中</strong>
+  <span id="metrics">倍率を計測しています</span>
+  <span id="actionInfo">自動補正は回転時と起動時のみ</span>
+</aside>
+<script src="test.js"></script>
+</body>
+</html>
