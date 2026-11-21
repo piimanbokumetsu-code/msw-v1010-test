@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="UX21架空テスト">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>UX21 実際のレイアウトで架空検証｜本番には接続しません</title>
+<link rel="stylesheet" href="./production-styles.css">
+<link rel="stylesheet" href="./real-layout-fix.css">
+</head>
+<body>
+<div id="fakeNotice" role="note">UX21 実画面レイアウト検証（架空患者・実際のPINは不要・データ保存なし）</div>
+<div id="app">
+ <div class="lockwrap" id="lockScreen">
+  <div class="lockcard">
+   <h1>MSW患者管理</h1>
+   <p style="font-weight:700">実務試用版 Ver.UX21-FAKE-ONLY</p>
+   <p>暗証を入力してロック解除してください。（架空テストでは入力不要）</p>
+   <form id="authForm" autocomplete="off">
+    <input id="dummyPin" name="dummy" type="password" placeholder="暗証は入力しないでください" readonly aria-label="架空のPIN表示欄。入力不要">
+    <button class="btn" id="unlock" type="submit" style="width:100%">架空患者一覧を開く</button>
+   </form>
+   <p class="notice">【架空検証専用】患者情報の読み込み・保存、暗証番号認証、バックアップは一切ありません。実際のPINは入力しないでください。</p>
+  </div>
+ </div>
+ <div class="shell" id="patientScreen" hidden>
+  <header class="topbar">
+   <div class="brand">MSW患者管理</div>
+   <span class="pill">実務試用版 Ver.UX21-FAKE-ONLY-20261121</span>
+   <span class="pill">通信あり</span>
+   <div class="spacer"></div>
+   <button class="pill" type="button" id="backLock" aria-label="架空ロック画面へ">🔒</button>
+  </header>
+  <main class="content" id="main">
+   <div class="hero">
+    <div><h1>入院患者</h1><p>在院患者を管理します。（下の表示はすべて架空）</p></div>
+    <div class="spacer"></div>
+    <button class="btn secondary" type="button" disabled>退院患者記録</button><button class="btn" type="button" disabled>＋患者</button>
+   </div>
+   <div class="kpis">
+    <div class="kpi"><b>3</b><span>在院患者</span></div>
+    <div class="kpi"><b>0</b><span>要対応あり</span></div>
+    <div class="kpi"><b>0</b><span>施設調整中</span></div>
+    <div class="kpi"><b>0</b><span>退院先決定</span></div>
+   </div>
+   <div class="santherese-nav">
+    <button class="btn secondary is-selected" type="button" disabled>🏥 全患者のベッドマップ</button>
+    <button class="btn secondary santherese-filter" type="button" disabled>🟠 検討会 0人</button>
+   </div>
+   <div class="toolbar patient-search-toolbar">
+    <input type="search" placeholder="漢字・フリガナ・ベッド番号で検索" disabled aria-label="架空検索">
+    <button class="btn secondary patient-search-clear" type="button" disabled>消去</button>
+    <select disabled aria-label="架空の病棟選択"><option>全病棟</option></select>
+    <button class="btn secondary" type="button" disabled>朝一患者一覧を印刷</button>
+   </div>
+   <div id="patientList">
+    <section class="map-section">
+     <div class="map-section-title"><strong>一般病棟</strong><span class="count">架空の3名のみ</span></div>
+     <div class="room-map general-room-map">
+      <div class="room-map-item standard-room">
+       <div class="room-block">
+        <div class="room-title">201号室</div>
+        <div class="bed-grid">
+         <button type="button" class="bed-slot occupied-bed">
+          <div class="bed-line"><b>201-1</b></div>
+          <strong>架空 患者A</strong><span class="bed-meta admission-line"><span>11/20</span><span class="doctor">架空医師</span><span class="days">2日目</span></span>
+         </button>
+         <button type="button" class="bed-slot occupied-bed">
+          <div class="bed-line"><b>201-2</b></div>
+          <strong>架空 患者B</strong><span class="bed-meta admission-line"><span>11/19</span><span class="doctor">架空医師</span><span class="days">3日目</span></span>
+         </button>
+         <button type="button" class="bed-slot empty-bed"><b>201-3</b><span>空床</span><small>タップして登録</small></button>
+        </div>
+       </div>
+      </div>
+      <div class="room-map-item standard-room">
+       <div class="room-block"><div class="room-title">203号室</div><div class="bed-grid">
+        <button type="button" class="bed-slot occupied-bed"><div class="bed-line"><b>203-1</b></div><strong>架空 患者C</strong><span class="bed-meta admission-line"><span>11/21</span><span class="doctor">架空医師</span><span class="days">1日目</span></span></button>
+        <button type="button" class="bed-slot empty-bed"><b>203-2</b><span>空床</span></button>
+        <button type="button" class="bed-slot empty-bed"><b>203-3</b><span>空床</span></button>
+        <button type="button" class="bed-slot empty-bed"><b>203-4</b><span>空床</span></button>
+        <button type="button" class="bed-slot empty-bed"><b>203-5</b><span>空床</span></button>
+        <button type="button" class="bed-slot empty-bed"><b>203-6</b><span>空床</span></button>
+        <button type="button" class="bed-slot empty-bed"><b>203-7</b><span>空床</span></button>
+       </div></div>
+      </div>
+     </div>
+    </section>
+   </div>
+   <p class="notice">架空画面のため、患者の編集・印刷・保存・検索は無効です。PIN画面と縦横回転の表示だけ検証します。</p>
+  </main>
+  <nav class="bottomnav">
+   <button type="button" class="navbtn active" disabled><span class="ico">🏥</span>患者</button>
+   <button type="button" class="navbtn" disabled><span class="ico">📄</span>日誌</button>
+   <button type="button" class="navbtn" disabled><span class="ico">✅</span>今日・要対応</button>
+   <button type="button" class="navbtn" disabled><span class="ico">💊</span>薬情</button>
+   <button type="button" class="navbtn" disabled><span class="ico">📋</span>マスター</button>
+   <button type="button" class="navbtn" disabled><span class="ico">⚙️</span>設定</button>
+  </nav>
+ </div>
+</div>
+<aside id="ux21Diagnostics" role="status" aria-live="polite"><b id="ux21State">実機判定待ち</b><span id="ux21Numbers"></span></aside>
+<script src="./real-layout.js"></script>
+</body></html>
