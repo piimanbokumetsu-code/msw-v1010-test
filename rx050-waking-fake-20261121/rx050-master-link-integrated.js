@@ -148,8 +148,8 @@
   const previousRender=renderDrugs;
   renderDrugs=function(...args){
     const result=previousRender.apply(this,args);
-    if(pending&&screen==='drugs'&&!document.querySelector('#rx036Editor')?.hidden)
-      editorTouched=false; // a completed RX036 save re-renders/replaces the editor
+    if(pending&&screen==='drugs'&&(document.querySelector('#rx036Editor')?.hidden ?? true))
+      editorTouched=false; // a completed RX036 save re-renders a closed editor
     decorateReturn();
     return result;
   };
