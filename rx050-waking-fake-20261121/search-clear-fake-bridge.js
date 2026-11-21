@@ -4,8 +4,8 @@
    or real patient API calls. */
 'use strict';
 let state={drugs:[
-  {'薬名':'架空薬A','医薬品分類':'架空分類A','薬効':'架空の説明','薬価':''},
-  {'薬名':'架空薬B','医薬品分類':'架空分類B','薬効':'架空の説明','薬価':''}
+  {'薬名':'架空薬A','医薬品分類':'架空分類A','薬効':'架空の説明','薬価':'',ux05ReviewDone:false},
+  {'薬名':'架空薬B','医薬品分類':'架空分類B','薬効':'架空の説明','薬価':'',ux05ReviewDone:true}
 ]};
 let selectedPatient={_new:false,medications:[]};
 let key=true, patientMedicationBusy=false;
@@ -50,6 +50,7 @@ function drawPatientDrugResults(){
     row.append(name,btn);host.append(row);
   });
   if(!matches){const p=document.createElement('p');p.className='notice';p.textContent='一致する架空薬はありません。';host.append(p);}
+  window.RX050FakeReview?.decorate?.();
 }
 window.RX045={
   resolve(drugs,identity){
