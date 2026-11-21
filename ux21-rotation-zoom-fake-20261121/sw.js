@@ -3,9 +3,9 @@
    Never clear caches outside UX21-specific prefix. */
 'use strict';
 const PREFIX='ux21-fake-offline-';
-const CACHE=PREFIX+'20261121-v1';
+const CACHE=PREFIX+'20261121-v2';
 const ASSETS=[
-  './','./index.html','./test.css','./test.js',
+  './','./index.html','./test.css','./test.js','./offline-register.js',
   './real-layout.html','./real-layout-fix.css','./real-layout.js',
   './production-styles.css','./manifest.webmanifest'
 ];
