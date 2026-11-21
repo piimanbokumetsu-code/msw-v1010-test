@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self';connect-src 'none';object-src 'none';base-uri 'self';form-action 'none'">
+<title>RX050 起床時入力・架空患者テスト</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#173033;background:#f4f7f7;font-size:16px}
+*{box-sizing:border-box}body{margin:0;padding:16px;max-width:720px;margin-inline:auto}
+main{background:white;border:1px solid #d5e2e2;border-radius:14px;padding:16px}
+h1{font-size:21px;margin:0 0 8px}h2{font-size:17px}p{line-height:1.6}
+.notice{background:#effaf5;border:1px solid #b4e0ca;border-radius:8px;padding:10px;margin:12px 0;font-size:14px}
+.warn{background:#fff6eb;border:1px solid #ead0a9;border-radius:8px;padding:9px;font-size:14px}
+button{background:#0f766e;color:white;border:0;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:700;min-height:44px}
+button.secondary{color:#173033;border:1px solid #b8cfce;background:white}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.result{white-space:pre-wrap;overflow-wrap:anywhere;background:#eff7f7;padding:12px;border-radius:9px;min-height:76px;margin:10px 0}
+small{font-size:12px;line-height:1.5;color:#536a6a}
+#editor input,#editor select{font-size:16px}
+</style>
+</head>
+<body>
+<main>
+<h1>RX050 起床時の服用タイミング</h1>
+<p class="notice"><strong>架空患者・架空処方専用</strong>。本番とは保存領域・配信場所が別です。この画面は患者情報を読み込まず、保存もしません。印刷や送信も行いません。</p>
+<h2>① 入力画面の確認</h2>
+<p>新しい「起床時」のチェック欄を追加しました。簡単に試す場合は下の「架空の起床時1錠をセット」を押してください。</p>
+<div class="controls">
+<button type="button" id="preset">架空の起床時1錠をセット</button>
+<button type="button" class="secondary" id="reset">入力を最初から</button>
+</div>
+<div id="editor"></div>
+<h2>② 表示・印刷内容の確認</h2>
+<p>「保存前の内容を確認」を押すと、保存と印刷に使用される用法を、画面上だけで表示します。</p>
+<button type="button" id="check">保存前の内容を確認</button>
+<div id="result" class="result" role="status" aria-live="polite">未確認</div>
+<h2>③ 既存処方の互換性</h2>
+<div id="compat" class="result">検査中</div>
+<p class="warn">電子カルテの処方と必ず照合してください。「起床時」は「朝食前」と同じ意味ではありません。実患者の薬や氏名をこの画面に入力しないでください。</p>
+<small>RX050架空テスト版・2026-11-21／本番への反映なし</small>
+</main>
+<script src="./rx050-dose-schedule.js"></script>
+<script src="./fake-print-bridge.js"></script>
+<script src="./rx050-prescription-print.js"></script>
+<script src="./rx050-test.js"></script>
+</body>
+</html>
