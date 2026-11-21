@@ -76,7 +76,7 @@ function renderPatientModal(){
     '<section class="panel"><h3>＋ 架空マスターから追加</h3>'+
     '<label>架空薬を検索<input type="search" id="patientDrugQuery" placeholder="架空薬" autocomplete="off"></label>'+
     '<div id="patientDrugResults"></div></section></div></div>';
-  modal.append(sheet);document.body.append(modal);
+  modal.append(sheet);document.getElementById('app').insertAdjacentElement('afterend',modal);
   document.getElementById('patientDrugQuery').addEventListener('input',drawPatientDrugResults);
   renderPatientMedications();
 }
