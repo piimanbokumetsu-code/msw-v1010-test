@@ -1,0 +1,33 @@
+/* UX21 proposal -- NOT linked to the real production site.
+   Only screen layout. Never change printer layout or data handling. */
+@media screen {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  #app, .shell, .content, #main, #patientList {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .lockwrap {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100dvh;
+  }
+  .lockcard {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .topbar {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .topbar > .brand,
+  .topbar > .pill,
+  .topbar > .spacer { min-width: 0; }
+  .topbar > .brand { flex: 0 1 auto; }
+  .topbar > .pill { flex: 0 1 auto; overflow-wrap: anywhere; }
+}
