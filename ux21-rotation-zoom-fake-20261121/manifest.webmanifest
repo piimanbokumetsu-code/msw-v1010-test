@@ -1,0 +1,25 @@
+{
+  "name": "UX21 架空テスト専用（患者データなし）",
+  "short_name": "UX21架空テスト",
+  "description": "MSW患者管理の画面倍率と回転表示だけを検証する保存機能なしの独立テスト",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f7f7",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "../icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
