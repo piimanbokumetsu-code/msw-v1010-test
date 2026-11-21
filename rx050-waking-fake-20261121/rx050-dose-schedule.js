@@ -19,7 +19,7 @@
     if(!s||s.version!==1||p.status!=='定期'||s.status!=='定期'||
        String(s.strength||'')!==String(p.strength||'')||
        String(s.unit||'')!==String(p.unit||'')||
-       !allowedUnits.has(String(s.unit||''))||!relations.includes(s.relation))return null;
+       !allowedUnits.has(String(s.unit||'')))return null;
     const doses={},names=[];
     let total=0;
     for(const [key,,abbr] of slots){
@@ -32,11 +32,13 @@
       if(amount>0)names.push(abbr+':'+cleanNumber(amount));
     }
     total=Math.round(total*1000)/1000;
+    const wakingOnly=names.length===1&&Number(doses.waking)>0;
+    if(!(relations.includes(s.relation)||(wakingOnly&&s.relation==='')))return null;
     if(!names.length||total>1000||
        (s.dailyQuantity!=null&&String(s.dailyQuantity)!==cleanNumber(total))||
        (p.dailyQuantity!=null&&String(p.dailyQuantity)!==cleanNumber(total)))return null;
     return {doses,total:cleanNumber(total),unit:s.unit,
-      description:names.join('－')+(s.relation==='時間帯のみ'?'':'（'+s.relation+'）')};
+      description:names.join('－')+(!s.relation||s.relation==='時間帯のみ'?'':'（'+s.relation+'）')};
   }
   function buildEditor(oldSchedule,getUnit,initialPrn=false){
     const panel=document.createElement('div');
@@ -88,6 +90,10 @@
     relationRow.append(relation);panel.append(relationRow);
     const totalLabel=document.createElement('p');totalLabel.style.cssText='font-weight:700;margin:8px 0 2px';
     totalLabel.setAttribute('role','status');panel.append(totalLabel);
+    function onlyWaking(){
+      return inputs.waking.check.checked&&
+        Object.entries(inputs).every(([key,input])=>key==='waking'||!input.check.checked);
+    }
     function refresh(){
       let count=0,invalid=false,selected=0;
       for(const {check,amount} of Object.values(inputs)){
@@ -96,6 +102,7 @@
         const n=qty(amount.value,false);
         if(n===null)invalid=true;else count+=n;
       }
+      if(!prnCheck.checked)relationRow.style.display=onlyWaking()?'none':'flex';
       totalLabel.textContent=invalid?'1日合計：数量を入力してください':
         '1日合計：'+cleanNumber(count)+(getUnit?.()||'')+(selected?'（自動計算）':'（時間帯未選択）');
     }
@@ -104,7 +111,7 @@
     function syncMode(){
       const prn=prnCheck.checked;
       fields.style.display=prn?'none':'grid';
-      relationRow.style.display=prn?'none':'flex';
+      relationRow.style.display=prn||onlyWaking()?'none':'flex';
       totalLabel.style.display=prn?'none':'';
       headline.textContent=prn?'頓服の用法を設定':'時間帯ごとの数量（1日分）';
       if(!prn)refresh();
@@ -124,10 +131,10 @@
       }
       total=Math.round(total*1000)/1000;
       if(status!=='定期'||!allowedUnits.has(unit)||!String(strength||'').trim()||
-         !selected||total>1000||!relations.includes(relation.value)){
+         !selected||total>1000||(!onlyWaking()&&!relations.includes(relation.value))){
         return {error:'時間帯・数量・服用条件を正しく選択してください。'};
       }
-      return {schedule:{version:1,slots:doses,relation:relation.value,
+      return {schedule:{version:1,slots:doses,relation:onlyWaking()?'':relation.value,
         strength,unit,status:'定期',dailyQuantity:cleanNumber(total)}};
     }
     return {panel,read,refresh,
