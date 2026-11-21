@@ -160,7 +160,7 @@ window.RX045={
   if(identity?.kind!=='original'||identity.brandIndex!==0||
      !Number.isSafeInteger(identity.index)||!drugs[identity.index])return null;
   const drug=drugs[identity.index];
-  return {drug:{...drug},label:'架空銘柄',origin:{type:'rx045-manual-brand',label:'架空銘柄'}};
+  return {drug:{'薬名':drug['薬名'],'医薬品分類':drug['医薬品分類'], '薬効':drug['薬効'],'薬価':drug['薬価']},label:'架空銘柄',origin:{type:'rx045-manual-brand',label:'架空銘柄'}};
  }
 };
 document.getElementById('fakeFailSave').addEventListener('change',e=>{failSave=e.target.checked;});
