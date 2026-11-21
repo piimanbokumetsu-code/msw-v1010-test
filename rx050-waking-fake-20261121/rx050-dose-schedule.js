@@ -79,7 +79,7 @@
     panel.append(prnRow);
     const relationRow=document.createElement('label');
     relationRow.style.cssText='display:flex;flex-direction:column;gap:4px';
-    relationRow.append(document.createTextNode('服用条件（起床時のみの場合は「時間帯のみ」）'));
+    relationRow.append(document.createTextNode('服用条件（例：食後）'));
     const relation=document.createElement('select');
     [['','選択してください'],...relations.map(x=>[x,x])].forEach(([value,label])=>{
       const option=document.createElement('option');option.value=value;option.textContent=label;relation.appendChild(option);
