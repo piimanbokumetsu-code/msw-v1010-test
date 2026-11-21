@@ -31,7 +31,8 @@
     const measuredZoom = m.scale > 1.06;
     const measuredOverflow = m.overflow > 3;
     result.textContent = measuredZoom || measuredOverflow ? '画面サイズを確認してください' : '表示倍率の計測：正常範囲';
-    metrics.textContent = mode + '｜倍率 ' + m.scale.toFixed(2) + '｜画面幅 ' + m.layoutWidth + '｜はみ出し ' + m.overflow + 'px';
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    metrics.textContent = (standalone ? 'PWA' : 'Safari') + '・' + mode + '｜倍率 ' + m.scale.toFixed(2) + '｜画面幅 ' + m.layoutWidth + '｜はみ出し ' + m.overflow + 'px';
     action.textContent = lastReason + '（実際の見た目でも判断してください）';
   }
 
