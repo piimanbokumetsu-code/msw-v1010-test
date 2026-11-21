@@ -77,7 +77,7 @@ function renderPatientModal(){
     '<label>架空薬を検索<input type="search" id="patientDrugQuery" placeholder="架空薬" autocomplete="off"></label>'+
     '<div id="patientDrugResults"></div></section></div></div>';
   modal.append(sheet);document.getElementById('app').insertAdjacentElement('afterend',modal);
-  document.getElementById('patientDrugQuery').addEventListener('input',drawPatientDrugResults);
+  document.getElementById('patientDrugQuery').addEventListener('input',()=>drawPatientDrugResults());
   renderPatientMedications();
 }
 function drawDrugs(){
