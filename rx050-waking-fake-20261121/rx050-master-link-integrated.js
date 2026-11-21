@@ -31,10 +31,12 @@
     const host=document.querySelector('#tabbody .patient-med-page #patientDrugResults');
     if(!host)return;
     injectStyle();
-    for(const card of host.querySelectorAll('.rx045Candidate')){
-      const choice=card.querySelector('button.rx045Choose');
+    for(const card of host.querySelectorAll('.rx045Candidate, .ux17-generic-candidate')){
+      const choice=card.querySelector('button.rx045Choose, button[data-ux17-kind]');
       if(!choice||choice.disabled)continue;
-      const index=Number(choice.dataset.index);
+      const rawIndex=choice.classList.contains('rx045Choose')
+        ?choice.dataset.index:choice.dataset.ux17Index;
+      const index=Number(rawIndex);
       if(!Number.isSafeInteger(index)||index<0||index>=(state.drugs||[]).length)continue;
       const master=state.drugs[index];
       if(!master||master.ux05ReviewDone===true)continue;
