@@ -1,0 +1,56 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self';style-src 'self' 'unsafe-inline';img-src 'self';connect-src 'none';object-src 'none';base-uri 'self';form-action 'none'">
+<title>RX050 一連の薬情操作・架空患者テスト</title>
+<style>
+:root{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1c3438;background:#f4f7f6}
+*{box-sizing:border-box}body{max-width:800px;padding:12px;margin:0 auto}
+h1{font-size:21px;margin:0 0 8px}h2{font-size:19px}h3{font-size:17px}
+p{margin:8px 0}.notice{font-size:14px;color:#495e61;line-height:1.5}
+.panel{border:1px solid #cbdad7;border-radius:12px;padding:13px;background:#fff;margin:10px 0}
+.fakePatientModal{border:2px solid #86b9b0;background:#fafffe}
+#app{background:#edf4f2;border-radius:12px;padding:10px;margin:10px 0}
+.topbar{font-weight:800;background:#dcece8;border-radius:9px;padding:8px 12px}
+button,.btn{background:#0f766e;border:0;border-radius:9px;color:#fff;padding:9px 13px;min-height:44px;font-size:15px;font-weight:700}
+.btn.secondary{background:#edf3f2;color:#264847;border:1px solid #b9ceca}
+.controls,.bottomnav{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+label:not(.checkbox){display:flex;flex-direction:column;gap:4px;font-weight:600;margin:9px 0}
+input[type=search],input[type=text],select{font-size:16px;border:1px solid #b8c9c7;border-radius:8px;padding:9px;max-width:100%}
+input[type=search]{width:100%}input[type=checkbox]{width:19px;height:19px}
+.patient-med-hit{border-bottom:1px solid #d5e1de;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 0;margin-top:6px}
+.patient-med-hit strong{font-size:16px}.patient-med-hit .notice{margin-right:auto}
+.drug-list article.drug{border:1px solid #cbdbd7;border-radius:10px;background:#fff;padding:10px;margin:8px 0;cursor:pointer}
+.fakePill{font-size:12px;background:#fff0d5;color:#85501b;border-radius:99px;padding:4px 8px;margin-right:10px}
+.fakePill.done{background:#ecf5f3;color:#35504d}
+.fakeRegistered{padding:8px;border-radius:8px;background:#f1f8f5}
+#rx036Editor[hidden]{display:none!important}
+.ux17-wizard-field{display:flex;flex-direction:column;gap:4px}
+.ux17-wizard-field span{font-weight:600}.ux17-wizard .notice{background:#eef8f5;padding:7px}
+.ux17-wizard{border:2px solid #4f8d88;border-radius:10px;background:#fff;padding:10px}
+.bottomnav .navbtn{background:#fff;border:1px solid #b9ceca;color:#264847}
+aside{border:1px solid #ead0a9;border-radius:10px;background:#fff8ed;padding:11px;margin:12px 0}
+small{font-size:13px;color:#4d6365}a{color:#09625b}
+</style></head><body>
+<h1>RX050 処方薬入力をまとめて確認</h1>
+<p class="panel"><strong>架空患者・架空薬だけの安全な試験画面</strong>。本番データは読み込まず、登録・編集内容は画面内だけ。ファイル保存・ネット送信・印刷は行いません。</p>
+<div class="panel">
+  <h2>今回まとめた3つの操作</h2>
+  <p>①「架空薬」と検索すると、未確認の架空薬Aだけがオレンジ色になり、任意の「マスターを確認・編集」が表示される。</p>
+  <p>② <strong>未確認の架空薬Aも、そのまま「この銘柄を追加」で登録できる。</strong>登録成功後は検索文字と検索結果が消える。</p>
+  <p>③ 未確認の架空薬Aからマスターに直接移動して「確認済み」にして保存し、「患者の処方薬入力に戻る」で戻れる。検索文字は残り、オレンジ色は消える。</p>
+</div>
+<div id="app"></div>
+<section class="panel">
+  <h2>安全な追加テスト（任意）</h2>
+  <label class="checkbox"><input type="checkbox" id="fakeFailSave"> 次の登録保存をわざと失敗させる（検索文字が残ることを確認）</label>
+  <p><button id="fakeResetApp" type="button">架空テストを最初から</button></p>
+  <small>患者・薬剤はすべて架空。リロードするとテスト中の登録薬は消えます。実患者の情報は入力しないでください。</small>
+</section>
+<aside>電子カルテと照合していない薬の処方を推測登録しないでください。この試験での「確認済み」は架空マスターの状態表示だけです。</aside>
+<script src="./rx050-dose-schedule.js?v=rx050-20261121-v3"></script>
+<script src="./rx050-integrated-fake-app.js?v=rx050-20261121-v1"></script>
+<script src="./ux17-registration-search-fake.js?v=rx050-20261121-v1"></script>
+<script src="./rx050-master-link-integrated.js?v=rx050-20261121-v2"></script>
+</body></html>
