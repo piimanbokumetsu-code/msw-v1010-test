@@ -62,8 +62,13 @@
        !document.querySelector('#modal #tabbody .patient-med-page')){
       alert('患者画面・薬剤マスターを確認してください。もう一度検索してください。');return;
     }
-    const unsaved=document.querySelector('#tabbody .patient-med-editor[data-med-dirty="1"]');
-    if(unsaved&&!confirm('患者の薬価欄に未保存の入力があります。保存せずマスター編集へ進みますか？'))return;
+    // In production, use the already-proven patient transition function:
+    // flush any pending patient autosave and block active photo/drug writes.
+    // The fake harness has no autosave and intentionally uses the fallback.
+    if(typeof finishPatientAndNavigate!=='function'){
+      const unsaved=document.querySelector('#tabbody .patient-med-editor[data-med-dirty="1"]');
+      if(unsaved&&!confirm('患者の薬価欄に未保存の入力があります。保存せずマスター編集へ進みますか？'))return;
+    }
     const wizard=document.querySelector('#tabbody #ux17Wizard');
     if(wizard&&!confirm('処方薬の入力途中の内容は登録されていません。破棄してマスター編集へ進みますか？'))return;
     const patient=selectedPatient;
@@ -71,30 +76,42 @@
       alert('患者データが更新されています。患者一覧から開き直してください。');return;
     }
     const query=document.querySelector('#tabbody #patientDrugQuery')?.value||'';
-    pending={patient,originScreen:screen,query};
-    editorTouched=false;
-    document.querySelector('#modal')?.remove();
-    selectedPatient=null;
-    screen='drugs';
-    render();
-
-    const input=document.querySelector('#dq');
-    if(!input||!document.querySelector('#drugList'))return;
-    const masterName=String(master['薬名']||'').trim();
-    if(!masterName)return;
-    input.value=masterName;
-    if(typeof drawDrugs==='function')drawDrugs();
-    const q=masterName.toLowerCase();
-    const visible=(state.drugs||[]).map((drug,i)=>({drug,i}))
-      .filter(({drug})=>!q||rx038MasterSearchText(drug).includes(q)).slice(0,100);
-    const position=visible.findIndex(row=>row.i===index&&row.drug===master);
-    const cards=document.querySelectorAll('#drugList .drug-list article.drug');
-    if(position>=0&&cards[position]){
-      cards[position].click(); // Invoke RX036's already-tested full-card editor.
-      if(document.querySelector('#rx036Editor')?.hidden===false)return;
+    const visit=()=>{
+      if(!key||!state||selectedPatient!==patient||
+         !Array.isArray(state.drugs)||state.drugs[index]!==master||
+         !document.querySelector('#modal')){
+        alert('患者や薬情マスターの状態が変わりました。患者の処方薬から開き直してください。');return;
+      }
+      pending={patient,originScreen:screen,query};
+      editorTouched=false;
+      if(typeof clearPatientAutoTimer==='function')clearPatientAutoTimer();
+      document.querySelector('#modal')?.remove();
+      selectedPatient=null;
+      screen='drugs';
+      render();
+      const input=document.querySelector('#dq');
+      if(!input||!document.querySelector('#drugList'))return;
+      const masterName=String(master['薬名']||'').trim();
+      if(!masterName)return;
+      input.value=masterName;
+      if(typeof drawDrugs==='function')drawDrugs();
+      const q=masterName.toLowerCase();
+      const visible=(state.drugs||[]).map((drug,i)=>({drug,i}))
+        .filter(({drug})=>!q||rx038MasterSearchText(drug).includes(q)).slice(0,100);
+      const position=visible.findIndex(row=>row.i===index&&row.drug===master);
+      const cards=document.querySelectorAll('#drugList .drug-list article.drug');
+      if(position>=0&&cards[position]){
+        cards[position].click(); // Invoke RX036's already-tested full-card editor.
+        if(document.querySelector('#rx036Editor')?.hidden===false)return;
+      }
+      const notice=document.querySelector('#rx036Notice');
+      if(notice)notice.textContent='対象薬が一覧に表示されています。該当カードをタップして編集してください。';
+    };
+    if(typeof finishPatientAndNavigate==='function'){
+      void finishPatientAndNavigate(visit);
+    }else{
+      visit();
     }
-    const notice=document.querySelector('#rx036Notice');
-    if(notice)notice.textContent='対象薬が一覧に表示されています。該当カードをタップして編集してください。';
   }
   function decorateReturn(){
     if(!pending||screen!=='drugs'||!key||!state)return;
@@ -117,6 +134,10 @@
   function returnToPatient(){
     const session=pending;
     if(!session)return;
+    const editor=document.querySelector('#rx036Editor');
+    if(editor&&!editor.hidden&&Array.from(editor.querySelectorAll('button')).some(b=>b.disabled)){
+      alert('薬情マスターの保存中です。完了後に戻ってください。');return;
+    }
     if(editorTouched&&document.querySelector('#rx036Editor')?.hidden===false&&
        !confirm('マスターの未保存の入力を破棄して、患者の処方薬へ戻りますか？'))return;
     if(!state||!key||!Array.isArray(state.patients)||
