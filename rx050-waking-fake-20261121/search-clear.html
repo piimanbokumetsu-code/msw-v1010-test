@@ -23,14 +23,24 @@ button.btn.secondary{background:#edf3f2;border:1px solid #b9ceca;color:#264847}
 .ux17-wizard-field{display:flex;flex-direction:column;gap:4px}
 .ux17-wizard-field span{font-weight:600}
 .ux17-wizard input[type=checkbox]{width:19px;height:19px}
+.rx050Pending{background:#fff5e6!important;border:2px solid #e9ae5a!important;border-radius:9px;padding:10px}
+.rx050ReviewPill{display:inline-flex;font-weight:700;font-size:12px;border-radius:99px;padding:3px 9px;border:1px solid #d9a367;background:#fff0d5;color:#85501b}
+.rx050ReviewPill.rx050Done{border-color:#91abab;background:#f0f5f4;color:#35504d}
+.rx050FakeMasterEdit{display:block;margin:3px 0 12px;font-size:14px}
+#fakeMasterPanel[hidden],#tabbody[hidden]{display:none!important}
+#fakeMasterPanel label:not(.inline){display:flex;flex-direction:column;gap:5px;margin:10px 0}
+#fakeMasterPanel input[type=text],#fakeMasterPanel textarea{width:100%;font-size:16px;border:1px solid #b7c9c6;border-radius:8px;padding:9px}
+#fakeMasterPanel .inline{display:flex;gap:8px;align-items:center;margin:12px 0}
+#fakeMasterPanel .controls{display:flex;flex-wrap:wrap;gap:8px}
+
 .status{font-size:14px;font-weight:600;padding:7px 0}
 small{font-size:12px;color:#5a7072}
 a{color:#096257}
 </style>
 </head><body>
-<h1>RX050 薬剤登録後の検索クリア</h1>
+<h1>RX050 処方薬入力の手直し・架空テスト</h1>
 <p class="safety"><strong>架空患者・架空薬だけのテスト</strong>。処方薬の登録は画面内の一時的な操作です。患者データの保存、送信、印刷は一切しません。</p>
-<p>本番と同じ薬剤選択・規格数量入力のプログラムを使い、<strong>登録成功時だけ検索文字と候補が消える</strong>動作を確認できます。</p>
+<p>検索文字の自動クリアに加え、マスター未確認の薬をオレンジ表示し、必要なら直接編集して患者検索に戻れる動線を試せます。<strong>未確認でも患者への処方薬登録を制限しません。</strong></p>
 <div id="tabbody">
   <div class="patient-med-page">
     <section class="panel">
@@ -46,16 +56,32 @@ a{color:#096257}
     </section>
   </div>
 </div>
+<section class="panel" id="fakeMasterPanel" hidden>
+  <h2>💊 薬情マスターを確認・編集（架空画面）</h2>
+  <p class="notice">ここは動線の確認用に作った架空編集画面です。本番の薬情マスターには接続されていません。</p>
+  <label>薬剤名<input id="fakeMasterName" type="text" maxlength="160"></label>
+  <label>医薬品分類<input id="fakeMasterCategory" type="text" maxlength="150"></label>
+  <label>薬効<textarea id="fakeMasterEffect" rows="3"></textarea></label>
+  <label class="inline"><input id="fakeMasterReviewed" type="checkbox"> この薬のマスターを確認済みにする</label>
+  <p id="fakeMasterStatus" class="notice" role="status"></p>
+  <div class="controls">
+    <button type="button" id="fakeMasterSave">架空マスターを保存して戻る</button>
+    <button type="button" id="fakeMasterBack" class="btn secondary">編集せず患者検索へ戻る</button>
+  </div>
+</section>
+<p id="fakeReviewMessage" class="notice" role="status"></p>
 <section class="panel">
   <h2>試してほしい操作</h2>
   <p>①「架空薬」と検索 → ②「この銘柄を追加」 → ③ 規格に「1mg」、単位は「錠」、起床時に「1」 → ④「確認して一覧に登録」→ 確認でOK。</p>
   <p>登録成功後に検索欄と候補が消えれば合格だよ。登録せずに「薬剤選択に戻る」を押した場合は、検索文字は残るよ。</p>
+  <p><strong>マスター表示のテスト：</strong>「架空薬」と検索すると、Aはオレンジ色の要確認、Bは確認済み。Aの「マスターを確認・編集」から架空編集へ移動し、確認済みにチェックして戻ると、Aの色が消えます。<strong>マスターを直さなくても、Aの「この銘柄を追加」から処方登録できます。</strong></p>
   <label class="notice"><input type="checkbox" id="failNext"> 次の保存をわざと失敗させる（架空テスト用。検索文字が残るか確認）</label>
   <p><button id="fakeReset" type="button">架空テストを最初から</button></p>
   <small>実際の患者情報を入力しないでください。リロードでも架空データは破棄されます。</small>
 </section>
 <p><a href="./index.html?v=3">RX050「起床時」テストに戻る</a></p>
 <script src="./rx050-dose-schedule.js?v=rx050-20261121-v3"></script>
-<script src="./search-clear-fake-bridge.js?v=rx050-20261121-v1"></script>
+<script src="./search-clear-fake-bridge.js?v=rx050-20261121-v2"></script>
 <script src="./ux17-registration-search-fake.js?v=rx050-20261121-v1"></script>
+<script src="./rx050-master-review-fake.js?v=rx050-20261121-v1"></script>
 </body></html>
