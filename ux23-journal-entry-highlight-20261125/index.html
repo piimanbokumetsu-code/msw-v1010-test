@@ -26,7 +26,7 @@ h2{font-size:18px;margin:0 0 8px}
 .no-entry{font-size:14px;padding:8px;background:#f8fafc;border:1px solid #e0e7ee}
 .safety{background:#edf9f1;border-color:#91c9a6}
 </style>
-<link rel="stylesheet" href="./ux23-journal-entry-highlight.css?v=1">
+<link rel="stylesheet" href="./ux23-journal-entry-highlight.css?v=2">
 </head>
 <body>
 <h1>UX23・日誌の手入力欄を目立たせる</h1>
@@ -41,15 +41,15 @@ h2{font-size:18px;margin:0 0 8px}
 <div class="journal-entry">
 <h3>新しい患者を手入力</h3>
 <div class="journal-entry-fields">
-<label>氏名<input type="text" readonly placeholder="氏名を入力（確認用）"></label>
-<label>フリガナ<input type="text" readonly placeholder="自動候補（確認用）"></label>
-<label>入院日<input type="text" readonly value="2026-11-25"></label>
-<label>ベッド配置先<input type="text" readonly value="その他・未配置 ▾"></label>
+<label>氏名<input id="journalNewName" type="text" readonly placeholder="氏名を入力（確認用）"></label>
+<label>フリガナ<input id="journalNewKana" type="text" readonly placeholder="自動候補（確認用）"></label>
+<label>入院日<input id="journalNewDate" type="text" readonly value="2026-11-25"></label>
+<label>ベッド配置先<input id="journalNewBed" type="text" readonly value="その他・未配置 ▾"></label>
 </div>
 <div class="journal-entry-actions"><span class="btn" aria-hidden="true">患者を登録（表示のみ）</span></div>
 </div>
 </section>
 </main>
-<p class="notice">変更対象はオレンジ色の「新しい患者を手入力」の背景と枠線だけ。文字・入力欄・ボタンの位置は元の仕様のままだよ。</p>
+<p class="notice">オレンジ色の背景・枠線は前回承認された色だよ。フリガナは表示だけ非表示にし、氏名・入院日・ベッド配置先の入力欄の高さは変えていないよ。</p>
 </body>
 </html>
