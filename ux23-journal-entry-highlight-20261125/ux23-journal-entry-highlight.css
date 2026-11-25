@@ -9,3 +9,11 @@
 #main .journal-entry > h3 {
   color: #674412;
 }
+
+/* Hide only the Journal's provisional reading field from sight.
+ * Keep its DOM input so existing KANA06 candidate handling and
+ * unconfirmed Basic-tab review continue unchanged.
+ * Other field heights and sizes are untouched. */
+#main .journal-entry-fields > label:has(> #journalNewKana) {
+  display: none;
+}
