@@ -143,7 +143,7 @@ function renderPatient(preserveScroll){
     '<p id="saveStatus" class="status" role="status" aria-live="polite">保存する前に文章を確認してください。</p>'+
     '<button id="toggleHistory" type="button" aria-expanded="'+historyExpanded+'" class="history-toggle">▸ 過去の回診メモを見る（'+Math.max(0,all.length-1)+'件）</button>'+
     '<div id="historyPane" class="history-pane" '+(!historyExpanded?'hidden':'')+'>'+historyMarkup(all)+'</div></section>';
-  $('backPatient').onclick=()=>navigate(returnScreen);
+  $('backPatient').onclick=()=>navigate(returnScreen,null,'patient');
   const area=$('memoDraft');
   area.addEventListener('input',()=>{drafts[p.id]=area.value;});
   $('insertExample').onclick=()=>{
