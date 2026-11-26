@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self';style-src 'self';connect-src 'none';img-src 'none';object-src 'none';form-action 'none';base-uri 'self'">
+<title>UX25｜長押し0.3秒・スクロール誤認識テスト（架空患者のみ）</title>
+<link rel="stylesheet" href="../ux25-longpress-400ms-20261126/mock-style.css?v=ux25-20261126-v1">
+<link rel="stylesheet" href="../ux25-longpress-400ms-20261126/ux10-fixed-tray-drag.css?v=ux25-20261126-v1">
+</head>
+<body>
+<div id="app">
+ <header>
+  <h1>UX25｜患者移動の長押し・架空実機テスト</h1>
+  <div class="params"><span>長押し 0.3秒</span><span>移動キャンセル 12px超</span><span>本番未反映</span></div>
+  <div class="test-warning">架空患者だけの独立ページ。患者データ・薬情・写真は読み込まず、移動操作もこの画面のメモリー内だけ。ページを再読み込みすると初期状態に戻ります。</div>
+ </header>
+ <div class="shell">
+  <div class="tests">
+   <p><b>① スクロールテスト：</b>患者カードの上で上下に3〜4回スワイプ。画面が自然にスクロールでき、長押し認識が増えないか確認。</p>
+   <p><b>② 長押しテスト：</b>患者カードに指を静止して約0.3秒。黄色い枠と「移動：架空患者…」が出れば認識成功。指を離すと選択状態になります。</p>
+   <p><b>③ 任意：</b>黄色い選択後に空床をタップすると、従来の「ベッド移動を確認」画面が出ます。変更は「やめる」で中止できます。</p>
+   <div class="test-metrics">
+    <span>長押し認識回数：<b id="holdCount">0</b> 回</span>
+    <span>架空の保存回数：<b id="fakeSaveCount">0</b> 回</span>
+   </div>
+   <p id="fakeStatus" role="status"></p>
+   <button type="button" id="resetFake">架空テストを最初からやり直す</button>
+  </div>
+  <div class="santherese-nav"><button id="showAllPatients" type="button" aria-pressed="true">🏥 架空患者のベッドマップ</button></div>
+  <div id="patientList" aria-label="架空患者のベッド配置"></div>
+ </div>
+</div>
+<footer>🟢 架空患者専用：長押し0.3秒／スクロール12px
+<div class="sub">未配置トレーはこの上に表示されます。本番アプリは変更していません。</div>
+</footer>
+<script src="../ux25-longpress-400ms-20261126/mock-app.js?v=ux25-20261126-v1"></script>
+<script src="./ux18-ux10-move-bridge-300ms.js?v=ux25-20261126-v1"></script>
+<script src="./mock-boot.js?v=ux25-20261126-v1"></script>
+</body>
+</html>
