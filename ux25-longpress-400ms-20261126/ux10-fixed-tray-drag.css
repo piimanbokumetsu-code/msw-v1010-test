@@ -1,0 +1,33 @@
+/* UX11 development: unobstructed patient cards, native scroll, long-press move */
+body.ux10-active .shell{padding-bottom:calc(244px + env(safe-area-inset-bottom,0px))}
+#ux10Tray{position:fixed;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:38;max-height:160px;background:#e8f5ef;border-top:3px solid #0f766e;box-shadow:0 -3px 12px #16383933;color:#173a36}
+#ux10Tray.ux10-folded{max-height:48px}
+#ux10Tray.ux10-drop-hover{background:#fff2d3;border-color:#e39b27}
+#ux10Tray .ux10-head{display:flex;align-items:center;gap:7px;padding:6px 10px;min-height:43px}
+#ux10Tray .ux10-head strong{font-size:14px}
+#ux10Tray .ux10-count{border-radius:10px;padding:2px 6px;background:#176d62;color:white;font-size:11px}
+#ux10Tray .ux10-sub{font-size:11px;color:#56726d;flex:1;text-align:right}
+#ux10Tray .ux10-toggle{border:1px solid #8ab6a9;border-radius:8px;background:white;color:#165e55;font-size:12px;padding:6px;min-width:54px;min-height:32px}
+#ux10Tray .ux10-row{display:flex;align-items:stretch;gap:7px;overflow-x:auto;overscroll-behavior-x:contain;padding:4px 8px 9px;min-height:73px;touch-action:pan-x}
+#ux10Tray .ux10-person{position:relative;flex:0 0 154px;min-height:69px;background:white;border:1px solid #a1c9bd;border-radius:9px;padding:8px 33px 6px 8px;overflow-wrap:anywhere}
+#ux10Tray .ux10-person strong{font-size:12px;display:block;line-height:1.35}
+#ux10Tray .ux10-person small{font-size:10px;display:block;margin-top:3px;color:#526e66}
+#ux10Tray .ux10-none{font-size:12px;color:#57736d;padding:10px}
+.bed-slot.ux11-movable,.ux10-person.ux11-movable{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:auto}
+.bed-slot.ux11-movable{position:relative}
+.ux11-holding{outline:3px solid #e5a02d!important;outline-offset:-2px}
+.ux10-selected{outline:3px solid #e5a02d!important;outline-offset:-2px}
+.ux10-drop-hover{outline:3px solid #e5a02d!important;outline-offset:1px}
+#ux10Ghost{position:fixed;z-index:100;pointer-events:none;background:#fff7d8;color:#15544b;border:2px solid #e3a120;border-radius:9px;padding:8px;font-size:13px;font-weight:800;box-shadow:0 5px 15px #0004;max-width:200px;transform:translate(-50%,-75%)}
+#ux10Confirm{position:fixed;inset:0;background:#0b292bb8;z-index:110;display:flex;align-items:center;justify-content:center;padding:16px}
+#ux10Confirm .ux10-dialog{background:white;border-radius:13px;max-width:430px;width:100%;max-height:90vh;overflow:auto;padding:17px;box-shadow:0 8px 22px #0004}
+#ux10Confirm h2{font-size:18px;margin:0 0 10px}
+#ux10Confirm .ux10-row-info{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #e2e9e8;font-size:13px}
+#ux10Confirm .ux10-row-info b{text-align:right;overflow-wrap:anywhere}
+#ux10Confirm .ux10-warning{border:1px solid #e8a6a6;background:#fff1ed;color:#aa2222;font-weight:800;line-height:1.5;padding:9px;border-radius:8px;font-size:13px;margin:10px 0}
+#ux10Confirm .ux10-actions{display:flex;gap:9px;margin-top:17px}
+#ux10Confirm .ux10-actions button{flex:1;min-height:43px;border-radius:8px;border:1px solid #9cb8b1;background:white;font-size:14px}
+#ux10Confirm .ux10-actions .ux10-ok{color:white;background:#0f766e;border-color:#0f766e;font-weight:800}
+#ux10Confirm .ux10-actions button:disabled{opacity:.5}
+#ux10Notice{position:fixed;z-index:70;top:70px;left:50%;transform:translateX(-50%);padding:10px;border-radius:10px;background:#194b49;color:white;font-size:12px;max-width:90vw;text-align:center;box-shadow:0 4px 15px #0003;pointer-events:none}
+@media print{#ux10Tray,#ux10Ghost,#ux10Notice,#ux10Confirm{display:none!important}body.ux10-active .shell{padding-bottom:0!important}}
