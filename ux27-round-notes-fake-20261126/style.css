@@ -1,0 +1,89 @@
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#203449;background:#f0f5f9;color-scheme:light;font-size:15px}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default;opacity:.5}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #5da9cd;outline-offset:2px}
+.topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #dae4ec;box-shadow:0 2px 12px #2034490d;padding:10px 14px}
+.header-inner{max-width:920px;margin:0 auto;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.title h1{font-size:17px;margin:0;color:#144d58}.title p{margin:3px 0 0;font-size:12px;color:#4e6173}
+.quicknav{display:flex;gap:7px}
+.quicknav button,.ghost{border:1px solid #c5d2dd;background:#fff;border-radius:8px;padding:9px 12px;color:#29536c;font-size:13px;font-weight:700;min-height:38px}
+.primary{background:#156f65;border:1px solid #156f65;color:#fff;border-radius:9px;padding:10px 14px;font-weight:700;min-height:43px}
+.page{max-width:920px;margin:0 auto;padding:14px 12px 65px}
+.notice{padding:11px 12px;border-radius:10px;background:#e9f6ef;border:1px solid #b5dcc7;color:#245448;font-size:12px;line-height:1.7;margin-bottom:12px}
+.notice strong{font-size:13px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 2px 14px}
+.section-head h2{font-size:19px;margin:0 0 4px}
+.section-head p{color:#5a7080;font-size:13px;margin:0}
+.beds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.patient-card{position:relative;min-height:106px;padding:12px 10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:#d9eaff;border:1px solid #9dbbd8;border-radius:11px;color:#17364b}
+.patient-card .bed-no{font-size:13px;font-weight:700;color:#305b7d}
+.patient-name{font-size:16px;font-weight:750}
+.patient-card small{color:#557089;font-size:11px}
+.small-chip{font-size:11px;background:#fff;border:1px solid #97be9f;color:#246342;border-radius:999px;padding:3px 7px}
+.sheethead{position:sticky;top:62px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:9px;border:1px solid #d8e2eb;background:#fff;border-radius:10px;padding:9px 10px;margin-bottom:10px}
+.sheethead>div{display:flex;flex-direction:column;flex:1}
+.sheethead strong{font-size:17px}
+.sheethead small{font-size:12px;color:#5d7180}
+.tab-on{display:inline-block;border-radius:7px;background:#dcebf9;border:1px solid #94b9df;padding:5px 12px;font-size:13px;font-weight:700}
+.fake-basic,.fake-documents,.memo-section,.daily-group{background:#fff;border:1px solid #d8e2eb;border-radius:12px;padding:14px;margin-bottom:12px}
+.fake-basic h2,.memo-section h2{margin:0 0 7px;font-size:17px}
+.memo-section h2 small{font-size:11px;color:#466c7e;margin-left:6px}
+.quiet{font-size:12px;color:#657786;line-height:1.6;margin:5px 0 12px}
+.basic-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 8px;margin:0 0 8px;border-bottom:1px solid #edf2f5}
+.fake-field{flex:1 1 132px;min-width:94px;background:#f8fbfd;border:1px solid #e0e8ef;border-radius:8px;padding:8px 9px;min-height:50px}
+.fake-field span{display:block;font-size:11px;color:#5a6f82;padding-bottom:4px}
+.fake-field b{display:block;font-size:13px;white-space:normal;overflow-wrap:anywhere;font-weight:650}
+.basic-extra{font-size:12px;padding:8px;color:#4b6779}
+.basic-extra summary{cursor:pointer}
+.fake-documents h3{font-size:13px;margin:0 0 9px}
+.document-placeholder{background:#f8fafc;color:#66798a;border:1px dashed #bccbda;border-radius:7px;padding:11px;font-size:12px}
+.memo-section{border-top:3px solid #138a76;scroll-margin-top:145px}
+.latest{background:#f0f6fa;border:1px solid #d5e4ed;border-radius:9px;padding:11px;margin-bottom:13px}
+.latest h3{font-size:13px;margin:0 0 6px}
+.latest time{display:block;color:#657784;font-size:12px;margin-bottom:6px}
+.note-text{line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
+.memo-section label{font-size:13px;font-weight:700;display:block;margin:10px 0 6px}
+#memoDraft{width:100%;min-height:110px;padding:11px;border-radius:8px;border:1px solid #a5bacb;background:#fff;color:#203449;font-size:16px;line-height:1.6;resize:vertical}
+#memoDraft:read-only{background:#f5f8fa}
+.mic-row,.memo-actions{display:flex;gap:8px;margin:9px 0;flex-wrap:wrap}
+.mic-row button,.memo-actions button{flex:1 1 auto}
+.status{min-height:28px;margin:8px 0;padding:7px 9px;border-radius:7px;background:#f1f5f9;font-size:12px;color:#466174;line-height:1.5}
+.status[data-kind=error],#globalStatus[data-kind=error]{background:#fff1e8;color:#af412f}
+.status[data-kind=ok],#globalStatus[data-kind=ok]{background:#e7f6eb;color:#166642}
+.status[data-kind=active]{background:#e8f3fd;color:#11629d}
+.history-toggle{display:block;width:100%;border:1px solid #b5cfda;background:#f7fafc;color:#246075;text-align:left;padding:12px;border-radius:8px;margin-top:12px;font-weight:700}
+.history-pane{padding:10px 2px 1px}
+.history-date{font-size:13px;margin:12px 0 6px;color:#345970}
+.history-entry{display:grid;grid-template-columns:55px 1fr;gap:8px;border-bottom:1px solid #e2e9ef;padding:8px 0}
+.history-entry time,.daily-entry time{font-size:12px;color:#6b7b8d}
+.date-control{background:#fff;border:1px solid #d7e1e9;border-radius:10px;display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:12px}
+.date-control label{font-weight:700;font-size:13px}
+.date-control input{font-size:16px;min-height:40px;border:1px solid #acbdcb;border-radius:7px;padding:5px 8px;max-width:190px}
+.daily-patient{background:#eff6fd;border:1px solid #d4e3ef;border-radius:8px;padding:9px 11px;display:flex;align-items:center;gap:9px;width:100%;text-align:left;color:#213c55}
+.daily-patient strong{flex:1}
+.daily-patient .bed-no{font-size:13px;font-weight:700;color:#335f83}
+.open-arrow{font-size:12px;color:#497694}
+.daily-entry{display:grid;grid-template-columns:48px 1fr;gap:8px;padding:10px 4px;border-bottom:1px solid #e9eef4}
+.daily-entry:last-child{border-bottom:0}
+.daily-entry p{margin:0}
+.empty-day{padding:36px 18px;border:1px dashed #b8c9d8;border-radius:11px;background:#fff;font-size:13px;color:#556b7e;line-height:1.9;text-align:center}
+.footer{margin:16px 0;text-align:center;color:#637788;font-size:12px}
+.footer #clearFake{margin-top:7px;font-size:11px;padding:7px 12px;background:#fff;border:1px solid #b6c6d3;border-radius:7px;color:#64788b}
+#globalStatus{min-height:30px;line-height:1.5;font-size:12px;border-radius:7px;padding:6px 10px;background:#edf2f7;color:#4b6575;margin:10px 0}
+#storeState{font-size:12px;color:#607687}
+@media(max-width:650px){
+ .beds{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .section-head{align-items:flex-start;flex-direction:column}
+ .section-head .primary{width:100%}
+ .sheethead{top:69px;flex-wrap:wrap}
+ .sheethead .ghost{padding:8px}
+ .topbar{padding:8px 10px}
+ .page{padding:10px 9px 70px}
+ .fake-basic,.fake-documents,.memo-section,.daily-group{padding:11px}
+ .fake-field{flex-basis:calc(50% - 8px)}
+}
+@media(max-width:400px){.beds{gap:6px}.patient-card{min-height:100px}.fake-field{flex-basis:100%}}
