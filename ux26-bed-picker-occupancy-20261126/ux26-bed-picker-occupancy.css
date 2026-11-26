@@ -1,0 +1,7 @@
+/* UX26: only the existing grouped bed picker; no bed-map or print changes.
+ * Blue selection uses the existing .chosen style and remains highest priority.
+ * Unoccupied beds keep the original white background. */
+#groupedBedPicker .bed-picker-grid .bed-picker-choice.ux26-occupied:not(.chosen){
+  background-color:#ffe7cb;
+  border-color:#d7a47a;
+}
