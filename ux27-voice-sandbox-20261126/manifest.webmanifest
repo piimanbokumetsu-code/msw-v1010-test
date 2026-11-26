@@ -1,0 +1,18 @@
+{
+  "id": "./ux27-fake-microphone-20261126",
+  "name": "UX27 架空マイク実験",
+  "short_name": "UX27架空マイク",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f6f9",
+  "theme_color": "#156f65",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
