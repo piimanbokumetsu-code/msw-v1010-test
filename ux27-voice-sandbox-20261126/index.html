@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#156f65">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="UX27架空マイク">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'self'">
+<title>UX27｜専用マイクの架空音声テスト</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="stylesheet" href="./style.css?v=ux27-20261126-v1">
+</head>
+<body>
+<main class="page">
+<h1>UX27｜音声入力の実機テスト <span class="tag">架空データ専用</span></h1>
+<p class="lead">iPad miniで「専用マイク」を使って日本語が文字になるか確認するための<strong>独立テスト画面</strong>です。</p>
+<section class="box safe">
+  <h2>🔒 患者情報は扱いません</h2>
+  <p class="small">実際の患者氏名・病棟・病名・具体的な症状などは話さないでください。このテスト画面は患者管理ソフトにつながっておらず、録音・メモ保存・履歴保存・送信処理を作っていません。ただし、<strong>ブラウザーやOSの音声認識サービスが音声を外部処理する場合があります</strong>。</p>
+</section>
+<section class="box">
+  <h2>① 今の起動環境を確認</h2>
+  <p class="state"><b id="mode">起動環境を確認中…</b></p>
+  <p class="small" id="availability">音声認識の対応状況を確認中…</p>
+</section>
+<section class="box">
+  <h2>② マイクに向かって話す</h2>
+  <p class="small">次の架空の例文から、どちらかを読み上げてみてね。</p>
+  <ul class="examples">
+    <li>今後の方針を検討するため家族を呼ぶ</li>
+    <li>介護保険の申請について確認する</li>
+  </ul>
+  <div class="controls">
+    <button type="button" id="startMic" disabled aria-pressed="false">🎤 音声入力を開始</button>
+    <button type="button" id="stopMic" disabled>■ 停止する</button>
+  </div>
+  <p role="status" aria-live="polite" id="status">準備中…</p>
+  <label for="memo">文字になった内容（手直し可能）</label>
+  <textarea id="memo" rows="5" placeholder="マイクで話した内容がここに表示されます。手入力も可能です。" spellcheck="true" autocapitalize="sentences"></textarea>
+  <div class="controls">
+    <button type="button" id="clearText">入力欄を空にする</button>
+  </div>
+  <p class="small">※ この画面には保存ボタンがありません。ページを閉じたり再読み込みすると、入力した内容は残りません。</p>
+</section>
+<section class="box notice">
+  <h2>③ SafariとPWAを比べる</h2>
+  <p class="small"><b>まずSafariで確認。</b> その後、Safariの共有メニューから「ホーム画面に追加」を選び、「Webアプリとして開く」を有効にして追加してください。ホーム画面の<strong>「UX27架空マイク」</strong>だけを開いて同じ例文を試します。</p>
+  <p class="small">普段使う「MSW患者管理ソフト」のアイコンは変更しないでください。マイクが動かなかったり文字が出なかった場合は、表示されたメッセージを教えてね。</p>
+</section>
+<p class="bottom">UX27 架空音声入力テスト ｜ 本番アプリ・患者データは未変更</p>
+</main>
+<script src="./app.js?v=ux27-20261126-v1"></script>
+</body>
+</html>
