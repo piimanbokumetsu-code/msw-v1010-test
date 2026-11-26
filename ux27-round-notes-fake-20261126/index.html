@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#156f65">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="UX27架空回診">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; font-src 'self'; object-src 'none'; frame-src 'none'; media-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'self'">
+<title>UX27｜回診メモ（架空患者だけの独立テスト）</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="stylesheet" href="./style.css?v=ux27-round-20261126-v1">
+</head>
+<body>
+<header class="topbar">
+ <div class="header-inner">
+  <div class="title"><h1>UX27｜架空患者の回診メモ</h1><p id="screenTitle">架空の患者一覧</p></div>
+  <nav class="quicknav" aria-label="画面切替"><button id="navList" type="button" hidden>患者一覧</button><button id="navDaily" type="button">🗓 回診メモ一覧</button></nav>
+ </div>
+</header>
+<main class="page">
+ <div class="notice">
+  <strong>🔒 本番と無関係な架空患者専用テスト</strong>
+  <div>この画面に実在の患者情報は入力しないでください。メモはこのブラウザーのテスト用保存領域にだけ保存します（暗号化なし）。ただし、<strong>ブラウザーの音声認識機能が音声を外部処理する場合</strong>があります。</div>
+ </div>
+ <p id="globalStatus" role="status" aria-live="polite"></p>
+ <div id="listView" class="view"></div>
+ <div id="patientView" class="view" hidden></div>
+ <div id="dailyView" class="view" hidden></div>
+ <footer class="footer">
+  <div id="storeState">架空メモを確認中…</div>
+  <button id="clearFake" type="button">このテストの架空メモだけ全件消去</button>
+  <p>実患者・薬情・写真・バックアップは一切読み込まず、本番アプリへの保存も行いません。</p>
+ </footer>
+</main>
+<script src="./core.js?v=ux27-round-20261126-v1"></script>
+<script src="./app.js?v=ux27-round-20261126-v1"></script>
+</body>
+</html>
