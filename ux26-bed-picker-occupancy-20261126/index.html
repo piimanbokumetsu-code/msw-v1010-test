@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; form-action 'none'; base-uri 'self'">
+<title>UX26｜ベッド番号選択・使用中の色分け（架空患者テスト）</title>
+<link rel="stylesheet" href="./production-picker.css?v=ux26-20261126-v1">
+<link rel="stylesheet" href="./ux26-bed-picker-occupancy.css?v=ux26-20261126-v1">
+<link rel="stylesheet" href="./mock-style.css?v=ux26-20261126-v1">
+</head>
+<body>
+<main class="page">
+<h1>UX26｜ベッド番号選択の色分け</h1>
+<div class="safe"><b>架空患者専用の独立テスト</b>。本番の患者・薬情・写真を読み込みません。保存機能はなく、実際の病室配置には影響しません。</div>
+<section class="card">
+<h2>色分け（今回の変更）</h2>
+<div class="legend">
+ <span class="legend-item"><span class="swatch used"></span>使用中＝薄いオレンジ</span>
+ <span class="legend-item"><span class="swatch"></span>空床＝白</span>
+ <span class="legend-item"><span class="swatch selected"></span>選択中＝従来の青</span>
+</div>
+<p>本番と同じベッド番号選択画面の仕組みを使っています。表示している患者はすべて架空です。</p>
+<div class="controls">
+ <button type="button" id="openEdit" class="btn primary">ベッド番号選択を開く（201-3選択中）</button>
+ <button type="button" id="openNew" class="btn">新規患者から開く（選択なし）</button>
+</div>
+<p class="caption">選択画面でベッドをタップすると閉じますが、この架空テストでは実際の保存は行われません。上部「閉じる」でも終了できます。</p>
+<p id="result" role="status" aria-live="polite"></p>
+<p id="testResults" aria-live="polite"></p>
+</section>
+<section class="card">
+<h2>確認してほしいところ</h2>
+<p>201-1と201-3、ICU1-2などは使用中なので薄いオレンジ。201-2と、退院済み扱いの201-4は白。201-3を選択中として開いた場合は、そのベッドだけ従来の青になるよ。</p>
+<p class="caption">患者データ・ベッド移動確認・保存形式・PINや自動ロックは一切変更していません。</p>
+</section>
+</main>
+<script src="./mock-app.js?v=ux26-20261126-v1"></script>
+<script src="./ux26-bed-picker-occupancy.js?v=ux26-20261126-v1"></script>
+<script src="./mock-boot.js?v=ux26-20261126-v1"></script>
+</body>
+</html>
