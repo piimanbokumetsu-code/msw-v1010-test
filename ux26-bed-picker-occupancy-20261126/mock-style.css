@@ -1,0 +1,23 @@
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#263746;background:#f2f6f8;color-scheme:light}
+*{box-sizing:border-box}body{margin:0}
+.page{max-width:720px;margin:0 auto;padding:20px 16px 56px}
+h1{font-size:21px;margin:0 0 12px}
+p{line-height:1.6;font-size:14px}
+.safe{border:1px solid #9dccb8;background:#e8f5ee;color:#17604e;border-radius:10px;padding:12px;font-size:13px}
+.card{background:#fff;border:1px solid #d9e1e9;border-radius:12px;padding:16px;margin:15px 0;box-shadow:0 2px 8px #20304612}
+.card h2{font-size:16px;margin:0 0 10px}
+.legend{display:flex;flex-wrap:wrap;gap:9px;margin:10px 0}
+.legend-item{display:inline-flex;gap:6px;align-items:center;font-size:13px}
+.swatch{width:23px;height:23px;display:inline-block;border-radius:5px;border:1px solid #b9c5ce;background:white}
+.swatch.used{background:#ffe7cb;border-color:#d7a47a}
+.swatch.selected{background:#e5f0ff;border:2px solid #2870c8}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+button.btn{background:#fff;border:1px solid #aeb8c5;border-radius:8px;min-height:42px;padding:9px 12px;color:#243646;font-weight:650;font:inherit;cursor:pointer}
+button.primary{background:#166c65;color:#fff;border-color:#166c65}
+button:not([class]){border:1px solid #aeb8c5;border-radius:8px;background:#fff;min-height:42px;padding:9px 12px;font:inherit;cursor:pointer}
+#result,#testResults{font-size:13px;line-height:1.6}
+#result{color:#176c5d;font-weight:700}
+#testResults{color:#466170}
+.caption{font-size:12px;color:#667887}
+.bed-picker-shade .btn.secondary{background:#f8fafc;font-size:13px;min-height:37px}
+@media(max-width:540px){.page{padding:14px 11px 50px}h1{font-size:19px}.controls{flex-direction:column}.controls button{width:100%}}
