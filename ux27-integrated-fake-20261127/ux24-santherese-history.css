@@ -1,0 +1,40 @@
+/* UX24: room-by-room meeting review table, scoped to the patient list. */
+#patientList .ux24-list{margin:12px 0}
+#patientList .ux24-list h2{font-size:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+#patientList .ux24-list .notice{font-size:12px;margin:6px 0 10px}
+#patientList .ux24-scroll{width:100%;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid #d1dbe2;border-radius:10px;background:#fff}
+#patientList .ux24-table{width:100%;min-width:735px;border-collapse:collapse;table-layout:fixed;color:#233844}
+#patientList .ux24-col-bed{width:76px}
+#patientList .ux24-col-name{width:118px}
+#patientList .ux24-col-date{width:90px}
+#patientList .ux24-col-doctor{width:86px}
+#patientList .ux24-col-disease{width:140px}
+#patientList .ux24-col-remarks{width:auto}
+#patientList .ux24-table th,#patientList .ux24-table td{vertical-align:top;text-align:left;padding:8px 6px;overflow-wrap:anywhere;border-bottom:1px solid #dee6eb}
+#patientList .ux24-table thead th{background:#eaf0f4;position:sticky;top:0;z-index:1;font-size:12px;white-space:nowrap}
+#patientList .ux24-room-heading th{background:#fff0d4;border-top:2px solid #d89b34;border-bottom:1px solid #d89b34;color:#78450a;font-weight:800;font-size:14px}
+#patientList .ux24-patient-row:nth-child(even){background:#f9fbfc}
+#patientList .ux24-bed,#patientList .ux24-date,#patientList .ux24-doctor{font-size:12px;line-height:1.5}
+#patientList .ux24-name{font-weight:700}
+#patientList .ux24-open{font:inherit;font-weight:750;text-align:left;color:#075a64;border:0;background:transparent;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+#patientList .ux24-open:focus-visible,#patientList .ux24-add:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
+#patientList .ux24-disease{font-size:12px;line-height:1.5}
+#patientList .ux24-note{background:#fff7e7;border-radius:6px;padding:5px 7px;margin-bottom:5px;font-size:12px;line-height:1.45;display:flex;flex-wrap:wrap;column-gap:6px}
+#patientList .ux24-note time{font-weight:750;white-space:nowrap;color:#7c4a11}
+#patientList .ux24-entry{display:flex;align-items:flex-start;gap:5px}
+#patientList .ux24-entry textarea{box-sizing:border-box;flex:1;width:100%;min-width:0;min-height:48px;font:inherit;font-size:13px;border:1px solid #aebcc7;border-radius:7px;padding:6px;background:#fff;resize:vertical}
+#patientList .ux24-add{margin:0;min-height:42px;white-space:nowrap;font-size:12px;padding:7px 9px}
+#patientList .ux24-status{font-size:12px;color:#286348;line-height:1.5;margin-top:4px}
+#patientList .ux24-remarks{min-width:0}
+@media(max-width:760px){
+ #patientList .ux24-table{min-width:700px}
+ #patientList .ux24-col-bed{width:66px}
+ #patientList .ux24-col-name{width:103px}
+ #patientList .ux24-col-date{width:79px}
+ #patientList .ux24-col-doctor{width:78px}
+ #patientList .ux24-col-disease{width:132px}
+ #patientList .ux24-table th,#patientList .ux24-table td{padding:7px 5px}
+ #patientList .ux24-entry{flex-wrap:wrap}
+ #patientList .ux24-entry textarea{flex-basis:100%}
+ #patientList .ux24-add{min-height:34px}
+}
