@@ -157,10 +157,26 @@ function drawDaily(){
  $('#ux27Date').onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)){chosenDay=e.target.value;drawDaily()}};
  $('#ux27Back').onclick=()=>{returnToDaily=false;restoreList()};
  main.querySelectorAll('[data-ux27-id]').forEach(btn=>btn.onclick=()=>{
-  const found=host.activePatients().find(p=>p.id===btn.dataset.ux27Id);
-  if(!found)return;
+  // Keep the exact patient object used to render the daily list; do not change saved data.
+  const id=btn.getAttribute('data-ux27-id');
+  const found=host.activePatients().find(p=>String(p.id)===id);
+  const feedback=()=>{
+   let node=$('ux27NavStatus');
+   if(!node){node=document.createElement('p');node.id='ux27NavStatus';node.setAttribute('role','alert');$('ux27Groups')?.prepend(node);}
+   return node;
+  };
+  if(!found){feedback().textContent='患者が見つかりません。患者一覧へ戻って確認してください。';return;}
   dailyScroll=window.scrollY;returnToDaily=true;
-  host.openPatient(found);
+  try{
+   host.openPatient(found);
+   // An opened patient must have the actual modal and Basic tab; don't report a false success.
+   if(!$('modal')||!$('tabbody'))throw Error('患者基本情報の画面を生成できませんでした');
+   const info=$('modal')?.querySelector('.basic-information');
+   if(!info)throw Error('基本情報タブを表示できませんでした');
+  }catch(error){
+   returnToDaily=false;
+   feedback().textContent='患者画面を開けませんでした：'+String(error?.message||error);
+  }
  });
 }
 function restoreList(){window.renderPatients();window.scrollTo(0,0);}
