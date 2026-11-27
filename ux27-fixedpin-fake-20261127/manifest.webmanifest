@@ -1,0 +1,18 @@
+{
+  "id": "./ux27-fixedpin-fake-20261127",
+  "name": "UX27固定ダミーPIN・架空結合テスト",
+  "short_name": "UX27固定PIN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0f5f9",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
