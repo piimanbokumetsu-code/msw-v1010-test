@@ -2972,7 +2972,11 @@ function ux27FakeSeeds(){
  return fake.map(f=>({id:f.id,data:{'ベッド番号':f.bed,'氏名':f.name,'ＩＤ':'FAKE-'+f.id.slice(-1).toUpperCase(),'フリガナ':'カクウカンジャ','入院日':'2026-11-25','市町村':'架空市','主治医':f.doctor,'病名':f.disease,'介護度':'未申請','介護情報':'架空の介護情報','入院元':'架空の医療機関','備考':'架空データ・実患者を入力しないこと'},status:'未設定',tasks:[],notes:f.id==='ux27-fake-a'?[{id:'ux27-example-note-a',type:'回診メモ',at:nowISO(),text:'【架空テスト】回診メモ一覧から患者Aの基本情報を開き、左上の戻る操作を確認します。'}]:[],medications:[],dischargeDate:null,createdAt:nowISO(),updatedAt:nowISO()}));
 }
 window.UX27FakeHost=Object.freeze({
- getPatient:()=>selectedPatient,activePatients:()=>activePatients(),openPatient:p=>window.openPatient(p),
+ getPatient:()=>selectedPatient,activePatients:()=>activePatients(),
+ // Call the native function directly from this isolated fake-only page.
+ // UX01's window.openPatient wrapper manages list scroll, which is not applicable
+ // to the separate round-note screen and must not intercept this transition.
+ openPatient:p=>openPatient(p),
  unlocked:()=>Boolean(key&&state),uid:()=>uid(),save:()=>save(),
  flushPatient:()=>flushPatientAutoSave(),
  beginNote:()=>{if(noteWriteBusy||maintenanceAction||resetInProgress||!key||!state)return false;noteWriteBusy=true;return true},
