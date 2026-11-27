@@ -159,6 +159,69 @@ function dailyMarkup(){
  g.notes.map(n=>'<div class="ux27-entry"><time>'+escape(clock(n.at))+'</time><div>'+escape(n.text)+'</div></div>').join('')+'</section>').join('')
  :'<p class="ux27-empty">この日に入力された回診メモはありません。</p>')+'</div></section>';
 }
+// Stable capture-phase handlers: unlike handlers attached to a temporary
+// daily section, these survive every patient-list or date re-render.
+function ux27ButtonFromEvent(event){
+ const target=event.target?.nodeType===1?event.target:event.target?.parentElement;
+ const button=target?.closest?.('#ux27Daily button.ux27-patient[data-ux27-id]');
+ return button?.isConnected?button:null;
+}
+function ux27Trace(messageText){
+ const node=$('ux27TapTrace');
+ if(node)node.textContent='画面遷移診断 '+messageText;
+}
+let ux27LastActivationTime=0,ux27LastActivationId='';
+function ux27ActivatePatient(button,source){
+ if(!button||!host.unlocked()||!$('ux27Daily'))return;
+ const id=String(button.getAttribute('data-ux27-id')||'');
+ const now=Date.now();
+ if(id===ux27LastActivationId&&now-ux27LastActivationTime<1000)return;
+ ux27LastActivationId=id;ux27LastActivationTime=now;
+ ux27Trace('B：'+source+'で患者選択処理に到達');
+ const patient=host.activePatients().find(p=>String(p.id)===id);
+ if(!patient){ux27Trace('C：患者が見つかりません（'+id+'）');return;}
+ dailyScroll=window.scrollY;
+ returnToDaily=true;
+ ux27Trace('C：患者を確認、基本情報を開きます');
+ try{
+  host.openPatient(patient);
+  const modal=$('modal');
+  if(!modal||!$('tabbody')||!modal.querySelector('.basic-information')){
+   throw new Error('患者基本情報の生成を確認できませんでした');
+  }
+  ux27Trace('D：基本情報を生成しました');
+ }catch(error){
+  const explanation=String(error?.message||error);
+  ux27Trace('E：'+explanation);
+  if(!$('modal'))returnToDaily=false;
+  alert('画面遷移診断 E：'+explanation);
+ }
+}
+document.addEventListener('pointerdown',event=>{
+ if(ux27ButtonFromEvent(event))ux27Trace('A：患者ボタンに触れました');
+},true);
+let ux27TouchStart=null;
+document.addEventListener('touchstart',event=>{
+ const button=ux27ButtonFromEvent(event),touch=event.touches?.[0];
+ if(!button||!touch||event.touches.length!==1)return;
+ ux27TouchStart={id:button.getAttribute('data-ux27-id'),x:touch.clientX,y:touch.clientY};
+ ux27Trace('A：患者ボタンのタッチを検出');
+},{capture:true,passive:true});
+document.addEventListener('touchend',event=>{
+ const start=ux27TouchStart;ux27TouchStart=null;
+ const button=ux27ButtonFromEvent(event),touch=event.changedTouches?.[0];
+ if(!start||!button||!touch||start.id!==button.getAttribute('data-ux27-id'))return;
+ if(Math.abs(touch.clientX-start.x)>16||Math.abs(touch.clientY-start.y)>16)return;
+ ux27ActivatePatient(button,'タッチ');
+},{capture:true,passive:true});
+document.addEventListener('click',event=>{
+ const button=ux27ButtonFromEvent(event);
+ if(!button)return;
+ event.preventDefault();
+ event.stopPropagation();
+ ux27ActivatePatient(button,'クリック');
+},true);
+
 function drawDaily(){
  const existing=$('ux27Daily');if(existing)existing.remove();
  const main=$('main');
@@ -167,48 +230,6 @@ function drawDaily(){
  main.insertAdjacentHTML('beforeend',dailyMarkup());
  $('#ux27Date').onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)){chosenDay=e.target.value;drawDaily()}};
  $('#ux27Back').onclick=()=>{returnToDaily=false;restoreList()};
- // Delegate taps from the daily view itself, including taps on the name text.
- // Always show a visible error if opening the Basic tab fails.
- const daily=$('ux27Daily');
- // Safari diagnostic: distinguish a missed tap from a patient-lookup/open failure.
- daily.addEventListener('pointerdown',event=>{
-  const btn=event.target?.closest?.('button[data-ux27-id]');
-  if(btn&&daily.contains(btn)){
-   const trace=$('ux27TapTrace');
-   if(trace)trace.textContent='画面遷移診断 A：患者ボタンのタップを検出';
-  }
- },{capture:true,passive:true});
- daily.addEventListener('click',event=>{
-  const btn=event.target?.closest?.('button[data-ux27-id]');
-  if(!btn||!daily.contains(btn))return;
-  event.preventDefault();event.stopPropagation();
-  const trace=$('ux27TapTrace');
-  if(trace)trace.textContent='画面遷移診断 B：タップ処理を実行';
-  const id=btn.getAttribute('data-ux27-id');
-  const found=host.activePatients().find(p=>String(p.id)===id);
-  const feedback=messageText=>{
-   let node=$('ux27NavStatus');
-   if(!node){node=document.createElement('p');node.id='ux27NavStatus';node.setAttribute('role','alert');$('ux27Groups')?.prepend(node);}
-   node.textContent=messageText;
-  };
-  if(!found){feedback('画面遷移診断 C：架空患者が見つかりません。');return;}
-  if(trace)trace.textContent='画面遷移診断 C：架空患者を確認、基本情報を開きます';
-  dailyScroll=window.scrollY;
-  returnToDaily=true;
-  try{
-   host.openPatient(found);
-   if(!$('modal')||!$('tabbody')||!$('modal').querySelector('.basic-information')){
-    throw new Error('患者基本情報の表示を確認できませんでした');
-   }
-   if(trace)trace.textContent='画面遷移診断 D：基本情報を生成しました';
-  }catch(error){
-   returnToDaily=false;
-   const issue=String(error?.message||error);
-   feedback('画面遷移診断 E：'+issue);
-   // Do not discard an open modal or unsaved patient state after a render error.
-   if($('modal'))window.alert('画面遷移診断 E：'+issue);
-  }
- });
 
 }
 function restoreList(){window.renderPatients();window.scrollTo(0,0);}
