@@ -198,12 +198,18 @@ function ux27ActivatePatient(button,source){
  }
 }
 document.addEventListener('pointerdown',event=>{
- if(ux27ButtonFromEvent(event))ux27Trace('A：患者ボタンに触れました');
+ const daily=$('ux27Daily');
+ if(!daily||!daily.contains(event.target))return;
+ ux27Trace(ux27ButtonFromEvent(event)?'A：患者ボタンに触れました':'A：一覧内の患者ボタン以外に触れました');
 },true);
 let ux27TouchStart=null;
 document.addEventListener('touchstart',event=>{
  const button=ux27ButtonFromEvent(event),touch=event.touches?.[0];
- if(!button||!touch||event.touches.length!==1)return;
+ if(!touch||event.touches.length!==1)return;
+ if(!button){
+  if($('ux27Daily')?.contains(event.target))ux27Trace('A：一覧の患者ボタン以外をタッチ');
+  return;
+ }
  ux27TouchStart={id:button.getAttribute('data-ux27-id'),x:touch.clientX,y:touch.clientY};
  ux27Trace('A：患者ボタンのタッチを検出');
 },{capture:true,passive:true});
