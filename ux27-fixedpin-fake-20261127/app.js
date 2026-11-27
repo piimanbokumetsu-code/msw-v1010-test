@@ -8,6 +8,23 @@ const APP_VERSION='UX27-FIXEDPIN-FAKE-20261127';
 // PUBLIC dummy PIN only for this entirely fictional, isolated GitHub Pages test.
 // Do not reuse this code or PIN for the production app, patient data, or real credentials.
 const UX27_FIXED_TEST_PIN='UX27FAKE20261127';
+// PUBLIC-PIN sandbox: prevent selecting any patient CSV, photo or backup files.
+// This does not alter the underlying encrypted note-save or patient navigation.
+document.addEventListener('click',event=>{
+ const el=event.target;
+ if(el?.matches?.('input[type="file"]')){
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  alert('固定PINの架空テスト版では、実データ混入防止のためファイル取り込みを禁止しています。');
+ }
+},true);
+document.addEventListener('change',event=>{
+ const el=event.target;
+ if(el?.matches?.('input[type="file"]')){
+  event.stopImmediatePropagation();
+  el.value='';
+ }
+},true);
 // LIMITED OPERATIONAL PILOT. Clinical authorization is determined by employer and operator, not by this program.
 // Patient data must never be uploaded to ChatGPT or GitHub. Local encryption does not replace institutional controls.
 const DEPLOYMENT_POLICY=Object.freeze({
@@ -2200,6 +2217,7 @@ async function renderSettings(){
   $('#resetAll').onclick=resetAll;
 }
 async function changePin(){
+  alert('固定PINの架空テスト版では、PINの変更はできません。');return;
   const action='暗証変更';
   try{
     await beginMaintenance(action);
@@ -2249,7 +2267,7 @@ async function resetAll(){
   }catch(e){alert('全消去に失敗しました。データが残っているか確認してください：'+(e.message||e))}
   finally{endMaintenance(action);resetInProgress=false}
 }
-function pickFile(accept,cb){const f=$('#fileInput');f.accept=accept;f.value='';f.onchange=()=>{if(f.files[0])cb(f.files[0])};f.click()}
+function pickFile(accept,cb){alert('固定PINの架空テスト版ではCSV・写真・バックアップなどの取り込みを禁止しています。');return}
 // FileMaker exports can be UTF-8, Shift_JIS (CP932), or UTF-16LE.
 // Decode strictly and never import silently corrupted Japanese text.
 async function readFileMakerCsv(file){
