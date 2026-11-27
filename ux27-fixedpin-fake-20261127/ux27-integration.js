@@ -151,6 +151,7 @@ function dailyMarkup(){
  return '<section class="ux27-daily" id="ux27Daily">'+
  '<div class="ux27-daily-head"><h2>🗓 回診メモ一覧</h2><button type="button" id="ux27Back" class="btn secondary">← 患者一覧に戻る</button></div>'+
  '<div class="ux27-date"><label for="ux27Date">表示日付</label><input type="date" id="ux27Date" value="'+escape(chosenDay)+'"></div>'+
+ '<p id="ux27TapTrace" class="ux27-help" role="status" aria-live="polite">画面遷移診断：待機中</p>'+
  '<div id="ux27Groups">'+(groups.length?
  '<p class="ux27-help">'+groups.length+'名／'+groups.reduce((n,g)=>n+g.notes.length,0)+'件の回診メモ</p>'+
  groups.map(g=>'<section class="ux27-group"><button type="button" class="ux27-patient" data-ux27-id="'+escape(g.patient.id)+'">'+
@@ -169,10 +170,20 @@ function drawDaily(){
  // Delegate taps from the daily view itself, including taps on the name text.
  // Always show a visible error if opening the Basic tab fails.
  const daily=$('ux27Daily');
+ // Safari diagnostic: distinguish a missed tap from a patient-lookup/open failure.
+ daily.addEventListener('pointerdown',event=>{
+  const btn=event.target?.closest?.('button[data-ux27-id]');
+  if(btn&&daily.contains(btn)){
+   const trace=$('ux27TapTrace');
+   if(trace)trace.textContent='画面遷移診断 A：患者ボタンのタップを検出';
+  }
+ },{capture:true,passive:true});
  daily.addEventListener('click',event=>{
   const btn=event.target?.closest?.('button[data-ux27-id]');
   if(!btn||!daily.contains(btn))return;
   event.preventDefault();event.stopPropagation();
+  const trace=$('ux27TapTrace');
+  if(trace)trace.textContent='画面遷移診断 B：タップ処理を実行';
   const id=btn.getAttribute('data-ux27-id');
   const found=host.activePatients().find(p=>String(p.id)===id);
   const feedback=messageText=>{
@@ -180,7 +191,8 @@ function drawDaily(){
    if(!node){node=document.createElement('p');node.id='ux27NavStatus';node.setAttribute('role','alert');$('ux27Groups')?.prepend(node);}
    node.textContent=messageText;
   };
-  if(!found){feedback('患者が見つかりません。');return;}
+  if(!found){feedback('画面遷移診断 C：架空患者が見つかりません。');return;}
+  if(trace)trace.textContent='画面遷移診断 C：架空患者を確認、基本情報を開きます';
   dailyScroll=window.scrollY;
   returnToDaily=true;
   try{
@@ -188,10 +200,13 @@ function drawDaily(){
    if(!$('modal')||!$('tabbody')||!$('modal').querySelector('.basic-information')){
     throw new Error('患者基本情報の表示を確認できませんでした');
    }
+   if(trace)trace.textContent='画面遷移診断 D：基本情報を生成しました';
   }catch(error){
    returnToDaily=false;
-   if($('modal'))$('modal').remove();
-   feedback('患者画面を開けませんでした：'+String(error?.message||error));
+   const issue=String(error?.message||error);
+   feedback('画面遷移診断 E：'+issue);
+   // Do not discard an open modal or unsaved patient state after a render error.
+   if($('modal'))window.alert('画面遷移診断 E：'+issue);
   }
  });
 
