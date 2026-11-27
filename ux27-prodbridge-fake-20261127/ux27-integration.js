@@ -229,26 +229,47 @@ function restoreList(){window.renderPatients();window.scrollTo(0,0);}
 const originalPatients=window.renderPatients;
 window.renderPatients=function(...args){
  if(recognizer)abortMic();
+ // Native patient rendering is never swallowed. Only the optional UX27 UI
+ // can fail open, so a broken round-note button cannot block patient access.
  const out=originalPatients.apply(this,args);
- const hero=document.querySelector('#main .hero');
- if(hero&&host.unlocked()){
-  const button=document.createElement('button');
-  button.id='ux27OpenDaily';button.className='btn secondary';button.type='button';button.textContent='🗓 回診メモ一覧';
-  const next=$('newP');
-  if(next)hero.insertBefore(button,next);else hero.appendChild(button);
-  button.onclick=()=>{chosenDay=localDay(new Date());drawDaily();};
- }
- // Called by the native render() after the current patient's save-before-close checks.
- if(returnToDaily&&host.unlocked()&&!$('modal')){
-  returnToDaily=false;drawDaily();
-  requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
+ try{
+  const hero=document.querySelector('#main .hero');
+  if(hero&&host.unlocked()&&!$('ux27OpenDaily')){
+   const button=document.createElement('button');
+   button.id='ux27OpenDaily';button.className='btn secondary';button.type='button';button.textContent='🗓 回診メモ一覧';
+   // Never pass a node from outside this hero to insertBefore.
+   // Some production add-ons may move or replace the new-patient button.
+   const next=hero.querySelector('#newP');
+   if(next&&next.parentNode===hero)hero.insertBefore(button,next);
+   else hero.appendChild(button);
+   button.onclick=()=>{
+    chosenDay=localDay(new Date());
+    try{drawDaily()}catch(_){
+     returnToDaily=false;
+     try{originalPatients.call(window)}catch(__){}
+     alert('回診メモ一覧を表示できませんでした。患者一覧を優先して表示します。');
+    }
+   };
+  }
+  // Called by the native render() after the current patient's save-before-close checks.
+  if(returnToDaily&&host.unlocked()&&!$('modal')){
+   returnToDaily=false;drawDaily();
+   requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
+  }
+ }catch(_){
+  returnToDaily=false;
+  // Protect all normal patient controls even if an optional UX27 DOM operation fails.
+  try{
+   $('ux27Daily')?.remove();
+   $('main')?.querySelectorAll('.kpis,.santherese-nav,.toolbar,#patientList').forEach(el=>{el.hidden=false;});
+  }catch(__){}
  }
  return out;
 };
 const originalBasic=window.renderBasicDashboard;
 window.renderBasicDashboard=function(...args){
  const out=originalBasic.apply(this,args);
- installPanel();
+ try{installPanel()}catch(_){/* Optional memo panel must not break Basic information. */}
  return out;
 };
 
