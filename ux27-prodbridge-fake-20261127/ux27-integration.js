@@ -215,17 +215,35 @@ document.addEventListener('click',event=>{
  ux27ActivatePatient(button,'クリック');
 },true);
 
+let ux27DrawPhase='開始';
 function drawDaily(){
+ ux27DrawPhase='画面準備';
  const existing=$('ux27Daily');if(existing)existing.remove();
  const main=$('main');
  if(!main||!host.unlocked())return;
+ ux27DrawPhase='一覧データ';
+ const markup=dailyMarkup();
+ ux27DrawPhase='一覧描画';
  main.querySelectorAll('.kpis,.santherese-nav,.toolbar,#patientList').forEach(el=>el.hidden=true);
- main.insertAdjacentHTML('beforeend',dailyMarkup());
- $('#ux27Date').onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)){chosenDay=e.target.value;drawDaily()}};
- $('#ux27Back').onclick=()=>{returnToDaily=false;restoreList()};
-
+ main.insertAdjacentHTML('beforeend',markup);
+ ux27DrawPhase='操作接続';
+ const date=$('ux27Date'),back=$('ux27Back');
+ if(!date||!back)throw new Error('optional controls unavailable');
+ date.onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)){chosenDay=e.target.value;drawDaily()}};
+ back.onclick=()=>{returnToDaily=false;restoreList()};
+ ux27DrawPhase='完了';
 }
 function restoreList(){window.renderPatients();window.scrollTo(0,0);}
+function protectPatientListAfterDailyError(error){
+ returnToDaily=false;
+ try{
+  $('ux27Daily')?.remove();
+  $('main')?.querySelectorAll('.kpis,.santherese-nav,.toolbar,#patientList').forEach(el=>{el.hidden=false;});
+ }catch(_){}
+ const allowed=['NotFoundError','TypeError','RangeError','SyntaxError','InvalidStateError','SecurityError'];
+ const kind=allowed.includes(String(error?.name||''))?String(error.name):'Other';
+ alert('回診メモ一覧を表示できませんでした。診断：'+ux27DrawPhase+'／'+kind+'。患者一覧は維持します。');
+}
 const originalPatients=window.renderPatients;
 window.renderPatients=function(...args){
  if(recognizer)abortMic();
@@ -244,17 +262,14 @@ window.renderPatients=function(...args){
    else hero.appendChild(button);
    button.onclick=()=>{
     chosenDay=localDay(new Date());
-    try{drawDaily()}catch(_){
-     returnToDaily=false;
-     try{originalPatients.call(window)}catch(__){}
-     alert('回診メモ一覧を表示できませんでした。患者一覧を優先して表示します。');
-    }
+    try{drawDaily()}catch(error){protectPatientListAfterDailyError(error)}
    };
   }
   // Called by the native render() after the current patient's save-before-close checks.
   if(returnToDaily&&host.unlocked()&&!$('modal')){
-   returnToDaily=false;drawDaily();
-   requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
+   returnToDaily=false;
+   try{drawDaily();requestAnimationFrame(()=>window.scrollTo(0,dailyScroll))}
+   catch(error){protectPatientListAfterDailyError(error)}
   }
  }catch(_){
   returnToDaily=false;
