@@ -22,6 +22,24 @@ function notesFor(patient){
 let chosenDay=localDay(new Date()),dailyScroll=0,returnToDaily=false,recognizer=null,speechPatient=null;
 let micPrefix='',micFinal='',micDraft='',micError='';
 let noteSaving=false;
+let returnObserver=null;
+// Fallback for native patient-close paths: preserve the existing save-before-close guard.
+function stopReturnObserver(){
+ if(returnObserver){returnObserver.disconnect();returnObserver=null;}
+}
+function watchPatientClose(){
+ stopReturnObserver();
+ returnObserver=new MutationObserver(()=>{
+  if(!returnToDaily){stopReturnObserver();return;}
+  if($('modal'))return; // Changing tabs replaces the modal; do not treat that as closing.
+  if(!host.unlocked()){returnToDaily=false;stopReturnObserver();return;}
+  // The core close handler has finished (including its encrypted autosave checks).
+  returnToDaily=false;stopReturnObserver();
+  if(!$('ux27Daily'))drawDaily();
+  requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
+ });
+ returnObserver.observe(document.body,{childList:true,subtree:true});
+}
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
 function panelMarkup(patient){
@@ -167,6 +185,7 @@ function drawDaily(){
   };
   if(!found){feedback().textContent='患者が見つかりません。患者一覧へ戻って確認してください。';return;}
   dailyScroll=window.scrollY;returnToDaily=true;
+  watchPatientClose();
   try{
    host.openPatient(found);
    // An opened patient must have the actual modal and Basic tab; don't report a false success.
@@ -174,7 +193,7 @@ function drawDaily(){
    const info=$('modal')?.querySelector('.basic-information');
    if(!info)throw Error('基本情報タブを表示できませんでした');
   }catch(error){
-   returnToDaily=false;
+   returnToDaily=false;stopReturnObserver();
    feedback().textContent='患者画面を開けませんでした：'+String(error?.message||error);
   }
  });
@@ -206,12 +225,16 @@ window.closePatient=function(...args){
  const restore=returnToDaily;
  const out=originalClose.apply(this,args);
  if(restore&&host.unlocked()){
-  returnToDaily=false;
+  returnToDaily=false;stopReturnObserver();
   drawDaily();
   requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
  }
  return out;
 };
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&recognizer)abortMic()});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&recognizer)abortMic();
+ // The core app locks on backgrounding; never restore a private view while locked.
+ if(document.hidden){returnToDaily=false;stopReturnObserver();}
+});
 window.addEventListener('pagehide',()=>{if(recognizer)abortMic()});
 })();
