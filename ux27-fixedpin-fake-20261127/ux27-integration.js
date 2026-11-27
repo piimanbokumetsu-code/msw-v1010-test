@@ -22,24 +22,16 @@ function notesFor(patient){
 let chosenDay=localDay(new Date()),dailyScroll=0,returnToDaily=false,recognizer=null,speechPatient=null;
 let micPrefix='',micFinal='',micDraft='',micError='';
 let noteSaving=false;
-let returnObserver=null;
-// Fallback for native patient-close paths: preserve the existing save-before-close guard.
-function stopReturnObserver(){
- if(returnObserver){returnObserver.disconnect();returnObserver=null;}
-}
-function watchPatientClose(){
- stopReturnObserver();
- returnObserver=new MutationObserver(()=>{
-  if(!returnToDaily){stopReturnObserver();return;}
-  if($('modal'))return; // Changing tabs replaces the modal; do not treat that as closing.
-  if(!host.unlocked()){returnToDaily=false;stopReturnObserver();return;}
-  // The core close handler has finished (including its encrypted autosave checks).
-  returnToDaily=false;stopReturnObserver();
-  if(!$('ux27Daily'))drawDaily();
-  requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
- });
- returnObserver.observe(document.body,{childList:true,subtree:true});
-}
+// Return to the daily screen only after the native patient close has completed.
+// The core app sends that event after its existing encrypted save checks.
+window.addEventListener('ux27-patient-closed',()=>{
+ if(!returnToDaily)return;
+ if(!host.unlocked()){returnToDaily=false;return;}
+ returnToDaily=false;
+ if(recognizer)abortMic();
+ drawDaily();
+ requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
+});
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
 function panelMarkup(patient){
@@ -174,29 +166,35 @@ function drawDaily(){
  main.insertAdjacentHTML('beforeend',dailyMarkup());
  $('#ux27Date').onchange=e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)){chosenDay=e.target.value;drawDaily()}};
  $('#ux27Back').onclick=()=>{returnToDaily=false;restoreList()};
- main.querySelectorAll('[data-ux27-id]').forEach(btn=>btn.onclick=()=>{
-  // Keep the exact patient object used to render the daily list; do not change saved data.
+ // Delegate taps from the daily view itself, including taps on the name text.
+ // Always show a visible error if opening the Basic tab fails.
+ const daily=$('ux27Daily');
+ daily.addEventListener('click',event=>{
+  const btn=event.target?.closest?.('button[data-ux27-id]');
+  if(!btn||!daily.contains(btn))return;
+  event.preventDefault();event.stopPropagation();
   const id=btn.getAttribute('data-ux27-id');
   const found=host.activePatients().find(p=>String(p.id)===id);
-  const feedback=()=>{
+  const feedback=messageText=>{
    let node=$('ux27NavStatus');
    if(!node){node=document.createElement('p');node.id='ux27NavStatus';node.setAttribute('role','alert');$('ux27Groups')?.prepend(node);}
-   return node;
+   node.textContent=messageText;
   };
-  if(!found){feedback().textContent='患者が見つかりません。患者一覧へ戻って確認してください。';return;}
-  dailyScroll=window.scrollY;returnToDaily=true;
-  watchPatientClose();
+  if(!found){feedback('患者が見つかりません。');return;}
+  dailyScroll=window.scrollY;
+  returnToDaily=true;
   try{
    host.openPatient(found);
-   // An opened patient must have the actual modal and Basic tab; don't report a false success.
-   if(!$('modal')||!$('tabbody'))throw Error('患者基本情報の画面を生成できませんでした');
-   const info=$('modal')?.querySelector('.basic-information');
-   if(!info)throw Error('基本情報タブを表示できませんでした');
+   if(!$('modal')||!$('tabbody')||!$('modal').querySelector('.basic-information')){
+    throw new Error('患者基本情報の表示を確認できませんでした');
+   }
   }catch(error){
-   returnToDaily=false;stopReturnObserver();
-   feedback().textContent='患者画面を開けませんでした：'+String(error?.message||error);
+   returnToDaily=false;
+   if($('modal'))$('modal').remove();
+   feedback('患者画面を開けませんでした：'+String(error?.message||error));
   }
  });
+
 }
 function restoreList(){window.renderPatients();window.scrollTo(0,0);}
 const originalPatients=window.renderPatients;
@@ -219,22 +217,10 @@ window.renderBasicDashboard=function(...args){
  installPanel();
  return out;
 };
-const originalClose=window.closePatient;
-window.closePatient=function(...args){
- if(recognizer)abortMic();
- const restore=returnToDaily;
- const out=originalClose.apply(this,args);
- if(restore&&host.unlocked()){
-  returnToDaily=false;stopReturnObserver();
-  drawDaily();
-  requestAnimationFrame(()=>window.scrollTo(0,dailyScroll));
- }
- return out;
-};
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden&&recognizer)abortMic();
  // The core app locks on backgrounding; never restore a private view while locked.
- if(document.hidden){returnToDaily=false;stopReturnObserver();}
+ if(document.hidden){returnToDaily=false;}
 });
 window.addEventListener('pagehide',()=>{if(recognizer)abortMic()});
 })();
