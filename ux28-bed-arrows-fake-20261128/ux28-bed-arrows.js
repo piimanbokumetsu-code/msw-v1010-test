@@ -5,7 +5,9 @@
 (function(){
  'use strict';
  if(window.__MSW_UX28_ARROWS_INSTALLED__)return;
- if(typeof window.renderPatientModal!=='function'||
+ const host=window.UX27Host;
+ if(!host||typeof host.getPatient!=='function'||typeof host.unlocked!=='function'||
+    typeof window.renderPatientModal!=='function'||
     typeof window.finishPatientAndNavigate!=='function'||
     typeof window.openPatient!=='function'||
     typeof window.activePatients!=='function'||
@@ -39,8 +41,8 @@
  }
  async function move(direction){
   if(busy)return;
-  const current=window.selectedPatient,modal=document.getElementById('modal');
-  if(!current||current._new||!modal||!window.key||!window.state)return;
+  const current=host.getPatient(),modal=document.getElementById('modal');
+  if(!current||current._new||!modal||!host.unlocked())return;
   const people=orderPatients(),index=position(current,people),target=people[index+direction];
   if(index<0||!target||target===current)return;
   const stop=document.getElementById('ux27Stop');
@@ -56,7 +58,7 @@
   if(right)right.disabled=true;
   try{
    await window.finishPatientAndNavigate(()=>{
-    if(!window.key||!window.state||window.selectedPatient!==current)return;
+    if(!host.unlocked()||host.getPatient()!==current)return;
     // Native patient transition already flushed current form fields, including IME.
     document.getElementById('modal')?.remove();
     window.openPatient(target);
@@ -67,7 +69,7 @@
    busy=false;
    // A failed save leaves the original modal and its buttons intact.
    if(document.getElementById('modal')){
-    const ordered=orderPatients(),i=position(window.selectedPatient,ordered);
+    const ordered=orderPatients(),i=position(host.getPatient(),ordered);
     const prev=document.getElementById('ux28Prev');
     const next=document.getElementById('ux28Next');
     if(prev)prev.disabled=i<=0;
@@ -77,7 +79,7 @@
  }
  function addButtons(){
   const modal=document.getElementById('modal');
-  const patient=window.selectedPatient;
+  const patient=host.getPatient();
   const h2=modal?.querySelector('.sheethead .patient-sheet-title h2');
   if(!h2||!patient||patient._new||modal.querySelector('#ux28Nav'))return;
   const people=orderPatients(),i=position(patient,people);
