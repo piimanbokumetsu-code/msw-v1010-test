@@ -1,7 +1,8 @@
-/* UX28: compact, accessible arrows alongside the patient name. */
+/* UX28: larger touch targets near center-right of patient modal heading. */
 #modal .patient-sheet-title h2{display:inline;vertical-align:middle}
-#modal .ux28-arrows{display:inline-flex;align-items:center;gap:5px;vertical-align:middle;margin-left:10px;white-space:nowrap}
-#modal .ux28-arrow{min-width:38px;min-height:38px;padding:4px 8px;border:1px solid var(--line,#c5d5d9);border-radius:9px;background:#f7fafb;color:var(--ink,#17383c);font-size:21px;font-weight:750;line-height:1.2;cursor:pointer;touch-action:manipulation}
+#modal .sheethead .ux28-arrows{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;margin:0 8px 0 4px;white-space:nowrap}
+#modal .ux28-arrow{min-width:54px;min-height:48px;padding:8px 10px;border:1px solid var(--line,#c5d5d9);border-radius:11px;background:#f7fafb;color:var(--ink,#17383c);font-size:27px;font-weight:750;line-height:1.15;cursor:pointer;touch-action:manipulation}
 #modal .ux28-arrow:disabled{opacity:.34;cursor:default}
 #modal .ux28-arrow:focus-visible{outline:3px solid #0f766e;outline-offset:2px}
-@media(max-width:640px){#modal .ux28-arrows{margin-left:6px;gap:4px}#modal .ux28-arrow{min-width:34px;min-height:34px;padding:4px 6px}}
+@media(max-width:900px){#modal .sheethead{flex-wrap:wrap}#modal .sheethead .spacer{min-width:0}#modal .sheethead .ux28-arrows{margin-left:clamp(8px,2vw,20px)}}
+@media(max-width:520px){#modal .sheethead .ux28-arrows{margin-left:auto;gap:6px}#modal .ux28-arrow{min-width:50px;min-height:46px;font-size:25px}}

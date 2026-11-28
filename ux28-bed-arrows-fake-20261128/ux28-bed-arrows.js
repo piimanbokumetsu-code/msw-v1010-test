@@ -102,7 +102,10 @@
   prev.addEventListener('click',()=>void move(-1));
   next.addEventListener('click',()=>void move(1));
   nav.append(prev,next);
-  h2.insertAdjacentElement('afterend',nav);
+  // The existing flexible header spacer places the arrows near center-right,
+  // rather than immediately beside the name. Never replace title/save buttons.
+  const spacer=modal.querySelector('.sheethead .spacer');
+  (spacer||h2).insertAdjacentElement('afterend',nav);
  }
  window.renderPatientModal=function(...args){
   const result=originalModal.apply(this,args);
