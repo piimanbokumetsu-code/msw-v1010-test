@@ -1,0 +1,18 @@
+{
+  "id": "./ux28-bed-arrows-fake-20261128",
+  "name": "UX28患者前後移動・架空テスト",
+  "short_name": "UX28前後移動",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0f5f9",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
