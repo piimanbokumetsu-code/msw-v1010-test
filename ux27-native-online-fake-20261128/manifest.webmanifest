@@ -1,0 +1,18 @@
+{
+  "id": "./ux27-native-online-fake-20261128",
+  "name": "UX27オンライン音声・架空テスト",
+  "short_name": "UX27音声オンライン",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0f5f9",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
