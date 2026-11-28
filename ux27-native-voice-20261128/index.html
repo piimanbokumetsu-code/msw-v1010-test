@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0f766e">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; worker-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
+<title>UX27 iPad標準音声入力・架空テスト</title>
+<link rel="stylesheet" href="voice-test.css?v=native20261128a">
+<script defer src="voice-test.js?v=native20261128a"></script>
+</head><body><main>
+<header><small>🧪 UX27 音声認識・独立検証版</small><h1>iPadの標準機能を試す</h1><p>本番PWAとは別の架空テストページ。患者データ・PIN・写真・バックアップにはアクセスしません。</p></header>
+<aside><strong>実際の患者・職員・病院の情報は、絶対に話さないでね。</strong><p>試す言葉は「みかんをふたつ」。文字起こしの表示だけで、保存機能はありません。</p></aside>
+<section><h2>① 対応状況</h2>
+<dl><div><dt>音声認識API</dt><dd id="api">確認中</dd></div>
+<div><dt>端末内処理の明示指定</dt><dd id="local">確認中</dd></div>
+<div><dt>日本語の端末内対応</dt><dd id="japanese">確認中</dd></div>
+<div><dt>通信状態（ブラウザー判定）</dt><dd id="network">確認中</dd></div>
+<div><dt>試験方式</dt><dd id="mode">確認中</dd></div></dl>
+<button type="button" class="minor" id="refresh">対応状態を再確認</button>
+</section>
+<section><h2>② マイク1回タップで開始</h2>
+<p>端末内処理を確実に要求できる場合だけ、通信中もテスト開始できます。それ以外は通信を完全に切り、下の確認を入れた場合だけ開始できます。</p>
+<label class="check"><input type="checkbox" id="offlineConfirm">機内モードON・Wi-Fi OFFなど、通信を手動で切ったことを確認した</label>
+<p class="hint">オフライン試験をするときは、先にこのページを開き、そのあと通信を切ってSafariに戻ってください。再読み込みは不要です。</p>
+<p id="ready" class="ready" role="status">安全な開始条件を確認中…</p>
+<div class="actions"><button type="button" class="start" id="start" disabled>🎤 音声入力開始</button><button type="button" class="stop" id="stop" disabled>■ 停止</button></div>
+<label for="output" class="outputLabel">認識した文字（この画面だけ・保存なし）</label>
+<textarea id="output" rows="3" readonly placeholder="みかんをふたつ"></textarea>
+<button type="button" class="minor" id="clear">文字を消す</button>
+<p id="feedback" role="status">まだ認識を開始していません。</p></section>
+<section><h2>安全性の判断について</h2>
+<p>このページは外部通信を行うJavaScriptや音声データ保存機能を持ちません。ただしSafariやiPadOS内部の認識サービスの通信までは、ページから監査できません。</p>
+<p>オフライン時に日本語が認識できても、オンライン時に外部送信しないことの証明にはなりません。実患者への利用は院内の情報管理方針の確認後に検討します。</p>
+</section><footer>独立した架空音声テスト／本番UX27は無変更</footer></main></body></html>
