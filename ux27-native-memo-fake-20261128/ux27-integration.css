@@ -1,0 +1,37 @@
+/* UX27 production: Basic-tab round notes and daily list only; print unchanged. */
+#modal .basic-information .ux27-panel{margin-top:12px;padding:12px;border:2px solid #83cfc0;border-radius:10px;background:#f7fcfb;min-width:0}
+#modal .ux27-panel h3{font-size:17px;margin:0 0 6px;color:#125c50}
+#modal .ux27-help,.ux27-help{font-size:12px;color:#546d78;line-height:1.6;margin:4px 0 10px}
+#modal .ux27-latest{background:#eef5fa;border:1px solid #cfe0e8;border-radius:8px;padding:10px;margin:9px 0 11px;overflow-wrap:anywhere;white-space:pre-wrap;font-size:13px;line-height:1.6}
+#modal .ux27-latest strong{display:block;font-size:12px}
+#modal .ux27-latest time{display:block;font-size:11px;color:#54727e;margin:3px 0 5px}
+#modal .ux27-panel label{display:block;font-weight:700;font-size:12px;margin-bottom:6px}
+#modal .ux27-panel textarea{display:block;resize:vertical;width:100%;min-height:92px;padding:9px 10px;border-radius:8px;border:1px solid #91aeb8;font-size:16px;line-height:1.5;background:#fff;color:#23414f;box-sizing:border-box}
+#modal .ux27-controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+#modal .ux27-controls button{flex:1 1 auto;min-height:42px;font-size:13px}
+#modal .ux27-controls button:disabled{opacity:.55}
+#modal .ux27-status{margin:8px 0 10px;padding:7px 9px;border-radius:7px;background:#ecf4fa;font-size:12px;line-height:1.5;color:#31556e}
+#modal .ux27-status[data-kind=error]{background:#fff0e7;color:#a7412a}
+#modal .ux27-status[data-kind=ok]{background:#e1f5e6;color:#126a3e}
+#modal .ux27-status[data-kind=active]{background:#e3f2ff;color:#175d97}
+#modal #ux27History{margin-top:12px;border:1px solid #b6cfda;border-radius:8px;background:white;font-size:13px}
+#modal #ux27History summary{padding:11px 9px;font-weight:700;color:#23586c;cursor:pointer}
+#modal .ux27-history-list{padding:0 10px 10px}
+#modal .ux27-history-note{padding:10px 2px;border-top:1px solid #e1eaf0;white-space:pre-wrap;line-height:1.6;overflow-wrap:anywhere}
+#modal .ux27-history-note time{display:block;color:#657b89;font-size:11px;margin-bottom:3px}
+.ux27-daily{padding:12px;background:#fff;border:1px solid #cfdfe5;border-radius:12px;margin:10px 0 40px}
+.ux27-daily-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.ux27-daily-head h2{font-size:19px;margin:5px 0}
+.ux27-date{display:flex;align-items:center;gap:14px;margin:12px 0;padding:10px;background:#f1f7fa;border-radius:9px}
+.ux27-date label{font-size:13px;font-weight:700}
+.ux27-date input{font-size:16px;max-width:220px;min-height:42px;border:1px solid #a4bac9;border-radius:8px;padding:6px;background:#fff;color:#1e4154}
+.ux27-group{border:1px solid #c7d9e5;border-radius:10px;margin-bottom:11px;padding:8px;background:#fff}
+.ux27-patient{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px;background:#e7f2fd;border:1px solid #b8d5e8;border-radius:8px;color:#19445b}
+.ux27-patient strong{flex:1;font-size:15px}
+.ux27-patient span{font-size:12px}
+.ux27-entry{display:grid;grid-template-columns:54px minmax(0,1fr);align-items:start;gap:9px;padding:11px 7px;border-bottom:1px solid #e6ecf1;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ux27-entry:last-child{border-bottom:0}
+.ux27-entry time{font-size:12px;color:#567789}
+.ux27-empty{padding:27px;text-align:center;background:#f8fbfd;border:1px dashed #bacdd8;border-radius:9px;color:#5d6d7a}
+#ux27OpenDaily{font-weight:700}
+@media(max-width:520px){.ux27-daily{padding:9px}.ux27-daily-head{align-items:flex-start}.ux27-daily-head h2{font-size:17px}.ux27-patient{gap:6px}.ux27-patient span{font-size:11px}.ux27-patient strong{font-size:14px}}
