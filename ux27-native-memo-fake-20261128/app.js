@@ -29,7 +29,7 @@ document.addEventListener('change',event=>{
 // Patient data must never be uploaded to ChatGPT or GitHub. Local encryption does not replace institutional controls.
 const DEPLOYMENT_POLICY=Object.freeze({
   origin:'https://piimanbokumetsu-code.github.io',
-  basePath:'/msw-v1010-test/ux27-prodbridge-fake-20261127/',
+  basePath:'/msw-v1010-test/ux27-native-memo-fake-20261128/',
   releaseCandidate:true
 });
 function deploymentLocationAllowed(loc){
